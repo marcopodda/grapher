@@ -1,0 +1,8 @@
+**/__pycache__
+DATA/**
+RUNS/**
+*.y[a]ml
+*.py[ocd]
+*.png
+**/.vscode
+*.env

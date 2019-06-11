@@ -9,7 +9,7 @@ def run():
     trainer = Trainer(config, dataset.input_dim, dataset.output_dim)
     loader = dataset.get_loader('train')
     trainer.fit(loader)
-    samples = trainer.model.sample(10)
+    samples = trainer.model.sample(config.num_samples)
     print(samples)
 
 if __name__ == "__main__":

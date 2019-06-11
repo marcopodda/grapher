@@ -1,3 +1,6 @@
+import networkx as nx
+
+
 class GraphList:
     """
     A class for a list of networkx graphs.
@@ -54,8 +57,43 @@ class GraphList:
         return self._avg_edges
 
     def filter(self, fn):
-        self._graphs = [el for el in self._graphs if fn(el)]
+        graphs = [el for el in self._graphs if fn(el)]
+        self._graphs = GraphList(graphs)
         self._max_nodes = None
         self._max_edges = None
         self._avg_nodes = None
         self._avg_edges = None
+
+
+def bfs_seq(G, start_id):
+    dictionary = dict(nx.bfs_successors(G, start_id))
+    start = [start_id]
+    output = [start_id]
+    while len(start) > 0:
+        next = []
+        while len(start) > 0:
+            current = start.pop(0)
+            neighbor = dictionary.get(current)
+            if neighbor is not None:
+                next = next + neighbor
+        output = output + next
+        start = next
+    return output
+
+
+def encode_graph(G, bfs_order=False):
+    if bfs_order:
+        start_node = min(G.nodes())
+        seq = bfs_seq(G, start_id=start_node)
+        # start from 3 because we are also counting pad, sos and eos tokens
+        mapping = {n:i for (i,n) in enumerate(seq, 3)}
+    else:
+        # start from 3 because we are also counting pad, sos and eos tokens
+        mapping = {n:i for (i,n) in enumerate(G.nodes(), 3)}
+    G = nx.relabel_nodes(G, mapping)
+
+    edges = G.edges()
+    if bfs_order:
+        edges = sorted(edges)
+
+    return list(zip(*edges))

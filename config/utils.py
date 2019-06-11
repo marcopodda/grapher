@@ -40,7 +40,7 @@ def save_csv(df, path, **kwargs):
 
 
 def load_yaml(path):
-    return yaml.load(open(path, "r"), Loader=yaml.SafeLoader)
+    return yaml.load(open(path, "r"), Loader=yaml.FullLoader)
 
 
 def save_yaml(obj, path):

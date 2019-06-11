@@ -4,74 +4,127 @@ import requests
 import zipfile
 from pathlib import Path
 
+import numpy as np
+import networkx as nx
 import torch
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
 from .utils import read_data
-from .graphlist import GraphList
-from .dataset import GraphDataset
+from .graph import GraphList
+from .dataset import GraphDataset, GraphDataCollator
+from config.utils import load_yaml, save_yaml
 
 
 DATA_DIR = Path('DATA')
-URL = "http://ls11-www.cs.uni-dortmund.de/people/morris/graphkerneldatasets/{name}.zip"
 
 class DatasetManager:
 
-    def __init__(self, name, config):
+    def __init__(self, config, name):
         self.name = name
         self.config = config
 
         self.raw_dir = DATA_DIR / name / "raw"
         if not self.raw_dir.exists():
             os.makedirs(self.raw_dir)
-            self._download()
+            self._fetch_data()
 
         self.processed_dir = DATA_DIR / name / "processed"
         if not self.processed_dir.exists():
             os.makedirs(self.processed_dir)
-            self._preprocess()
+            self._preprocess_data()
 
         self.data = torch.load(self.processed_dir / f"{self.name}.pt")
 
-        splits_file = self.processed_dir / 'splits.pt'
+        splits_file = self.processed_dir / f"splits.yaml"
         if not splits_file.exists():
             self._make_splits()
 
-        self.splits = torch.load(self.processed_dir / 'splits.pt')
+        self.splits = load_yaml(self.processed_dir / f"splits.yaml")
+
+    def _preprocess_data(self):
+        graphs, _ = self._read_data()
+        graphlist = GraphList(graphs)
+
+        if self.config.max_num_nodes:
+            graphlist.filter(lambda el: el.number_of_nodes() < self.config.max_num_nodes)
+
+        dataset = GraphDataset(self.config, graphlist)
+        torch.save(dataset, self.processed_dir / f"{self.name}.pt")
+
+    def _make_splits(self):
+        indices = [i for i in range(len(self.data))]
+        train_idxs, test_idxs = train_test_split(indices, test_size=self.config.test_size)
+        splits = {'train': train_idxs, 'test': test_idxs}
+        save_yaml(splits, self.processed_dir / 'splits.yaml')
+
+    def get_loader(self, name):
+        indices = self.splits[name]
+        return DataLoader(dataset=Subset(self.data, indices),
+                          batch_size=self.config.batch_size,
+                          shuffle=self.config.shuffle,
+                          collate_fn=GraphDataCollator(self.config))
+
+    def __len__(self):
+        return len(self.data)
+
+    @property
+    def input_dim(self):
+        return self.data.input_dim
+
+    @property
+    def output_dim(self):
+        return self.data.output_dim
 
 
-    def _download(self):
-        url = URL.format(name=self.name)
+class TUData(DatasetManager):
+    URL = "http://ls11-www.cs.uni-dortmund.de/people/morris/graphkerneldatasets/{name}.zip"
+
+    def _fetch_data(self):
+        url = self.URL.format(name=self.name)
         response = requests.get(url)
         stream = io.BytesIO(response.content)
         with zipfile.ZipFile(stream) as z:
             for fname in z.namelist():
                 z.extract(fname, self.raw_dir)
 
-    def _preprocess(self):
-        graphs, _ = read_data(self.name, self.raw_dir)
-        graphlist = GraphList(graphs)
+    def _read_data(self):
+        node2graph = {}
+        Gs = []
 
-        if self.config.max_num_nodes:
-            graphlist.filter(lambda el: el.number_of_nodes() < self.config.max_num_nodes)
-
-        if self.config.max_num_edges:
-            graphlist.filter(lambda el: el.number_of_edges() < self.config.max_num_edges)
-
-        torch.save(GraphDataset(graphlist), self.processed_dir / f"{self.name}.pt")
-
-    def _make_splits(self):
-        indices = [i for i in range(len(self.data))]
-        train_idxs, test_idxs = train_test_split(indices, test_size=self.config.test_size)
-        splits = {'train': train_idxs, 'test': test_idxs}
-        torch.save(splits, self.processed_dir / 'splits.pt')
-
-    def get_loader(self, name):
-        indices = self.splits[name]
-        dataset = Subset(self.data, indices)
-        return DataLoader(dataset,
-                          batch_size=self.config.batch_size,
-                          shuffle=self.config.shuffle)
+        graph_indicator_path = self.raw_dir / self.name / f"{self.name}_graph_indicator.txt"
+        adj_list_path = self.raw_dir / self.name / f"{self.name}_A.txt"
+        node_labels_path = self.raw_dir / self.name / f"{self.name}_node_labels.txt"
+        graph_labels_path = self.raw_dir / self.name / f"{self.name}_graph_labels.txt"
 
 
+        with open(graph_indicator_path, "r") as f:
+            c = 1
+            for line in f:
+                node2graph[c] = int(line[:-1])
+                if not node2graph[c] == len(Gs):
+                    Gs.append(nx.Graph())
+                Gs[-1].add_node(c)
+                c += 1
+
+        with open(adj_list_path, "r") as f:
+            for line in f:
+                edge = line[:-1].split(",")
+                edge[1] = edge[1].replace(" ", "")
+                Gs[node2graph[int(edge[0])]-1].add_edge(int(edge[0]), int(edge[1]))
+
+        if node_labels_path.exists():
+            with open(node_labels_path, "r") as f:
+                c = 1
+                for line in f:
+                    node_label = int(line[:-1])
+                    Gs[node2graph[c]-1].node[c]['label'] = node_label
+                    c += 1
+
+        labels = []
+        with open(graph_labels_path, "r") as f:
+            for line in f:
+                labels.append(int(line[:-1]))
+
+        labels  = np.array(labels, dtype = np.float)
+        return Gs, labels

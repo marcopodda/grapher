@@ -54,7 +54,7 @@ class GraphDataCollator:
         outputs = [torch.LongTensor(outputs[i]) for i in order]
         lengths = [lengths[i] for i in order]
 
-		# pad sequences
+        # pad sequences
         input_padded = nn.utils.rnn.pad_sequence(inputs, batch_first=True)
         shifted_input_padded = nn.utils.rnn.pad_sequence(shifted_inputs, batch_first=True)
         output_padded = nn.utils.rnn.pad_sequence(outputs, batch_first=True)

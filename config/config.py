@@ -1,7 +1,7 @@
-from .base import BaseConfig
+from .base import BaseConfigWithSerializer
 
 
-class Config(BaseConfig):
+class Config(BaseConfigWithSerializer):
     def set_defaults(self):
         Config._params.update({
             "bfs_order": True,
@@ -15,7 +15,7 @@ class Config(BaseConfig):
             "temperature": 0.8,
             "force_teacher": 0.9,
             "num_samples": 20,
-            "max_epochs": 200,
+            "max_epochs": 20,
             "scheduler_class": "StepLR",
             "scheduler_params": {"step_size": 50, "gamma": 0.5},
             "optimizer_class": "Adam",

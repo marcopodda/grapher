@@ -58,11 +58,7 @@ class GraphList:
 
     def filter(self, fn):
         graphs = [el for el in self._graphs if fn(el)]
-        self._graphs = GraphList(graphs)
-        self._max_nodes = None
-        self._max_edges = None
-        self._avg_nodes = None
-        self._avg_edges = None
+        return GraphList(graphs)
 
 
 def bfs_seq(G, start_id):
@@ -86,10 +82,12 @@ def encode_graph(G, bfs_order=False):
         start_node = min(G.nodes())
         seq = bfs_seq(G, start_id=start_node)
         # start from 3 because we are also counting pad, sos and eos tokens
-        mapping = {n:i for (i,n) in enumerate(seq, 3)}
+        mapping = {n: i for (i, n) in enumerate(seq, 3)}
+        G = G.subgraph(seq)
     else:
         # start from 3 because we are also counting pad, sos and eos tokens
-        mapping = {n:i for (i,n) in enumerate(G.nodes(), 3)}
+        mapping = {n: i for (i, n) in enumerate(G.nodes(), 3)}
+
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
@@ -97,3 +95,16 @@ def encode_graph(G, bfs_order=False):
         edges = sorted(edges)
 
     return list(zip(*edges))
+
+
+def decode_graph(xs, ys):
+    G = nx.Graph()
+    G.add_edges_from(zip(xs, ys))
+    return G
+
+
+def decode_graphs(samples):
+    graphs = []
+    for (xs, ys) in samples:
+        graphs.append(decode_graph(xs, ys))
+    return GraphList(graphs)

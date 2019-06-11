@@ -25,7 +25,7 @@ class RNN(nn.Module):
         outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs, batch_first=True)
 
         outputs = outputs.contiguous()
-        outputs = outputs.view(-1, outputs.shape[2])
+        outputs = outputs.view(-1, outputs.size(2))
 
         outputs = self.linear(outputs)
 
@@ -34,7 +34,6 @@ class RNN(nn.Module):
             outputs = outputs.view(batch_size, seq_len, -1)
 
         return outputs, h
-
 
 
 class Model(nn.Module):
@@ -58,8 +57,6 @@ class Model(nn.Module):
 
     def _sample_rnn1(self):
         model = self.rnn1
-        hidden_layers = self.config.num_layers
-        hidden_size = self.config.hidden_dim
 
         step = 0
         max_length = self.output_dim
@@ -70,7 +67,7 @@ class Model(nn.Module):
 
         with torch.no_grad():
             h = None
-            inputs = torch.LongTensor([1]) # SOS
+            inputs = torch.LongTensor([1])  # SOS
             lengths = torch.LongTensor([1])
             while step < max_length:
                 if inputs.dim() == 1:
@@ -107,7 +104,7 @@ class Model(nn.Module):
         for _ in range(num_samples):
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
-            samples.append([inputs,outputs])
+            samples.append([inputs, outputs])
 
         return samples
 

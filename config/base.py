@@ -1,4 +1,5 @@
-from .utils import load_dict, save_dict
+from pathlib import Path
+from utils.serializer import load_dict, save_dict
 
 
 class ConfigError(Exception):

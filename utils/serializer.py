@@ -66,10 +66,10 @@ def save_dict(dict_obj, path, serializer, name="config"):
     filename = path / f"{name}.{serializer}"
 
     if serializer == "json":
-        save_json(dict_obj, filename)
+        return save_json(dict_obj, filename)
     elif serializer == "yaml":
-        save_yaml(dict_obj, filename)
+        return save_yaml(dict_obj, filename)
     elif serializer == "pickle":
-        save_pickle(dict_obj, filename)
+        return save_pickle(dict_obj, filename)
 
     raise ValueError("Only JSON, Yaml and pickle files supported.")

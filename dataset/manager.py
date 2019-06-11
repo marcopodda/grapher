@@ -10,18 +10,19 @@ import torch
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
-from .utils import read_data
 from .graph import GraphList
 from .dataset import GraphDataset, GraphDataCollator
-from config.utils import load_yaml, save_yaml
+from utils.serializer import load_yaml, save_yaml
 
 
 DATA_DIR = Path('DATA')
 
+
 class DatasetManager:
 
-    def __init__(self, config, name):
+    def __init__(self, config, exp_root, name):
         self.name = name
+        self.exp_root = exp_root
         self.config = config
 
         self.raw_dir = DATA_DIR / name / "raw"
@@ -29,15 +30,13 @@ class DatasetManager:
             os.makedirs(self.raw_dir)
             self._fetch_data()
 
-        self.processed_dir = DATA_DIR / name / "processed"
-        if not self.processed_dir.exists():
-            os.makedirs(self.processed_dir)
+        self.processed_dir = self.exp_root / "data"
+        if not (self.processed_dir / f"{self.name}.pt").exists():
             self._preprocess_data()
 
         self.data = torch.load(self.processed_dir / f"{self.name}.pt")
 
-        splits_file = self.processed_dir / f"splits.yaml"
-        if not splits_file.exists():
+        if not (self.processed_dir / f"splits.yaml").exists():
             self._make_splits()
 
         self.splits = load_yaml(self.processed_dir / f"splits.yaml")
@@ -47,7 +46,8 @@ class DatasetManager:
         graphlist = GraphList(graphs)
 
         if self.config.max_num_nodes:
-            graphlist.filter(lambda el: el.number_of_nodes() < self.config.max_num_nodes)
+            graphlist = graphlist.filter(lambda G: G.number_of_nodes() < self.config.max_num_nodes)
+            graphlist = graphlist.filter(lambda G: G.number_of_nodes() > 4)
 
         dataset = GraphDataset(self.config, graphlist)
         torch.save(dataset, self.processed_dir / f"{self.name}.pt")
@@ -97,7 +97,6 @@ class TUData(DatasetManager):
         node_labels_path = self.raw_dir / self.name / f"{self.name}_node_labels.txt"
         graph_labels_path = self.raw_dir / self.name / f"{self.name}_graph_labels.txt"
 
-
         with open(graph_indicator_path, "r") as f:
             c = 1
             for line in f:
@@ -126,5 +125,5 @@ class TUData(DatasetManager):
             for line in f:
                 labels.append(int(line[:-1]))
 
-        labels  = np.array(labels, dtype = np.float)
+        labels = np.array(labels, dtype=np.float)
         return Gs, labels

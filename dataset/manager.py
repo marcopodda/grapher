@@ -3,6 +3,7 @@ import io
 import requests
 import zipfile
 from pathlib import Path
+import operator
 
 import numpy as np
 import networkx as nx
@@ -47,7 +48,7 @@ class DatasetManager:
 
         if self.config.max_num_nodes:
             graphlist = graphlist.filter(lambda G: G.number_of_nodes() < self.config.max_num_nodes)
-            graphlist = graphlist.filter(lambda G: G.number_of_nodes() > 4)
+            graphlist = graphlist.filter(lambda G: G.number_of_nodes() > self.config.min_num_nodes)
 
         dataset = GraphDataset(self.config, graphlist)
         torch.save(dataset, self.processed_dir / f"{self.name}.pt")
@@ -64,6 +65,11 @@ class DatasetManager:
                           batch_size=self.config.batch_size,
                           shuffle=self.config.shuffle,
                           collate_fn=GraphDataCollator(self.config))
+
+    def get_data(self, name):
+        indices = self.splits[name]
+        graphs = operator.itemgetter(*indices)(self.data.graphlist)
+        return GraphList(graphs)
 
     def __len__(self):
         return len(self.data)

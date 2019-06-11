@@ -1,13 +1,36 @@
+"""
+Manage experiments.
+
+Usage:
+  manage.py train <dataset>
+  manage.py resume <rundir>
+  manage.py evaluate <rundir>
+  manage.py (-h | --help)
+
+Options:
+  -d --dataset DATASET    Path to a hyperparameter config file [default: MUTAG].
+  -r --rundir PATH        Use specific run.
+  -l --last               Use last run.
+  -h --help               Show this screen.
+"""
+
+from docopt import docopt
 from learner.experiment import Experiment
 
 
-def run():
-    rundir = "/home/dottor/code/grapher/RUNS/PROTEINS_full_2019-06-11T14:31:47.370309"
-    exp = Experiment.load("PROTEINS_full", rundir)
-    exp.resume()
-    # exp = Experiment("PROTEINS_full")
-    # exp.run()
+def main():
+    args = docopt(__doc__, help=True, version=None)
+
+    if args["train"]:
+        exp = Experiment(args["<dataset>"])
+        exp.train()
+    elif args["resume"]:
+        exp = Experiment.load(args["<rundir>"])
+        exp.resume()
+    elif args["evaluate"]:
+        exp = Experiment.load(args["<rundir>"])
+        exp.evaluate()
 
 
 if __name__ == "__main__":
-    run()
+    main()

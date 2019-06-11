@@ -32,7 +32,8 @@ class Trainer:
         trainer.loss2.load_state_dict(ckpt["loss2"])
         trainer.best_loss = ckpt["best_loss"]
         trainer.losses = ckpt["losses"]
-        return trainer, ckpt["epoch"] + 1
+        trainer.current_epoch = ckpt['epoch'] + 1
+        return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim):
         self.exp_root = exp_root
@@ -44,6 +45,7 @@ class Trainer:
         self.scheduler = get_scheduler(config, self.optimizer)
 
         self.losses = []
+        self.current_epoch = 0
         self.best_loss = np.float('inf')
 
     def _run_epoch(self, loader):
@@ -67,32 +69,38 @@ class Trainer:
 
         return epoch_loss1, epoch_loss2
 
-    def fit(self, loader, start_epoch=0):
+    def fit(self, loader):
         self.model.train()
 
-        for epoch in range(start_epoch, self.config.max_epochs):
+        for epoch in range(self.current_epoch, self.config.max_epochs):
+            self.current_epoch = epoch
             epoch_loss1, epoch_loss2 = self._run_epoch(loader)
             total_loss = epoch_loss1 + epoch_loss2
 
             self.losses.append(total_loss)
-            self.save(epoch, best=False)
+            self.save(best=False)
 
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
-                self.save(epoch, best=True)
+                self.save(best=True)
+
+            if epoch >= 10 and epoch % self.config.sample_interval == 0:
+                self.sample(self.config.num_intermediate_samples)
 
             print(f"{epoch:06d}: {epoch_loss1 / len(loader):.6f} - {epoch_loss2 / len(loader):.6f}")
 
-    def sample(self, num_samples):
+    def sample(self, num_samples, final=False):
+        self.model.eval()
         samples = self.model.sample(num_samples)
         Gs = decode_graphs(samples)
-        torch.save(Gs, self.exp_root / "samples" / f"{num_samples}_samples.pt")
+        filename = f"final_samples.pt" if final else f"{self.current_epoch:06d}_samples.pt"
+        torch.save(Gs, self.exp_root / "samples" / filename)
 
-    def save(self, epoch, best=False):
+    def save(self, best=False):
         filename = "best.pt" if best else "last.pt"
         path = self.exp_root / "ckpt" / filename
         torch.save({
-            "epoch": epoch,
+            "epoch": self.current_epoch,
             "best_loss": self.best_loss,
             "losses": self.losses,
             "model": self.model.state_dict(),

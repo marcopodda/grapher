@@ -6,6 +6,25 @@ from torch.utils.data import Dataset
 from .graph import encode_graph
 
 
+PAD = 0
+SOS = 1
+EOS = 2
+
+
+def to_sorted_tensor(lst, order):
+    return [torch.LongTensor(lst[i]) for i in order]
+
+def reverse_argsort(lst):
+    arr = np.array(lst)
+    return (-arr).argsort()
+
+def pad_right(arr, pad):
+    return arr + (pad,)
+
+def pad_left(arr, pad):
+    return (pad,) + arr
+
+
 class GraphDataset(Dataset):
     def __init__(self, config, graphlist):
         super().__init__()
@@ -32,35 +51,32 @@ class GraphDataset(Dataset):
 
 
 class GraphDataCollator:
-    PAD = 0
-    SOS = 1
-    EOS = 2
-
     def __init__(self, config):
         self.config = config
 
     def __call__(self, batch):
         s1, s2 = zip(*batch)
 
-        inputs = [(self.SOS,) + x for x in s1]
-        shifted_inputs = [x + (self.EOS,) for x in s1]
-        outputs = [x + (self.EOS,) for x in s2]
+        # pad with SOS and EOS
+        inputs = [pad_left(x, SOS) for x in s1]
+        shifted_inputs = [pad_right(x, EOS) for x in s1]
+        outputs = [pad_right(x, EOS) for x in s2]
+
+        # calculate descending order
         lengths = [len(x) for x in inputs]
+        order = reverse_argsort(lengths)
 
         # sort in descending order
-        order = self.argsort(lengths)
-        inputs = [torch.LongTensor(inputs[i]) for i in order]
-        shifted_inputs = [torch.LongTensor(shifted_inputs[i]) for i in order]
-        outputs = [torch.LongTensor(outputs[i]) for i in order]
-        lengths = [lengths[i] for i in order]
+        inputs = to_sorted_tensor(inputs, order)
+        shifted_inputs = to_sorted_tensor(shifted_inputs, order)
+        outputs = to_sorted_tensor(outputs, order)
+        lengths = torch.LongTensor([lengths[i] for i in order])
 
-        # pad sequences
+        # 0-pad sequences
         input_padded = nn.utils.rnn.pad_sequence(inputs, batch_first=True)
         shifted_input_padded = nn.utils.rnn.pad_sequence(shifted_inputs, batch_first=True)
         output_padded = nn.utils.rnn.pad_sequence(outputs, batch_first=True)
 
-        return input_padded, shifted_input_padded, output_padded, torch.LongTensor(lengths)
+        return input_padded, shifted_input_padded, output_padded, lengths
 
-    def argsort(self, lengths):
-        lengths = np.array(lengths)
-        return (-lengths).argsort()
+

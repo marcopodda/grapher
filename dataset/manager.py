@@ -11,16 +11,17 @@ import torch
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
+from .generators import community_graph_generator, ego_graph_generator, ladder_graph_generator
 from .graph import GraphList
 from .dataset import GraphDataset, GraphDataCollator
 from utils.serializer import load_yaml, save_yaml
+
 
 
 DATA_DIR = Path('DATA')
 
 
 class DatasetManager:
-
     def __init__(self, config, exp_root, name):
         self.name = name
         self.exp_root = exp_root
@@ -43,13 +44,7 @@ class DatasetManager:
         self.splits = load_yaml(self.processed_dir / f"splits.yaml")
 
     def _preprocess_data(self):
-        graphs, _ = self._read_data()
-        graphlist = GraphList(graphs)
-
-        if self.config.max_num_nodes:
-            graphlist = graphlist.filter(lambda G: G.number_of_nodes() < self.config.max_num_nodes)
-            graphlist = graphlist.filter(lambda G: G.number_of_nodes() > self.config.min_num_nodes)
-
+        graphlist = self._read_data()
         dataset = GraphDataset(self.config, graphlist)
         torch.save(dataset, self.processed_dir / f"{self.name}.pt")
 
@@ -126,10 +121,75 @@ class TUData(DatasetManager):
                     Gs[node2graph[c]-1].node[c]['label'] = node_label
                     c += 1
 
-        labels = []
-        with open(graph_labels_path, "r") as f:
-            for line in f:
-                labels.append(int(line[:-1]))
+        graphlist = GraphList(Gs)
 
-        labels = np.array(labels, dtype=np.float)
-        return Gs, labels
+        if self.config.max_num_nodes:
+            graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
+            graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
+
+        return graphlist
+
+
+class SyntheticData(DatasetManager):
+    def __init__(self, config, exp_root, name):
+        super().__init__(config, exp_root, name)
+
+        if 'generator_kwargs' in config:
+            self.generator_kwargs.update(**config.generator_kwargs)
+
+    def _fetch_data(self):
+        pass
+
+
+class Community(SyntheticData):
+    generator_kwargs = {
+        "num_graphs": 1000,
+        "num_communities": 2,
+        "max_edges": 2,
+        "intra_connectivity": 0.9
+    }
+
+    def _read_data(self):
+        graphs = community_graph_generator(self.config, **self.generator_kwargs)
+        return GraphList(graphs)
+
+
+class Ego(SyntheticData):
+    generator_kwargs = {
+        "radius": 2
+    }
+
+    def _read_data(self):
+        graphs = ego_graph_generator(self.config, **self.generator_kwargs)
+        return GraphList(graphs)
+
+
+class Ladders(SyntheticData):
+    generator_kwargs = {
+        "num_repetitions": 10
+    }
+
+    def _read_data(self):
+        graphs = ladder_graph_generator(self.config, **self.generator_kwargs)
+        return GraphList(graphs)
+
+    def _make_splits(self):
+        num_nodes = [G.number_of_nodes() for G in self.data.graphlist]
+        test_size = len(self.data) // self.generator_kwargs['num_repetitions']
+        indices = [i for i in range(len(self.data))]
+        train_idxs, test_idxs = train_test_split(indices, stratify=num_nodes, test_size=test_size)
+        splits = {'train': train_idxs, 'test': test_idxs}
+        save_yaml(splits, self.processed_dir / 'splits.yaml')
+
+
+def get_dataset_class(name):
+    if name.lower() == 'community':
+        return Community
+
+    if name.lower() == 'ego':
+        return Ego
+
+    if name.lower() == 'ladders':
+        return Ladders
+
+    return TUData

@@ -92,9 +92,8 @@ class Trainer:
     def sample(self, num_samples, final=False):
         self.model.eval()
         samples = self.model.sample(num_samples)
-        Gs = decode_graphs(samples)
         filename = f"final_samples.pt" if final else f"{self.current_epoch:06d}_samples.pt"
-        torch.save(Gs, self.exp_root / "samples" / filename)
+        torch.save(decode_graphs(samples), self.exp_root / "samples" / filename)
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"

@@ -146,7 +146,7 @@ class Community(SyntheticData):
         "num_graphs": 1000,
         "num_communities": 2,
         "max_edges": 2,
-        "intra_connectivity": 0.9
+        "intra_connectivity": 0.8
     }
 
     def _read_data(self):

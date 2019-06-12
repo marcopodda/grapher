@@ -77,9 +77,9 @@ def kl_divergence(sample_ref, sample_pred, bin_size):
 
 def compute_statistics(graph_ref, graph_pred):
     kl_degree = degree_kl(graph_ref, graph_pred)
-    print("degree distribution KL:", kl_degree)
+    # print("degree distribution KL:", kl_degree)
 
     kl_clust = clustering_kl(graph_ref, graph_pred)
-    print("clustering coefficient KL:", kl_clust)
+    # print("clustering coefficient KL:", kl_clust)
 
     return kl_degree, kl_clust

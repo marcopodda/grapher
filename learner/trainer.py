@@ -5,6 +5,7 @@ from torch import optim
 from torch.optim import lr_scheduler
 from .model import Model, Loss
 from dataset.graph import decode_graphs
+from utils.evaluation import compute_statistics
 
 
 def get_scheduler(config, optimizer):
@@ -31,7 +32,11 @@ class Trainer:
         trainer.loss1.load_state_dict(ckpt["loss1"])
         trainer.loss2.load_state_dict(ckpt["loss2"])
         trainer.best_loss = ckpt["best_loss"]
-        trainer.losses = ckpt["losses"]
+        trainer.best_valid = ckpt["best_valid"]
+        trainer.losses1 = ckpt["losses1"]
+        trainer.losses2 = ckpt["losses2"]
+        trainer.klcs = ckpt["klcs"]
+        trainer.klds = ckpt["klds"]
         trainer.current_epoch = ckpt['epoch'] + 1
         return trainer
 
@@ -44,11 +49,17 @@ class Trainer:
         self.optimizer = get_optimizer(config, self.model)
         self.scheduler = get_scheduler(config, self.optimizer)
 
-        self.losses = []
+        self.losses1 = []
+        self.losses2 = []
+        self.klcs = []
+        self.klds = []
         self.current_epoch = 0
         self.best_loss = np.float('inf')
+        self.best_valid = np.float('inf')
 
-    def _run_epoch(self, loader):
+    def _train_epoch(self, loader):
+        self.model.train()
+
         epoch_loss1 = 0
         epoch_loss2 = 0
 
@@ -67,33 +78,52 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-        return epoch_loss1, epoch_loss2
+        return epoch_loss1 / len(loader), epoch_loss2 / len(loader)
 
-    def fit(self, loader):
+    def _valid_epoch(self, test_data):
+        self.model.eval()
+        samples = self.sample(self.config.num_intermediate_samples)
+        return compute_statistics(test_data, samples)
+
+    def fit(self, loader, test_data):
         self.model.train()
 
         for epoch in range(self.current_epoch, self.config.max_epochs):
             self.current_epoch = epoch
-            epoch_loss1, epoch_loss2 = self._run_epoch(loader)
+            epoch_loss1, epoch_loss2 = self._train_epoch(loader)
             total_loss = epoch_loss1 + epoch_loss2
 
-            self.losses.append(total_loss)
+            self.losses1.append(epoch_loss1)
+            self.losses2.append(epoch_loss2)
+
             self.save(best=False)
 
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
-                self.save(best=True)
 
-            if epoch >= 10 and epoch % self.config.sample_interval == 0:
-                self.sample(self.config.num_intermediate_samples)
+            if self.current_epoch >= 10:
+                kld, klc = self._valid_epoch(test_data)
+                self.klds.append(kld)
+                self.klcs.append(klc)
 
-            print(f"{epoch:06d}: {epoch_loss1 / len(loader):.6f} - {epoch_loss2 / len(loader):.6f}")
+                if (kld + klc) < self.best_valid:
+                    self.best_valid = kld + klc
+                    self.save(best=True)
+
+            self.log_epoch()
 
     def sample(self, num_samples, final=False):
-        self.model.eval()
+        if final:
+            ckpt = torch.load(self.exp_root / "ckpt" / "best.pt")
+            self.model.load_state_dict(ckpt["model"])
+
         samples = self.model.sample(num_samples)
-        filename = f"final_samples.pt" if final else f"{self.current_epoch:06d}_samples.pt"
-        torch.save(decode_graphs(samples), self.exp_root / "samples" / filename)
+        graphs = decode_graphs(samples)
+
+        if final:
+            torch.save(graphs, self.exp_root / "samples" / "samples.pt")
+
+        return graphs
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"
@@ -101,10 +131,27 @@ class Trainer:
         torch.save({
             "epoch": self.current_epoch,
             "best_loss": self.best_loss,
-            "losses": self.losses,
+            "best_valid": self.best_valid,
+            "losses1": self.losses1,
+            "losses2": self.losses2,
+            "klcs": self.klcs,
+            "klds": self.klds,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict(),
             "loss1": self.loss1.state_dict(),
             "loss2": self.loss2.state_dict(),
         }, path)
+
+    def log_epoch(self):
+        msg = f"{self.current_epoch:06d} - " + \
+            f"loss1: {self.losses1[-1]:.6f} - " + \
+            f"loss2: {self.losses2[-1]:.6f} - " + \
+            f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
+
+        if self.current_epoch >= 10:
+            msg += f" - " + \
+                f"kld: {self.klds[-1]:.6f} - " + \
+                f"klc: {self.klcs[-1]:.6f} - " + \
+                f"total: {self.klds[-1] + self.klcs[-1]:.6f}"
+        print(msg)

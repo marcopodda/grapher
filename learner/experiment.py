@@ -49,7 +49,8 @@ class Experiment:
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
         loader = dataset.get_loader('train')
-        trainer.fit(loader)
+        test_data = dataset.get_data('test')
+        trainer.fit(loader, test_data)
         trainer.sample(config.num_samples, final=True)
 
     def resume(self):
@@ -57,7 +58,8 @@ class Experiment:
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim)
         loader = dataset.get_loader('train')
-        trainer.fit(loader)
+        test_data = dataset.get_data('test')
+        trainer.fit(loader, test_data)
         trainer.sample(config.num_samples, final=True)
 
     def evaluate(self):

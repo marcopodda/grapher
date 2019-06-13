@@ -12,7 +12,7 @@ def load_json(path):
 
 
 def save_json(obj, path):
-    return json.dump(obj, open(path, "w"))
+    json.dump(obj, open(path, "w"))
 
 
 def load_pickle(path):
@@ -20,7 +20,7 @@ def load_pickle(path):
 
 
 def save_pickle(obj, path):
-    return pickle.dump(obj, open(path, "wb"))
+    pickle.dump(obj, open(path, "wb"))
 
 
 def load_numpy(path, **kwargs):
@@ -28,7 +28,7 @@ def load_numpy(path, **kwargs):
 
 
 def save_numpy(mat, path, **kwargs):
-    return np.savetxt(path, mat, **kwargs)
+    np.savetxt(path, mat, **kwargs)
 
 
 def load_csv(path, **kwargs):
@@ -44,7 +44,7 @@ def load_yaml(path):
 
 
 def save_yaml(obj, path):
-    return yaml.dump(obj, open(path, "w"))
+    yaml.dump(obj, open(path, "w"))
 
 
 def load_dict(dict_or_path):

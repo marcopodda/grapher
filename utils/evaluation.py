@@ -1,14 +1,9 @@
-import os
-import pickle as pkl
-import networkx as nx
 import numpy as np
-import seaborn as sns
-from matplotlib import pyplot as plt
-
+import networkx as nx
 from scipy.stats import entropy
 
-EPS = 1e-7
 BINS = 100
+EPS = 1e-8
 
 
 def get_dd_hists(graphs):
@@ -43,21 +38,7 @@ def degree_kl(graph_ref, graph_pred):
     return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
 
 
-def print_stats(graph_ref, preds):
-    graph_pred = []
-
-    for g in preds:
-        G = nx.Graph()
-        G.add_nodes_from(g.nodes())
-        G.add_edges_from(g.edges())
-        G = max(nx.connected_component_subgraphs(G), key=len)
-        graph_pred.append(G)
-
-    print('degree KL', degree_kl(graph_ref, graph_pred))
-    print('clustering KL', clustering_kl(graph_ref, graph_pred))
-
-
-def pad_vectors_for_kl(sample_ref, sample_pred, bin_size):
+def pad_vectors(sample_ref, sample_pred, bin_size):
     counts_ref = np.zeros((bin_size, )) + EPS
     counts_pred = np.zeros((bin_size, )) + EPS
 
@@ -71,15 +52,11 @@ def pad_vectors_for_kl(sample_ref, sample_pred, bin_size):
 
 
 def kl_divergence(sample_ref, sample_pred, bin_size):
-    counts = pad_vectors_for_kl(sample_ref, sample_pred, bin_size)
-    return entropy(*counts)
+    counts_ref, counts_pred = pad_vectors(sample_ref, sample_pred, bin_size)
+    return entropy(counts_ref, counts_pred)
 
 
 def compute_statistics(graph_ref, graph_pred):
     kl_degree = degree_kl(graph_ref, graph_pred)
-    # print("degree distribution KL:", kl_degree)
-
     kl_clust = clustering_kl(graph_ref, graph_pred)
-    # print("clustering coefficient KL:", kl_clust)
-
     return kl_degree, kl_clust

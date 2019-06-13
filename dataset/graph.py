@@ -28,11 +28,16 @@ class GraphList:
     def __contains__(self, item):
         return item in self._graphs
 
+    def num_nodes(self):
+        return [G.number_of_nodes() for G in self]
+
+    def nodes(self):
+        return [list(G.nodes()) for G in self]
+
     @property
     def max_nodes(self):
         if self._max_nodes is None:
-            num_nodes = [G.number_of_nodes() for G in self]
-            self._max_nodes = max(num_nodes)
+            self._max_nodes = max(self.num_nodes())
         return self._max_nodes
 
     @property
@@ -45,8 +50,7 @@ class GraphList:
     @property
     def avg_nodes(self):
         if self._avg_nodes is None:
-            num_nodes = [G.number_of_nodes() for G in self]
-            self._avg_nodes = sum(num_nodes) / len(self)
+            self._avg_nodes = sum(self.num_nodes()) / len(self)
         return self._avg_nodes
 
     @property

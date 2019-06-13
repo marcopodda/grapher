@@ -4,7 +4,9 @@ from pathlib import Path
 
 import torch
 
-from config.config import Config
+from baselines.simple import run_baseline
+from config.config import Config, BaselineConfig
+
 from dataset.manager import get_dataset_class
 from .trainer import Trainer
 from .evaluator import Evaluator
@@ -19,6 +21,8 @@ def maybe_makedir(path):
 
 
 class Experiment:
+    model_name = "GRAPHER"
+
     @classmethod
     def load(cls, root):
         assert root is not None
@@ -31,7 +35,7 @@ class Experiment:
 
         if root is None:
             self.name = f"{self.dataset}_{datetime.now().isoformat()}"
-            self.root = RUNS_DIR / f"{self.dataset}" / f"{datetime.now().isoformat()}"
+            self.root = RUNS_DIR / self.model_name / f"{self.dataset}" / f"{datetime.now().isoformat()}"
         else:
             self.root = Path(root)
             self.name = "_".join(self.root.parts[-2:])
@@ -68,3 +72,37 @@ class Experiment:
         evaluator = Evaluator(config, self.root)
         test_data = dataset.get_data('test')
         evaluator.evaluate(test_data)
+
+
+class BaselineExperiment(Experiment):
+    def __init__(self, model_name, metric, dataset, root=None):
+        self.dataset = dataset
+        self.model_name = model_name
+        self.metric = metric
+        self.dataset_class = get_dataset_class(dataset)
+
+        if root is None:
+            self.name = f"{self.dataset}_{datetime.now().isoformat()}"
+            self.root = RUNS_DIR / f"{self.model_name}_{metric}" / f"{self.dataset}" / f"{datetime.now().isoformat()}"
+        else:
+            self.root = Path(root)
+            self.name = "_".join(self.root.parts[-2:])
+
+        maybe_makedir(self.root)
+        maybe_makedir(self.root / "ckpt")
+        maybe_makedir(self.root / "data")
+        maybe_makedir(self.root / "config")
+        maybe_makedir(self.root / "samples")
+        maybe_makedir(self.root / "evaluation")
+
+    def train(self):
+        config = BaselineConfig.from_file(f"baseline_{self.dataset}.yaml")
+        config.update(metric=self.metric, name=self.model_name)
+        config.save(self.root / "config")
+
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
+
+        train_data = dataset.get_data('train')
+        # test_data = dataset.get_data('test')
+        samples = run_baseline(self.model_name, self.metric, train_data)
+        torch.save(samples, self.root / "samples" / f"samples.pt")

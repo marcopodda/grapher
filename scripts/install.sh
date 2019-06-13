@@ -12,4 +12,4 @@ source activate grapher
 conda install pytorch -c pytorch -y
 
 # install packages
-conda install numpy scipy pandas scikit-learn networkx docopt pyyaml matplotlib requests seaborn -y
+conda install numpy scipy pandas scikit-learn networkx docopt pyyaml matplotlib requests seaborn pyemd -y

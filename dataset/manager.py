@@ -17,7 +17,6 @@ from .dataset import GraphDataset, GraphDataCollator
 from utils.serializer import load_yaml, save_yaml
 
 
-
 DATA_DIR = Path('DATA')
 
 
@@ -96,7 +95,6 @@ class TUData(DatasetManager):
         graph_indicator_path = self.raw_dir / self.name / f"{self.name}_graph_indicator.txt"
         adj_list_path = self.raw_dir / self.name / f"{self.name}_A.txt"
         node_labels_path = self.raw_dir / self.name / f"{self.name}_node_labels.txt"
-        graph_labels_path = self.raw_dir / self.name / f"{self.name}_graph_labels.txt"
 
         with open(graph_indicator_path, "r") as f:
             c = 1

@@ -24,3 +24,14 @@ class Config(BaseConfigWithSerializer):
             "optimizer_class": "Adam",
             "optimizer_params": {'lr': 0.001}
         })
+
+
+class BaselineConfig(BaseConfigWithSerializer):
+    def set_defaults(self):
+        BaselineConfig._params.update({
+            "name": "ER",
+            "metric": "degree",
+            "max_num_nodes": 40,
+            "min_num_nodes": 4,
+            "test_size": 0.1,
+        })

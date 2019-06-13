@@ -4,7 +4,7 @@ Manage experiments.
 Usage:
   manage.py train <dataset>
   manage.py resume <rundir>
-  manage.py evaluate <rundir>
+  manage.py baseline <name> <dataset> --metric=<metric>
   manage.py (-h | --help)
 
 Options:
@@ -15,7 +15,7 @@ Options:
 """
 
 from docopt import docopt
-from learner.experiment import Experiment
+from learner.experiment import Experiment, BaselineExperiment
 
 
 def main():
@@ -27,9 +27,9 @@ def main():
     elif args["resume"]:
         exp = Experiment.load(args["<rundir>"])
         exp.resume()
-    elif args["evaluate"]:
-        exp = Experiment.load(args["<rundir>"])
-        exp.evaluate()
+    elif args["baseline"]:
+        exp = BaselineExperiment(args['<name>'], args['--metric'], args['<dataset>'])
+        exp.train()
 
 
 if __name__ == "__main__":

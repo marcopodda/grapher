@@ -1,8 +1,6 @@
 import torch
-import numpy as np
 from utils.evaluation import compute_statistics
 
-from matplotlib import pyplot as plt
 
 class Evaluator:
     def __init__(self, config, exp_root):
@@ -26,8 +24,3 @@ class Evaluator:
         # plt.plot(np.array(klcs))
         # plt.plot(total)
         # plt.show()
-
-
-
-
-

@@ -38,6 +38,7 @@ def run_graphrnn(config, dataset_name, exp_root, graphlist):
         embedding_size=config.embedding_size_rnn,
         hidden_size=config.hidden_size_rnn,
         num_layers=config.num_layers,
+        device=device,
         has_input=True,
         has_output=True,
         output_size=config.hidden_size_rnn_output).to(device)
@@ -47,6 +48,7 @@ def run_graphrnn(config, dataset_name, exp_root, graphlist):
         embedding_size=config.embedding_size_rnn_output,
         hidden_size=config.hidden_size_rnn_output,
         num_layers=config.num_layers,
+        device=device,
         has_input=True,
         has_output=True,
         output_size=1).to(device)

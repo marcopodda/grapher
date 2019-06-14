@@ -208,6 +208,7 @@ class GRU_plain(nn.Module):
                  embedding_size,
                  hidden_size,
                  num_layers,
+                 device,
                  has_input=True,
                  has_output=False,
                  output_size=None):
@@ -216,6 +217,7 @@ class GRU_plain(nn.Module):
         self.hidden_size = hidden_size
         self.has_input = has_input
         self.has_output = has_output
+        self.device = device
 
         if has_input:
             self.input = nn.Linear(input_size, embedding_size)
@@ -252,7 +254,7 @@ class GRU_plain(nn.Module):
 
     def init_hidden(self, batch_size):
         return Variable(
-            torch.zeros(self.num_layers, batch_size, self.hidden_size))
+            torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self.device)
 
     def forward(self, input_raw, pack=False, input_len=None):
         if self.has_input:

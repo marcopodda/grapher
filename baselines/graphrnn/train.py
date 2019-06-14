@@ -36,8 +36,8 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         y_unsorted = data['y'].float().to(device)
         y_len_unsorted = data['len']
         y_len_max = max(y_len_unsorted)
-        x_unsorted = x_unsorted[:, 0:y_len_max, :]
-        y_unsorted = y_unsorted[:, 0:y_len_max, :]
+        x_unsorted = x_unsorted[:, 0:y_len_max, :].to(device)
+        y_unsorted = y_unsorted[:, 0:y_len_max, :].to(device)
         # initialize lstm hidden state according to batch size
         rnn.hidden = rnn.init_hidden(batch_size=x_unsorted.size(0))
         # output.hidden = output.init_hidden(

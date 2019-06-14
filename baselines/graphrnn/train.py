@@ -46,8 +46,8 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         # sort input
         y_len, sort_index = torch.sort(y_len_unsorted, 0, descending=True)
         y_len = y_len.numpy().tolist()
-        x = torch.index_select(x_unsorted, 0, sort_index)
-        y = torch.index_select(y_unsorted, 0, sort_index)
+        x = torch.index_select(x_unsorted, 0, sort_index).to(device)
+        y = torch.index_select(y_unsorted, 0, sort_index).to(device)
 
         # input, output for output rnn module
         # a smart use of pytorch builtin function:
@@ -56,7 +56,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         # reverse y_reshape, so that their lengths are sorted, add dimension
         idx = [i for i in range(y_reshape.size(0) - 1, -1, -1)]
         idx = torch.LongTensor(idx).to(device)
-        y_reshape = y_reshape.index_select(0, idx)
+        y_reshape = y_reshape.index_select(0, idx).to(device)
         y_reshape = y_reshape.view(y_reshape.size(0), y_reshape.size(1), 1)
 
         output_x = torch.cat(

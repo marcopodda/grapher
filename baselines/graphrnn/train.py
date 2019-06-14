@@ -84,7 +84,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
             h, y_len, batch_first=True).data  # get packed hidden vector
         # reverse h
         idx = [i for i in range(h.size(0) - 1, -1, -1)]
-        idx = Variable(torch.LongTensor(idx))
+        idx = Variable(torch.LongTensor(idx)).to(device)
         h = h.index_select(0, idx).to(device)
         hidden_null = Variable(
             torch.zeros(config.num_layers - 1, h.size(0), h.size(1))).to(device)

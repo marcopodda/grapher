@@ -82,7 +82,7 @@ def gumbel_sigmoid(logits, temperature):
     return x
 
 
-def sample_sigmoid(y, sample, thresh=0.5, sample_time=2):
+def sample_sigmoid(y, sample, device, thresh=0.5, sample_time=2):
     '''
         do sampling over unnormalized score
     :param y: input
@@ -98,13 +98,13 @@ def sample_sigmoid(y, sample, thresh=0.5, sample_time=2):
     if sample:
         if sample_time > 1:
             y_result = Variable(torch.rand(y.size(0), y.size(1),
-                                           y.size(2)))
+                                           y.size(2))).to(device)
             # loop over all batches
             for i in range(y_result.size(0)):
                 # do 'multi_sample' times sampling
                 for j in range(sample_time):
                     y_thresh = Variable(torch.rand(y.size(1),
-                                                   y.size(2)))
+                                                   y.size(2))).to(device)
                     y_result[i] = torch.gt(y[i], y_thresh).float()
                     if (torch.sum(y_result[i]).data > 0).any():
                         break
@@ -112,12 +112,12 @@ def sample_sigmoid(y, sample, thresh=0.5, sample_time=2):
                     #     print('all zero',j)
         else:
             y_thresh = Variable(torch.rand(y.size(0), y.size(1),
-                                           y.size(2)))
+                                           y.size(2))).to(device)
             y_result = torch.gt(y, y_thresh).float()
     # do max likelihood based on some threshold
     else:
         y_thresh = Variable(
-            torch.ones(y.size(0), y.size(1), y.size(2)) * thresh)
+            torch.ones(y.size(0), y.size(1), y.size(2)) * thresh).to(device)
         y_result = torch.gt(y, y_thresh).float()
     return y_result
 

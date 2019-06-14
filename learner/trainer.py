@@ -6,6 +6,7 @@ from torch.optim import lr_scheduler
 from .model import Model, Loss
 from dataset.graph import decode_graphs
 from utils.evaluation import compute_statistics
+from utils.training import get_device
 
 
 def get_scheduler(config, optimizer):
@@ -48,6 +49,7 @@ class Trainer:
         self.loss2 = Loss(output_dim)
         self.optimizer = get_optimizer(config, self.model)
         self.scheduler = get_scheduler(config, self.optimizer)
+        self.device = get_device(config)
 
         self.losses1 = []
         self.losses2 = []
@@ -59,12 +61,19 @@ class Trainer:
 
     def _train_epoch(self, loader):
         self.model.train()
+        self.model.to(self.device)
 
         epoch_loss1 = 0
         epoch_loss2 = 0
 
         for batch in loader:
             i1, i2, i3, lengths = batch
+
+            i1.to(self.device)
+            i2.to(self.device)
+            i3.to(self.device)
+            lengths.to(self.device)
+
             self.optimizer.zero_grad()
             out1, out2 = self.model(i1, i2, lengths)
 
@@ -117,8 +126,10 @@ class Trainer:
             ckpt = torch.load(self.exp_root / "ckpt" / "best.pt")
             self.model.load_state_dict(ckpt["model"])
 
+        self.model.to('cpu')
         samples = self.model.sample(num_samples)
         graphs = decode_graphs(samples)
+        self.model.to(self.device)
 
         if final:
             torch.save(graphs, self.exp_root / "samples" / "samples.pt")

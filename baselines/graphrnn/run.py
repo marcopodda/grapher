@@ -4,74 +4,52 @@ from .args import Args
 from .data import Graph_sequence_sampler_pytorch
 import os
 import torch
+from utils.training import get_device
 
 
-def run_graphrnn(dataset_name, exp_root, graphlist):
-    # All necessary arguments are defined in args.py
-    args = Args()
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.cuda)
-    print('CUDA', args.cuda)
-    print('File name prefix', args.fname)
+def run_graphrnn(config, dataset_name, exp_root, graphlist):
+    config.update(max_num_node=graphlist.max_nodes)
 
-    args.graph_type = dataset_name
-
-    args.fname = "GraphRNN_RNN_{}_".format(dataset_name)
-    args.fname_pred = args.fname + '_pred_'
-    args.fname_train = args.fname + '_train_'
-    args.fname_test = args.fname + '_test_'
-
-    # check if necessary directories exist
-    if not os.path.isdir(args.model_save_path):
-        os.makedirs(args.model_save_path)
-    if not os.path.isdir(args.graph_save_path):
-        os.makedirs(args.graph_save_path)
-    if not os.path.isdir(args.figure_save_path):
-        os.makedirs(args.figure_save_path)
-    if not os.path.isdir(args.timing_save_path):
-        os.makedirs(args.timing_save_path)
-    if not os.path.isdir(args.figure_prediction_save_path):
-        os.makedirs(args.figure_prediction_save_path)
-
-    args.max_num_node = graphlist.max_nodes
-
-    print('max number node: {}'.format(args.max_num_node))
-    print('max previous node: {}'.format(args.max_prev_node))
+    print('max number node: {}'.format(config.max_num_node))
+    print('max previous node: {}'.format(config.max_prev_node))
 
     # dataset initialization
     dataset = Graph_sequence_sampler_pytorch(
         graphlist,
-        max_prev_node=args.max_prev_node,
-        max_num_node=args.max_num_node)
+        max_prev_node=config.max_prev_node,
+        max_num_node=config.max_num_node)
     sample_strategy = torch.utils.data.sampler.WeightedRandomSampler(
         [1.0 / len(dataset) for i in range(len(dataset))],
-        num_samples=args.batch_size * args.batch_ratio,
+        num_samples=config.batch_size * config.batch_ratio,
         replacement=True)
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
+        batch_size=config.batch_size,
+        num_workers=config.num_workers,
         sampler=sample_strategy)
 
-    args.max_prev_node = dataset.max_prev_node
+    config.update(max_prev_node=dataset.max_prev_node)
+
+    device = get_device(config)
 
     # model initialization
     rnn = GRU_plain(
-        input_size=args.max_prev_node,
-        embedding_size=args.embedding_size_rnn,
-        hidden_size=args.hidden_size_rnn,
-        num_layers=args.num_layers,
+        input_size=config.max_prev_node,
+        embedding_size=config.embedding_size_rnn,
+        hidden_size=config.hidden_size_rnn,
+        num_layers=config.num_layers,
         has_input=True,
         has_output=True,
-        output_size=args.hidden_size_rnn_output)
+        output_size=config.hidden_size_rnn_output).to(device)
 
     output = GRU_plain(
         input_size=1,
-        embedding_size=args.embedding_size_rnn_output,
-        hidden_size=args.hidden_size_rnn_output,
-        num_layers=args.num_layers,
+        embedding_size=config.embedding_size_rnn_output,
+        hidden_size=config.hidden_size_rnn_output,
+        num_layers=config.num_layers,
         has_input=True,
         has_output=True,
-        output_size=1)
+        output_size=1).to(device)
 
-    samples = train(exp_root, args, dataloader, rnn, output)
+    samples = train(config, exp_root, dataloader, rnn, output, device)
     return samples

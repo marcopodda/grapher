@@ -6,7 +6,7 @@ import torch
 
 from baselines.simple import run_baseline
 from baselines.graphrnn.run import run_graphrnn
-from config.config import Config, BaselineConfig
+from config.config import Config, BaselineConfig, GraphRNNConfig
 
 from dataset.manager import get_dataset_class
 from .trainer import Trainer
@@ -104,7 +104,6 @@ class BaselineExperiment(Experiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        # test_data = dataset.get_data('test')
         samples = run_baseline(self.model_name, self.metric, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")
 
@@ -131,12 +130,11 @@ class GraphRNNExperiment(Experiment):
         maybe_makedir(self.root / "evaluation")
 
     def train(self):
-        config = Config.from_file(f"graphrnn_{self.dataset}.yaml")
+        config = GraphRNNConfig.from_file(f"graphrnn_{self.dataset}.yaml")
         config.save(self.root / "config")
 
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        # test_data = dataset.get_data('test')
-        samples = run_graphrnn(self.dataset, self.root, train_data)
+        samples = run_graphrnn(config, self.dataset, self.root, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")

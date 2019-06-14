@@ -24,16 +24,16 @@ def get_graph(adj):
     return G
 
 
-def train_rnn_epoch(epoch, args, rnn, output, data_loader, optimizer_rnn,
-                    optimizer_output, scheduler_rnn, scheduler_output):
+def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
+                    optimizer_output, scheduler_rnn, scheduler_output, device):
     rnn.train()
     output.train()
     loss_sum = 0
     for batch_idx, data in enumerate(data_loader):
         rnn.zero_grad()
         output.zero_grad()
-        x_unsorted = data['x'].float()
-        y_unsorted = data['y'].float()
+        x_unsorted = data['x'].float().to(device)
+        y_unsorted = data['y'].float().to(device)
         y_len_unsorted = data['len']
         y_len_max = max(y_len_unsorted)
         x_unsorted = x_unsorted[:, 0:y_len_max, :]
@@ -55,13 +55,13 @@ def train_rnn_epoch(epoch, args, rnn, output, data_loader, optimizer_rnn,
         y_reshape = pack_padded_sequence(y, y_len, batch_first=True).data
         # reverse y_reshape, so that their lengths are sorted, add dimension
         idx = [i for i in range(y_reshape.size(0) - 1, -1, -1)]
-        idx = torch.LongTensor(idx)
+        idx = torch.LongTensor(idx).to(device)
         y_reshape = y_reshape.index_select(0, idx)
         y_reshape = y_reshape.view(y_reshape.size(0), y_reshape.size(1), 1)
 
         output_x = torch.cat(
             (torch.ones(y_reshape.size(0), 1, 1), y_reshape[:, 0:-1, 0:1]),
-            dim=1)
+            dim=1).to(device)
         output_y = y_reshape
         # batch size for output module: sum(y_len)
         output_y_len = []
@@ -72,14 +72,10 @@ def train_rnn_epoch(epoch, args, rnn, output, data_loader, optimizer_rnn,
             output_y_len.extend([min(i, y.size(2))] * count_temp)
         # put them in output_y_len; max value should not exceed y.size(2)
         # pack into variable
-        x = Variable(x)
-        y = Variable(y)
-        output_x = Variable(output_x)
-        output_y = Variable(output_y)
-        # print(output_y_len)
-        # print('len',len(output_y_len))
-        # print('y',y.size())
-        # print('output_y',output_y.size())
+        x = Variable(x).to(device)
+        y = Variable(y).to(device)
+        output_x = Variable(output_x).to(device)
+        output_y = Variable(output_y).to(device)
 
         # if using ground truth to train
         h = rnn(x, pack=True, input_len=y_len)
@@ -90,7 +86,7 @@ def train_rnn_epoch(epoch, args, rnn, output, data_loader, optimizer_rnn,
         idx = Variable(torch.LongTensor(idx))
         h = h.index_select(0, idx)
         hidden_null = Variable(
-            torch.zeros(args.num_layers - 1, h.size(0), h.size(1)))
+            torch.zeros(config.num_layers - 1, h.size(0), h.size(1)))
         output.hidden = torch.cat(
             (h.view(1, h.size(0), h.size(1)), hidden_null),
             dim=0)  # num_layers, batch_size, hidden_size
@@ -116,36 +112,36 @@ def train_rnn_epoch(epoch, args, rnn, output, data_loader, optimizer_rnn,
     return loss_sum / (batch_idx + 1)
 
 
-def test_rnn_epoch(epoch, args, rnn, output, test_batch_size=16):
+def test_rnn_epoch(epoch, config, rnn, output, device, test_batch_size=16):
     rnn.hidden = rnn.init_hidden(test_batch_size)
     rnn.eval()
     output.eval()
 
     # generate graphs
-    max_num_node = int(args.max_num_node)
+    max_num_node = int(config.max_num_node)
     y_pred_long = Variable(
         torch.zeros(test_batch_size, max_num_node,
-                    args.max_prev_node))  # discrete prediction
+                    config.max_prev_node))  # discrete prediction
     x_step = Variable(torch.ones(test_batch_size, 1,
-                                 args.max_prev_node))
+                                 config.max_prev_node))
     for i in range(max_num_node):
         h = rnn(x_step)
         # output.hidden = h.permute(1,0,2)
         hidden_null = Variable(
-            torch.zeros(args.num_layers - 1, h.size(0), h.size(2)))
+            torch.zeros(config.num_layers - 1, h.size(0), h.size(2))).to(device)
         output.hidden = torch.cat((h.permute(1, 0, 2), hidden_null),
                                   dim=0)  # num_layers, batch_size, hidden_size
         x_step = Variable(torch.zeros(test_batch_size, 1,
-                                      args.max_prev_node))
-        output_x_step = Variable(torch.ones(test_batch_size, 1, 1))
-        for j in range(min(args.max_prev_node, i + 1)):
+                                      config.max_prev_node)).to(device)
+        output_x_step = Variable(torch.ones(test_batch_size, 1, 1)).to(device)
+        for j in range(min(config.max_prev_node, i + 1)):
             output_y_pred_step = output(output_x_step)
             output_x_step = sample_sigmoid(
-                output_y_pred_step, sample=True, sample_time=1)
+                output_y_pred_step, device, sample=True, sample_time=1)
             x_step[:, :, j:j + 1] = output_x_step
-            output.hidden = Variable(output.hidden.data)
+            output.hidden = Variable(output.hidden.data).to(device)
         y_pred_long[:, i:i + 1, :] = x_step
-        rnn.hidden = Variable(rnn.hidden.data)
+        rnn.hidden = Variable(rnn.hidden.data).to(device)
     y_pred_long_data = y_pred_long.data.long()
 
     # save graphs as pickle
@@ -159,47 +155,46 @@ def test_rnn_epoch(epoch, args, rnn, output, test_batch_size=16):
 
 
 # train function for RNN
-def train(exp_root, args, dataloader, rnn, output):
+def train(config, exp_root, dataloader, rnn, output, device):
     # check if load existing model
     epoch = 1
 
     # initialize optimizer
-    optimizer_rnn = optim.Adam(list(rnn.parameters()), lr=args.lr)
-    optimizer_output = optim.Adam(list(output.parameters()), lr=args.lr)
+    optimizer_rnn = optim.Adam(list(rnn.parameters()), lr=config.lr)
+    optimizer_output = optim.Adam(list(output.parameters()), lr=config.lr)
 
     scheduler_rnn = MultiStepLR(
-        optimizer_rnn, milestones=args.milestones, gamma=args.lr_rate)
+        optimizer_rnn, milestones=config.milestones, gamma=config.lr_rate)
     scheduler_output = MultiStepLR(
-        optimizer_output, milestones=args.milestones, gamma=args.lr_rate)
+        optimizer_output, milestones=config.milestones, gamma=config.lr_rate)
 
     # start main loop
-    while epoch <= args.epochs:
+    while epoch <= config.epochs:
 
         loss = train_rnn_epoch(
-            epoch, args, rnn, output, dataloader, optimizer_rnn,
-            optimizer_output, scheduler_rnn, scheduler_output)
+            epoch, config, rnn, output, dataloader, optimizer_rnn,
+            optimizer_output, scheduler_rnn, scheduler_output, device)
 
-        print('Epoch: {}/{}, train loss: {:.6f}, '
-              'graph type: {}, num_layer: {}, hidden: {}'.format(
-                    epoch, args.epochs, loss / len(dataloader), args.graph_type,
-                    args.num_layers, args.hidden_size_rnn))
+        print('Epoch: {}/{}, train loss: {:.6f}'.format(
+            epoch, config.epochs, loss / len(dataloader)))
 
         # save model checkpoint
-        if epoch % args.epochs_save == 0:
+        if epoch % config.epochs_save == 0:
             fname = exp_root / "ckpt" / "rnn.pt"
             torch.save(rnn.state_dict(), fname)
             fname = exp_root / "ckpt" / "output.pt"
             torch.save(output.state_dict(), fname)
         epoch += 1
-    
+
     G_pred = []
-    while len(G_pred) < args.test_total_size:
+    while len(G_pred) < config.test_total_size:
         G_pred_step = test_rnn_epoch(
             epoch,
-            args,
+            config,
             rnn,
             output,
-            test_batch_size=args.test_batch_size)
+            device,
+            test_batch_size=config.test_batch_size)
         G_pred.extend(G_pred_step)
-    
+
     return G_pred

@@ -85,9 +85,9 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         # reverse h
         idx = [i for i in range(h.size(0) - 1, -1, -1)]
         idx = Variable(torch.LongTensor(idx))
-        h = h.index_select(0, idx)
+        h = h.index_select(0, idx).to(device)
         hidden_null = Variable(
-            torch.zeros(config.num_layers - 1, h.size(0), h.size(1)))
+            torch.zeros(config.num_layers - 1, h.size(0), h.size(1))).to(device)
         output.hidden = torch.cat(
             (h.view(1, h.size(0), h.size(1)), hidden_null),
             dim=0)  # num_layers, batch_size, hidden_size
@@ -122,9 +122,9 @@ def test_rnn_epoch(epoch, config, rnn, output, device, test_batch_size=16):
     max_num_node = int(config.max_num_node)
     y_pred_long = Variable(
         torch.zeros(test_batch_size, max_num_node,
-                    config.max_prev_node))  # discrete prediction
+                    config.max_prev_node)).to(device)  # discrete prediction
     x_step = Variable(torch.ones(test_batch_size, 1,
-                                 config.max_prev_node))
+                                 config.max_prev_node)).to(device)
     for i in range(max_num_node):
         h = rnn(x_step)
         # output.hidden = h.permute(1,0,2)

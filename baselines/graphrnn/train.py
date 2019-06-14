@@ -45,6 +45,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
 
         # sort input
         y_len, sort_index = torch.sort(y_len_unsorted, 0, descending=True)
+        sort_index = sort_index.to(device)
         y_len = y_len.numpy().tolist()
         x = torch.index_select(x_unsorted, 0, sort_index).to(device)
         y = torch.index_select(y_unsorted, 0, sort_index).to(device)

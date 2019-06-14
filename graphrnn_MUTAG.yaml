@@ -1,1 +1,3 @@
 batch_size: 16
+device: cuda
+max_epoch: 4

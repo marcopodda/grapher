@@ -5,6 +5,7 @@ from pathlib import Path
 import torch
 
 from baselines.simple import run_baseline
+from baselines.graphrnn.run import run_graphrnn
 from config.config import Config, BaselineConfig
 
 from dataset.manager import get_dataset_class
@@ -105,4 +106,37 @@ class BaselineExperiment(Experiment):
         train_data = dataset.get_data('train')
         # test_data = dataset.get_data('test')
         samples = run_baseline(self.model_name, self.metric, train_data)
+        torch.save(samples, self.root / "samples" / f"samples.pt")
+
+
+class GraphRNNExperiment(Experiment):
+    model_name = "GRAPHRNN"
+
+    def __init__(self, dataset, root=None):
+        self.dataset = dataset
+        self.dataset_class = get_dataset_class(dataset)
+
+        if root is None:
+            self.name = f"{self.dataset}_{datetime.now().isoformat()}"
+            self.root = RUNS_DIR / f"{self.model_name}" / f"{self.dataset}" / f"{datetime.now().isoformat()}"
+        else:
+            self.root = Path(root)
+            self.name = "_".join(self.root.parts[-2:])
+
+        maybe_makedir(self.root)
+        maybe_makedir(self.root / "ckpt")
+        maybe_makedir(self.root / "data")
+        maybe_makedir(self.root / "config")
+        maybe_makedir(self.root / "samples")
+        maybe_makedir(self.root / "evaluation")
+
+    def train(self):
+        config = Config.from_file(f"graphrnn_{self.dataset}.yaml")
+        config.save(self.root / "config")
+
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
+
+        train_data = dataset.get_data('train')
+        # test_data = dataset.get_data('test')
+        samples = run_graphrnn(self.dataset, self.root, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")

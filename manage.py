@@ -5,6 +5,7 @@ Usage:
   manage.py train <dataset>
   manage.py resume <rundir>
   manage.py baseline <name> <dataset> --metric=<metric>
+  manage.py graphrnn <dataset>
   manage.py (-h | --help)
 
 Options:
@@ -15,7 +16,7 @@ Options:
 """
 
 from docopt import docopt
-from learner.experiment import Experiment, BaselineExperiment
+from learner.experiment import Experiment, BaselineExperiment, GraphRNNExperiment
 
 
 def main():
@@ -29,6 +30,9 @@ def main():
         exp.resume()
     elif args["baseline"]:
         exp = BaselineExperiment(args['<name>'], args['--metric'], args['<dataset>'])
+        exp.train()
+    elif args["graphrnn"]:
+        exp = GraphRNNExperiment(args['<dataset>'])
         exp.train()
 
 

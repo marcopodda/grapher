@@ -10,6 +10,8 @@ class GraphList:
         self._graphs = graphs
         self._max_nodes = None
         self._max_edges = None
+        self._min_nodes = None
+        self._min_edges = None
         self._avg_nodes = None
         self._avg_edges = None
 
@@ -46,6 +48,19 @@ class GraphList:
             num_edges = [G.number_of_edges() for G in self]
             self._max_edges = max(num_edges)
         return self._max_edges
+    
+    @property
+    def min_nodes(self):
+        if self._min_nodes is None:
+            self._min_nodes = min(self.num_nodes())
+        return self._min_nodes
+
+    @property
+    def min_edges(self):
+        if self._min_edges is None:
+            num_edges = [G.number_of_edges() for G in self]
+            self._min_edges = min(num_edges)
+        return self._min_edges
 
     @property
     def avg_nodes(self):

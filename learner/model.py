@@ -104,7 +104,7 @@ class Model(nn.Module):
         for _ in range(num_samples):
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
-            samples.append([inputs.cpu(), outputs.cpu()])
+            samples.append([inputs, outputs])
 
         return samples
 

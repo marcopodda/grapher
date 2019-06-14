@@ -61,7 +61,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         y_reshape = y_reshape.view(y_reshape.size(0), y_reshape.size(1), 1)
 
         output_x = torch.cat(
-            (torch.ones(y_reshape.size(0).to(device), 1, 1), y_reshape[:, 0:-1, 0:1]),
+            (torch.ones(y_reshape.size(0), 1, 1).to(device), y_reshape[:, 0:-1, 0:1]),
             dim=1).to(device)
         output_y = y_reshape
         # batch size for output module: sum(y_len)

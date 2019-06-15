@@ -138,7 +138,7 @@ def test_rnn_epoch(epoch, config, rnn, output, device, test_batch_size=16):
         for j in range(min(config.max_prev_node, i + 1)):
             output_y_pred_step = output(output_x_step)
             output_x_step = sample_sigmoid(
-                output_y_pred_step, device, sample=True, sample_time=1)
+                output_y_pred_step, sample=True, device=device, sample_time=1)
             x_step[:, :, j:j + 1] = output_x_step
             output.hidden = Variable(output.hidden.data).to(device)
         y_pred_long[:, i:i + 1, :] = x_step

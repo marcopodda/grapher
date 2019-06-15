@@ -1,0 +1,3 @@
+batch_size: 16
+device: cuda
+epochs: 2000

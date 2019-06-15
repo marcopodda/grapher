@@ -5,3 +5,4 @@ RUNS/**
 *.png
 **/.vscode
 *.env
+*.out

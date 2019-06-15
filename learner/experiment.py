@@ -49,7 +49,7 @@ class Experiment:
         maybe_makedir(self.root / "evaluation")
 
     def train(self):
-        config = Config.from_file(f"config_{self.dataset}.yaml")
+        config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
         config.save(self.root / "config")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
@@ -97,7 +97,7 @@ class BaselineExperiment(Experiment):
         maybe_makedir(self.root / "evaluation")
 
     def train(self):
-        config = BaselineConfig.from_file(f"baseline_{self.dataset}.yaml")
+        config = BaselineConfig.from_file(Path("cfg") / f"baseline_{self.dataset}.yaml")
         config.update(metric=self.metric, name=self.model_name)
         config.save(self.root / "config")
 
@@ -130,7 +130,7 @@ class GraphRNNExperiment(Experiment):
         maybe_makedir(self.root / "evaluation")
 
     def train(self):
-        config = GraphRNNConfig.from_file(f"graphrnn_{self.dataset}.yaml")
+        config = GraphRNNConfig.from_file(Path("cfg") / f"graphrnn_{self.dataset}.yaml")
         config.save(self.root / "config")
 
         dataset = self.dataset_class(config, self.root, name=self.dataset)

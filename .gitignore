@@ -6,4 +6,4 @@ RUNS/**
 **/.vscode
 *.env
 *.out
-run.sh
+run_*.sh

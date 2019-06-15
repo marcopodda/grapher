@@ -69,10 +69,10 @@ class Trainer:
         for batch in loader:
             i1, i2, i3, lengths = batch
 
-            i1.to(self.device)
-            i2.to(self.device)
-            i3.to(self.device)
-            lengths.to(self.device)
+            i1 = i1.to(self.device)
+            i2 = i2.to(self.device)
+            i3 = i3.to(self.device)
+            lengths = lengths.to(self.device)
 
             self.optimizer.zero_grad()
             out1, out2 = self.model(i1, i2, lengths)

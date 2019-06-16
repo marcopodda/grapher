@@ -244,11 +244,17 @@ class Graph_sequence_sampler_pytorch(Dataset):
             # then do bfs in the permuted G
             start_idx = np.random.randint(adj_copy.shape[0])
             x_idx = np.array(bfs_seq(G, start_idx))
+            print(bfs_seq(G, start_idx))
             adj_copy = adj_copy[np.ix_(x_idx, x_idx)]
             # encode adj
+
             adj_encoded = encode_adj_flexible(adj_copy.copy())
-            max_encoded_len = max(
-                [len(adj_encoded[i]) for i in range(len(adj_encoded))])
-            max_prev_node.append(max_encoded_len)
+            try:
+                max_encoded_len = max(
+                    [len(adj_encoded[i]) for i in range(len(adj_encoded))])
+                max_prev_node.append(max_encoded_len)
+            except ValueError:
+                pass
+
         max_prev_node = sorted(max_prev_node)[-1 * topk:]
         return max_prev_node

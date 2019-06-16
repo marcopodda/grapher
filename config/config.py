@@ -9,7 +9,7 @@ class Config(BaseConfigWithSerializer):
             max_num_nodes=40,
             min_num_nodes=4,
             shuffle=True,
-            test_size=0.1,
+            test_size=0.3,
             embed_dim=64,
             hidden_dim=256,
             num_layers=2,
@@ -34,7 +34,7 @@ class BaselineConfig(BaseConfigWithSerializer):
             metric="degree",
             max_num_nodes=40,
             min_num_nodes=4,
-            test_size=0.1,
+            test_size=0.3,
             device="cpu"
         )
 
@@ -53,7 +53,7 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             batch_size=32,
             test_batch_size=32,
             test_total_size=1000,
-            test_size=0.1,
+            test_size=0.3,
             num_layers=3,
             num_workers=4,  # num workers to load data, default 4
             batch_ratio=32,

@@ -37,7 +37,7 @@ class DatasetManager:
 
         self.data = torch.load(self.processed_dir / f"{self.name}.pt")
 
-        if not (self.processed_dir / f"splits.yaml").exists():
+        if not (self.raw_dir / f"splits.yaml").exists():
             self._make_splits()
 
         self.splits = load_yaml(self.processed_dir / f"splits.yaml")
@@ -51,6 +51,8 @@ class DatasetManager:
         indices = [i for i in range(len(self.data))]
         train_idxs, test_idxs = train_test_split(indices, test_size=self.config.test_size)
         splits = {'train': train_idxs, 'test': test_idxs}
+        save_yaml(splits, self.raw_dir / 'splits.yaml')
+        # save a copy inside the experiment folder too
         save_yaml(splits, self.processed_dir / 'splits.yaml')
 
     def get_loader(self, name):
@@ -177,6 +179,8 @@ class Ladders(SyntheticData):
         indices = [i for i in range(len(self.data))]
         train_idxs, test_idxs = train_test_split(indices, stratify=num_nodes, test_size=test_size)
         splits = {'train': train_idxs, 'test': test_idxs}
+        save_yaml(splits, self.raw_dir / 'splits.yaml')
+        # save a copy inside the experiment folder too
         save_yaml(splits, self.processed_dir / 'splits.yaml')
 
 

@@ -24,54 +24,58 @@ def emd_distance(x, y, distance_scaling=1.0):
     return emd
 
 
-def loss(x, n, G, generator, metric):
+def loss(x, n, G_real, generator, metric):
     '''
     :param x: 1-D array, parameters to be optimized
-    :param n: n for pred graph;
-    :param G: real graph in networkx format;
-    :param generator: 'BA', 'ER';
-    :param metric: 'degree', 'clustering'
-    :return: loss: emd distance
+    :param
+    n: n for pred graph;
+    G: real graph in networkx format;
+    generator: 'BA', 'Gnp', 'Powerlaw';
+    metric: 'degree', 'clustering'
+    :return: Loss: emd distance
     '''
+    # get argument
+
     # get real and pred graphs
     if generator == 'BA':
-        S = nx.barabasi_albert_graph(n, int(np.rint(x)))
-    elif generator == 'ER':
-        S = nx.fast_gnp_random_graph(n, x)
-    else:
-        raise ValueError('Either generator="BA" or generator="er"')
+        G_pred = nx.barabasi_albert_graph(n, int(np.rint(x)))
+    if generator == 'ER':
+        G_pred = nx.fast_gnp_random_graph(n, x)
 
     # define metric
     if metric == 'degree':
-        G_hist = np.array(nx.degree_histogram(G))
-        G_hist = G_hist / np.sum(G_hist)
-        S_hist = np.array(nx.degree_histogram(S))
-        S_hist = S_hist / np.sum(S_hist)
+        G_real_hist = np.array(nx.degree_histogram(G_real))
+        G_real_hist = G_real_hist / np.sum(G_real_hist)
+        G_pred_hist = np.array(nx.degree_histogram(G_pred))
+        G_pred_hist = G_pred_hist / np.sum(G_pred_hist)
+    if metric == 'clustering':
+        G_real_hist, _ = np.histogram(
+            np.array(list(nx.clustering(G_real).values())),
+            bins=50,
+            range=(0.0, 1.0),
+            density=False)
+        G_real_hist = G_real_hist / np.sum(G_real_hist)
+        G_pred_hist, _ = np.histogram(
+            np.array(list(nx.clustering(G_pred).values())),
+            bins=50,
+            range=(0.0, 1.0),
+            density=False)
+        G_pred_hist = G_pred_hist / np.sum(G_pred_hist)
 
-    elif metric == 'clustering':
-        G_hist, _ = np.histogram(
-            np.array(list(nx.clustering(G).values())), bins=50, range=(0.0, 1.0), density=False)
-        G_hist = G_hist / np.sum(G_hist)
-        S_hist, _ = np.histogram(
-            np.array(list(nx.clustering(G).values())), bins=50, range=(0.0, 1.0), density=False)
-        S_hist = S_hist / np.sum(S_hist)
-
-    else:
-        raise ValueError('Either metric="degree" or metric="clustering"')
-
-    loss = emd_distance(G_hist, S_hist)
+    loss = emd_distance(G_real_hist, G_pred_hist)
     return loss
 
 
-def optimizer_brute(x_min, x_max, x_step, n, G, generator, metric):
-    losses = []
+
+def optimizer_brute(x_min, x_max, x_step, n, G_real, generator, metric):
+    loss_all = []
     x_list = np.arange(x_min, x_max, x_step)
-
     for x_test in x_list:
-        losses.append(loss(x_test, n, G, generator, metric))
-
-    x_optim = x_list[np.argmin(np.array(losses))]
+        if x_test < n:
+            loss_all.append(loss(x_test, n, G_real, generator, metric))
+    x_optim = x_list[np.argmin(np.array(loss_all))]
     return x_optim
+
 
 
 def train_optimizationbased(graphlist, generator, metric):

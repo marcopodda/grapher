@@ -40,7 +40,7 @@ class DatasetManager:
         if not (self.raw_dir / f"splits.yaml").exists():
             self._make_splits()
 
-        self.splits = load_yaml(self.processed_dir / f"splits.yaml")
+        self.splits = load_yaml(self.raw_dir / f"splits.yaml")
 
     def _preprocess_data(self):
         graphlist = self._read_data()

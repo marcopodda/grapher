@@ -135,4 +135,4 @@ class GraphRNNExperiment(Experiment):
         train_data = dataset.get_data('train')
         samples, params = run_graphrnn(config, self.dataset, self.root, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")
-        torch.save(samples, self.root / "ckpt" / f"parameters.pt")
+        torch.save(params, self.root / "ckpt" / f"parameters.pt")

@@ -109,15 +109,16 @@ class Trainer:
 
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
+                self.save(best=True)
 
-            if self.current_epoch >= 10:
-                kld, klc = self._valid_epoch(test_data)
-                self.klds.append(kld)
-                self.klcs.append(klc)
+            # if self.current_epoch >= 10:
+            #     kld, klc = self._valid_epoch(test_data)
+            #     self.klds.append(kld)
+            #     self.klcs.append(klc)
 
-                if (kld + klc) < self.best_valid:
-                    self.best_valid = kld + klc
-                    self.save(best=True)
+            #     if (kld + klc) < self.best_valid:
+            #         self.best_valid = kld + klc
+            #         self.save(best=True)
 
             self.log_epoch()
 
@@ -160,9 +161,9 @@ class Trainer:
             f"loss2: {self.losses2[-1]:.6f} - " + \
             f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
 
-        if self.current_epoch >= 10:
-            msg += f" - " + \
-                f"kld: {self.klds[-1]:.6f} - " + \
-                f"klc: {self.klcs[-1]:.6f} - " + \
-                f"total: {self.klds[-1] + self.klcs[-1]:.6f}"
+        # if self.current_epoch >= 10:
+        #     msg += f" - " + \
+        #         f"kld: {self.klds[-1]:.6f} - " + \
+        #         f"klc: {self.klcs[-1]:.6f} - " + \
+        #         f"total: {self.klds[-1] + self.klcs[-1]:.6f}"
         print(msg)

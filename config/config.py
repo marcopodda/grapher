@@ -5,7 +5,7 @@ class Config(BaseConfigWithSerializer):
     def set_defaults(self):
         Config._params.update(
             bfs_order=True,
-            batch_size=16,
+            batch_size=32,
             max_num_nodes=40,
             min_num_nodes=4,
             shuffle=True,
@@ -18,12 +18,12 @@ class Config(BaseConfigWithSerializer):
             sample_interval=5,
             num_intermediate_samples=50,
             num_samples=1000,
-            max_epochs=20,
+            max_epochs=1000,
             scheduler_class="StepLR",
             scheduler_params={"step_size": 50, "gamma": 0.5},
             optimizer_class="Adam",
             optimizer_params={'lr': 0.001},
-            device="cpu"
+            device="gpu"
         )
 
 

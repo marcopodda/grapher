@@ -1,1 +1,1 @@
-batch_size: 16
+device: gpu

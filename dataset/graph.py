@@ -48,7 +48,7 @@ class GraphList:
             num_edges = [G.number_of_edges() for G in self]
             self._max_edges = max(num_edges)
         return self._max_edges
-    
+
     @property
     def min_nodes(self):
         if self._min_nodes is None:
@@ -97,6 +97,7 @@ def bfs_seq(G, start_id):
 
 
 def encode_graph(G, bfs_order=False):
+    G = max(nx.connected_component_subgraphs(G), key=len)
     if bfs_order:
         start_node = min(G.nodes())
         seq = bfs_seq(G, start_id=start_node)

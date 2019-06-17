@@ -2,6 +2,9 @@ import numpy as np
 import networkx as nx
 from scipy.stats import entropy
 
+import torch
+from pathlib import Path
+
 BINS = 100
 EPS = 1e-8
 
@@ -60,3 +63,15 @@ def compute_statistics(graph_ref, graph_pred):
     kl_degree = degree_kl(graph_ref, graph_pred)
     kl_clust = clustering_kl(graph_ref, graph_pred)
     return kl_degree, kl_clust
+
+
+def evaluate_model(name):
+    root = Path("RUNS") / name
+    for dataset in ["community", "ego", "ladders", "ENZYMES", "PROTEINS_full"]:
+        path = root / dataset
+        exp_dir = Path(list(path.glob("*"))[0])
+        samples = torch.load(exp_dir / "samples" / "samples.pt")
+        data = torch.load(exp_dir / "data" / f"{dataset}.pt").graphlist
+        kl_degree, kl_clust = compute_statistics(data, samples)
+        print(f"{name} {dataset:14} degree: {kl_degree:.6f} cluster coef: {kl_clust:.6f}")
+

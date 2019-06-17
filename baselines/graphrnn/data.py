@@ -244,7 +244,6 @@ class Graph_sequence_sampler_pytorch(Dataset):
             # then do bfs in the permuted G
             start_idx = np.random.randint(adj_copy.shape[0])
             x_idx = np.array(bfs_seq(G, start_idx))
-            print(bfs_seq(G, start_idx))
             adj_copy = adj_copy[np.ix_(x_idx, x_idx)]
             # encode adj
 

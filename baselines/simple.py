@@ -137,3 +137,4 @@ def run_baseline(generator, metric, graphlist):
                       parameter=parameter,
                       generator=generator)
     samples = GraphList(samples)
+    return samples

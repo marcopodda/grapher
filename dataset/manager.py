@@ -129,6 +129,8 @@ class TUData(DatasetManager):
             graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
             graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
 
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() > 0)
+
         return graphlist
 
 

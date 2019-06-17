@@ -46,7 +46,6 @@ class Experiment:
         maybe_makedir(self.root / "data")
         maybe_makedir(self.root / "config")
         maybe_makedir(self.root / "samples")
-        maybe_makedir(self.root / "evaluation")
 
     def train(self):
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
@@ -94,7 +93,6 @@ class BaselineExperiment(Experiment):
         maybe_makedir(self.root / "data")
         maybe_makedir(self.root / "config")
         maybe_makedir(self.root / "samples")
-        maybe_makedir(self.root / "evaluation")
 
     def train(self):
         config = BaselineConfig.from_file(Path("cfg") / f"baseline_{self.dataset}.yaml")
@@ -127,7 +125,6 @@ class GraphRNNExperiment(Experiment):
         maybe_makedir(self.root / "data")
         maybe_makedir(self.root / "config")
         maybe_makedir(self.root / "samples")
-        maybe_makedir(self.root / "evaluation")
 
     def train(self):
         config = GraphRNNConfig.from_file(Path("cfg") / f"graphrnn_{self.dataset}.yaml")
@@ -136,5 +133,6 @@ class GraphRNNExperiment(Experiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        samples = run_graphrnn(config, self.dataset, self.root, train_data)
+        samples, params = run_graphrnn(config, self.dataset, self.root, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")
+        torch.save(samples, self.root / "ckpt" / f"parameters.pt")

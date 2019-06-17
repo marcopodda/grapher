@@ -102,8 +102,9 @@ class BaselineExperiment(Experiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        samples = run_baseline(self.model_name, self.metric, train_data)
+        samples, params = run_baseline(self.model_name, self.metric, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")
+        torch.save(params, self.root / "ckpt" / f"parameters.pt")
 
 
 class GraphRNNExperiment(Experiment):
@@ -133,6 +134,5 @@ class GraphRNNExperiment(Experiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        samples, params = run_graphrnn(config, self.dataset, self.root, train_data)
+        samples = run_graphrnn(config, self.dataset, self.root, train_data)
         torch.save(samples, self.root / "samples" / f"samples.pt")
-        torch.save(params, self.root / "ckpt" / f"parameters.pt")

@@ -47,7 +47,7 @@ class DatasetManager:
 
         self.splits = load_yaml(self.raw_dir / f"splits.yaml")
         # save a copy inside the experiment folder too
-        save_yaml(splits, self.processed_dir / 'splits.yaml')
+        save_yaml(self.splits, self.processed_dir / 'splits.yaml')
 
     def _preprocess_data(self):
         graphlist = self._read_data()

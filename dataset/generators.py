@@ -81,36 +81,38 @@ def community_graph_generator2(config, num_graphs=1000, num_communities=2, max_e
 
     return graphs
 
-def community_graph_generator(config, num_graphs=1000, c=2, p_path=0.05, p_edge=0.3):
-    graphs, count = [], 0
-    k = config.max_num_nodes
-    while count < num_graphs:
-        p = p_path
-        path_count = max(int(np.ceil(p * k)), 1)
-        G = nx.caveman_graph(c, k)
+def community_graph_generator(config, num_graphs=1000, num_reps=40, c=2, p_path=0.05, p_edge=0.3):
+    graphs = []
 
-        # remove 50% edges
-        p = 1 - p_edge
+    for k in range(config.min_num_nodes, config.max_num_nodes):
+        count = 0
+        while count < num_reps:
+            p = p_path
+            path_count = max(int(np.ceil(p * k)), 1)
+            G = nx.caveman_graph(c, k)
 
-        for (u, v) in list(G.edges()):
-            if np.random.rand() < p and ((u < k and v < k) or (u >= k and v >= k)):
-                G.remove_edge(u, v)
+            # remove 50% edges
+            p = 1 - p_edge
 
-        # add path_count links
-        for i in range(path_count):
-            u = np.random.randint(0, k)
-            v = np.random.randint(k, k * 2)
-            G.add_edge(u, v)
+            for (u, v) in list(G.edges()):
+                if np.random.rand() < p and ((u < k and v < k) or (u >= k and v >= k)):
+                    G.remove_edge(u, v)
 
-        # remove self-loops!
-        G.remove_edges_from(G.selfloop_edges())
-        G = max(nx.connected_component_subgraphs(G), key=len)
-        G = nx.convert_node_labels_to_integers(G)
+            # add path_count links
+            for i in range(path_count):
+                u = np.random.randint(0, k)
+                v = np.random.randint(k, k * 2)
+                G.add_edge(u, v)
 
-        if G.number_of_edges() <= 100 and G.number_of_nodes() >= 10:
-            graphs.append(G)
+            # remove self-loops!
+            G.remove_edges_from(G.selfloop_edges())
+            G = max(nx.connected_component_subgraphs(G), key=len)
+            G = nx.convert_node_labels_to_integers(G)
 
-        count += 1
+            if G.number_of_edges() <= 100 and G.number_of_nodes() >= 10:
+                graphs.append(G)
+
+            count += 1
 
     return graphs
 

@@ -31,31 +31,35 @@ class DatasetManager:
             os.makedirs(self.raw_dir)
             self._fetch_data()
 
-        self.processed_dir = self.exp_root / "data"
-        if not (self.processed_dir / f"{self.name}.pt").exists():
+        self.processed_dir = exp_root / "data"
+        if not self.processed_dir.exists():
+            os.makedirs(self.processed_dir)
+
+        if not (self.raw_dir / f"{self.name}.pt").exists():
             self._preprocess_data()
 
         self.data = torch.load(self.raw_dir / f"{self.name}.pt")
+        # save a copy inside the experiment folder too
+        torch.save(self.data, self.processed_dir / f"{self.name}.pt")
 
         if not (self.raw_dir / f"splits.yaml").exists():
             self._make_splits()
 
         self.splits = load_yaml(self.raw_dir / f"splits.yaml")
+        # save a copy inside the experiment folder too
+        save_yaml(splits, self.processed_dir / 'splits.yaml')
 
     def _preprocess_data(self):
         graphlist = self._read_data()
         dataset = GraphDataset(self.config, graphlist)
         torch.save(dataset, self.raw_dir / f"{self.name}.pt")
-        # save a copy inside the experiment folder too
-        torch.save(dataset, self.processed_dir / f"{self.name}.pt")
 
     def _make_splits(self):
         indices = [i for i in range(len(self.data))]
         train_idxs, test_idxs = train_test_split(indices, test_size=self.config.test_size)
         splits = {'train': train_idxs, 'test': test_idxs}
         save_yaml(splits, self.raw_dir / 'splits.yaml')
-        # save a copy inside the experiment folder too
-        save_yaml(splits, self.processed_dir / 'splits.yaml')
+
 
     def get_loader(self, name):
         indices = self.splits[name]

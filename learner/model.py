@@ -48,7 +48,7 @@ class Model(nn.Module):
         outputs1, h = self.rnn1(input1, lengths)
 
         if torch.rand(1).item() < (1 - self.config.force_teacher):
-            input2 = outputs1.argmax(dim=-1)
+            input2 = outputs1.argmax(dim=1)
 
         outputs2, _ = self.rnn2(input2, lengths, h0=h)
 
@@ -97,7 +97,7 @@ class Model(nn.Module):
 
             return outputs.numpy().tolist()
 
-    def sample(self, num_samples=10):
+    def sample(self, num_samples=1000):
         samples = []
 
         for _ in range(num_samples):

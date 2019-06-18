@@ -22,7 +22,7 @@ class Config(BaseConfigWithSerializer):
             num_samples=1000,
             max_epochs=1000,
             scheduler_class="StepLR",
-            scheduler_params={"step_size": 50, "gamma": 0.5},
+            scheduler_params={"step_size": 100, "gamma": 0.5},
             optimizer_class="Adam",
             optimizer_params={'lr': 0.001},
             device="gpu"

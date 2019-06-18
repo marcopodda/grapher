@@ -111,7 +111,7 @@ class Trainer:
                 self.best_loss = total_loss
                 self.save(best=True)
 
-            if self.current_epoch >= 20:
+            if False: # self.current_epoch >= 20:
                 kld, klc = self._valid_epoch(test_data)
                 self.klds.append(kld)
                 self.klcs.append(klc)
@@ -161,7 +161,7 @@ class Trainer:
             f"loss2: {self.losses2[-1]:.6f} - " + \
             f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
 
-        if self.current_epoch >= 20:
+        if False: # self.current_epoch >= 20:
             msg += f" - " + \
                 f"kld: {self.klds[-1]:.6f} - " + \
                 f"klc: {self.klcs[-1]:.6f} - " + \

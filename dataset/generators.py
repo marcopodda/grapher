@@ -58,7 +58,7 @@ def ego_graph_generator(config, radius=2):
     return graphs
 
 
-def community_graph_generator2(config, num_graphs=1000, num_communities=2, max_edges=2, intra_connectivity=0.5):
+def community_graph_generator(config, num_graphs=1000, num_communities=2, max_edges=2, intra_connectivity=0.5, **kwargs):
     graphs = []
 
     for _ in range(num_graphs):
@@ -81,7 +81,8 @@ def community_graph_generator2(config, num_graphs=1000, num_communities=2, max_e
 
     return graphs
 
-def community_graph_generator(config, num_graphs=1000, num_reps=40, c=2, p_path=0.05, p_edge=0.3):
+
+def community_graph_generator2(config, num_graphs=1000, num_reps=40, c=2, p_path=0.05, p_edge=0.3, **kwargs):
     graphs = []
 
     for k in range(config.min_num_nodes, config.max_num_nodes):
@@ -113,7 +114,7 @@ def community_graph_generator(config, num_graphs=1000, num_reps=40, c=2, p_path=
                 graphs.append(G)
 
             count += 1
-
+    print("num graphs", len(graphs))
     return graphs
 
 

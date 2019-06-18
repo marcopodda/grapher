@@ -1,0 +1,3 @@
+max_epochs: 100
+embed_dim: 32
+hidden_dim: 256

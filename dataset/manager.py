@@ -147,10 +147,10 @@ class SyntheticData(DatasetManager):
 
 class Community(SyntheticData):
     generator_kwargs = {
-        "num_graphs": 1000,
+        "num_graphs": 4000,
         "c": 2,
         "p_edge": 0.6,
-        "num_reps": 40
+        "num_reps": 10
     }
 
     def _read_data(self):

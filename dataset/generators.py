@@ -117,13 +117,13 @@ def community_graph_generator(config, num_graphs=1000, num_reps=40, c=2, p_path=
     return graphs
 
 
-def ladder_graph_generator(config, num_repetitions):
+def ladder_graph_generator(config, num_reps):
     min_num_nodes, max_num_nodes = config.min_num_nodes, config.max_num_nodes
 
     graphs = []
 
     for num_nodes in range(min_num_nodes // 2, max_num_nodes // 2):
-        ladders = [nx.ladder_graph(num_nodes)] * num_repetitions
+        ladders = [nx.ladder_graph(num_nodes)] * num_reps
         graphs.extend(ladders)
 
     return graphs

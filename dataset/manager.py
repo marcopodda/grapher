@@ -149,7 +149,8 @@ class Community(SyntheticData):
     generator_kwargs = {
         "num_graphs": 1000,
         "c": 2,
-        "p_edge": 0.6
+        "p_edge": 0.6,
+        "num_reps": 40
     }
 
     def _read_data(self):
@@ -169,7 +170,7 @@ class Ego(SyntheticData):
 
 class Ladders(SyntheticData):
     generator_kwargs = {
-        "num_repetitions": 10
+        "num_reps": 10
     }
 
     def _read_data(self):
@@ -178,7 +179,7 @@ class Ladders(SyntheticData):
 
     def _make_splits(self):
         num_nodes = [G.number_of_nodes() for G in self.data.graphlist]
-        test_size = len(self.data) // self.generator_kwargs['num_repetitions']
+        test_size = len(self.data) // self.generator_kwargs['num_reps']
         indices = [i for i in range(len(self.data))]
         train_idxs, test_idxs = train_test_split(indices, stratify=num_nodes, test_size=test_size)
         splits = {'train': train_idxs, 'test': test_idxs}

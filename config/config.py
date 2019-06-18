@@ -38,6 +38,7 @@ class BaselineConfig(BaseConfigWithSerializer):
             device="cpu"
         )
 
+
 class GraphRNNConfig(BaseConfigWithSerializer):
     def set_defaults(self):
         GraphRNNConfig._params.update(

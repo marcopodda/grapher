@@ -76,11 +76,12 @@ class Model(nn.Module):
                 probs = F.softmax(outputs / temperature, dim=1)
                 inputs = torch.multinomial(probs, 1).reshape(1, -1)
 
-                if inputs.item() == 2:
-                    break
-
                 sample.append(inputs.item())
                 hs.append(h)
+                
+                if inputs.item() == 2:
+                    break
+                
                 step += 1
 
         return sample, hs

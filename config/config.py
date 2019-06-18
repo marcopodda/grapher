@@ -6,6 +6,8 @@ class Config(BaseConfigWithSerializer):
         Config._params.update(
             bfs_order=True,
             batch_size=32,
+            max_num_edges=130,
+            min_num_edges=2,
             max_num_nodes=40,
             min_num_nodes=4,
             shuffle=True,
@@ -34,8 +36,10 @@ class BaselineConfig(BaseConfigWithSerializer):
             metric="degree",
             max_num_nodes=40,
             min_num_nodes=4,
+            max_num_edges=130,
+            min_num_edges=2,
             test_size=0.3,
-            device="cpu"
+            device="gpu"
         )
 
 class GraphRNNConfig(BaseConfigWithSerializer):
@@ -43,6 +47,8 @@ class GraphRNNConfig(BaseConfigWithSerializer):
         GraphRNNConfig._params.update(
             max_num_nodes=40,
             min_num_nodes=4,
+            max_num_edges=130,
+            min_num_edges=2,
             max_num_node=None,  # max number of nodes in a graph
             max_prev_node=None,  # max previous node that looks back
             hidden_size_rnn=64,
@@ -66,5 +72,5 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             milestones=[400, 1000],
             lr_rate=0.3,
             sample_time=2,   # sample time in each time step, when validating
-            device="cpu"
+            device="gpu"
         )

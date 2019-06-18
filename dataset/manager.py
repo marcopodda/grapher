@@ -125,11 +125,10 @@ class TUData(DatasetManager):
 
         graphlist = GraphList(Gs)
 
-        if self.config.max_num_nodes:
-            graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
-            graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
-
-        graphlist = graphlist.filter(lambda G: G.number_of_edges() > 0)
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() <= self.config.max_num_edges)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() >= self.config.min_num_edges)
 
         return graphlist
 
@@ -155,7 +154,14 @@ class Community(SyntheticData):
 
     def _read_data(self):
         graphs = community_graph_generator(self.config, **self.generator_kwargs)
-        return GraphList(graphs)
+        graphlist = GraphList(graphs)
+
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() <= self.config.max_num_edges)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() >= self.config.min_num_edges)
+
+        return graphlist
 
 
 class Ego(SyntheticData):
@@ -175,7 +181,14 @@ class Ladders(SyntheticData):
 
     def _read_data(self):
         graphs = ladder_graph_generator(self.config, **self.generator_kwargs)
-        return GraphList(graphs)
+        graphlist = GraphList(graphs)
+
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() <= self.config.max_num_edges)
+        graphlist = graphlist.filter(lambda G: G.number_of_edges() >= self.config.min_num_edges)
+
+        return graphlist
 
     def _make_splits(self):
         num_nodes = [G.number_of_nodes() for G in self.data.graphlist]

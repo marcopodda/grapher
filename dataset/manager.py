@@ -44,7 +44,7 @@ class DatasetManager:
 
     def _preprocess_data(self):
         graphlist = self._read_data()
-        dataset = GraphDataset(self.config, graphlist)
+        dataset = GraphDataset(self.name, self.exp_root, self.config, graphlist)
         torch.save(dataset, self.raw_dir / f"{self.name}.pt")
         # save a copy inside the experiment folder too
         torch.save(dataset, self.processed_dir / f"{self.name}.pt")

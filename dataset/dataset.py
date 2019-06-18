@@ -5,6 +5,8 @@ from torch.utils.data import Dataset
 
 from .graph import encode_graph
 
+from learner.skipgram import train_embeddings
+
 
 PAD = 0
 SOS = 1
@@ -14,23 +16,33 @@ EOS = 2
 def to_sorted_tensor(lst, order):
     return [torch.LongTensor(lst[i]) for i in order]
 
+
 def reverse_argsort(lst):
     arr = np.array(lst)
     return (-arr).argsort()
 
+
 def pad_right(arr, pad):
     return arr + (pad,)
+
 
 def pad_left(arr, pad):
     return (pad,) + arr
 
 
 class GraphDataset(Dataset):
-    def __init__(self, config, graphlist):
+    def __init__(self, name, exp_root, config, graphlist):
         super().__init__()
         self.config = config
         self.graphlist = graphlist
 
+        emb_data = []
+        for G in graphlist:
+            l1, _ = encode_graph(G, self.config.bfs_order)
+            emb_data.append([str(i) for i in l1])
+        
+        train_embeddings(name, exp_root, config, emb_data)
+        
     def __len__(self):
         return len(self.graphlist)
 

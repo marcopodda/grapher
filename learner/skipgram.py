@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+from pathlib import Path
 
 from gensim.models import Word2Vec
 
@@ -7,7 +9,7 @@ SOS_TOKEN = "1"
 EOS_TOKEN = "2"
 
 
-def train_embeddings(config, data):
+def train_embeddings(name, exp_root, config, data):
     print("Training embeddings...", end=" ")
 
     word2index = {
@@ -25,9 +27,9 @@ def train_embeddings(config, data):
     start_idx = len(word2index)
 
     w2v = Word2Vec(
-        [s.split(" ") for s in data.fragments],
+        data,
         size=config.embed_dim,
-        window=config.get('embed_window'),
+        window=10,
         min_count=1,
         negative=5,
         workers=20,
@@ -40,9 +42,9 @@ def train_embeddings(config, data):
 
     tokens = np.random.uniform(-0.05, 0.05, size=(start_idx, config.embed_dim))
     embeddings = np.vstack([tokens, w2v[vocab]])
-    path = config.path('config') / f'emb_{config.embed_dim}.dat'
-    np.savetxt(path, embeddings, delimiter=",")
-
+    torch.save(embeddings, Path("DATA") / name / "raw" / "embeddings.pt")
+    torch.save(embeddings, exp_root / "data" / "embeddings.pt")
+    
     print(f'Done.')
 
     return word2index, word_freqs

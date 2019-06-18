@@ -4,12 +4,17 @@ from torch.nn import functional as F
 
 
 class RNN(nn.Module):
-    def __init__(self, config, input_dim, embed_dim, hidden_dim, output_dim):
+    def __init__(self, exp_root, config, input_dim, embed_dim, hidden_dim, output_dim):
         super().__init__()
 
         self.config = config
+        self.exp_root = exp_root
         self.output_dim = output_dim
-        self.embed = nn.Embedding(input_dim, embed_dim, padding_idx=0)
+
+        embeddings = self.load_embeddings()
+        self.embed = nn.Embedding.from_pretrained(embeddings)
+
+        # self.embed = nn.Embedding(input_dim, embed_dim, padding_idx=0)
         self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, batch_first=True)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.output_dim = output_dim
@@ -33,16 +38,20 @@ class RNN(nn.Module):
             outputs = outputs.view(batch_size, seq_len, -1)
 
         return outputs, h
+    
+    def load_embeddings(self):
+        embeddings = torch.load(self.exp_root / "data" / "embeddings.pt")
+        return torch.from_numpy(embeddings).float()
 
 
 class Model(nn.Module):
-    def __init__(self, config, input_dim, output_dim):
+    def __init__(self, exp_root, config, input_dim, output_dim):
         super().__init__()
         self.config = config
         self.output_dim = output_dim
 
-        self.rnn1 = RNN(config, input_dim, config.embed_dim, config.hidden_dim, output_dim)
-        self.rnn2 = RNN(config, input_dim, config.embed_dim, config.hidden_dim, output_dim)
+        self.rnn1 = RNN(exp_root, config, input_dim, config.embed_dim, config.hidden_dim, output_dim)
+        self.rnn2 = RNN(exp_root, config, input_dim, config.embed_dim, config.hidden_dim, output_dim)
 
     def forward(self, input1, input2, lengths):
         outputs1, h = self.rnn1(input1, lengths)

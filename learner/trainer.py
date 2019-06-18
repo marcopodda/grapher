@@ -44,7 +44,7 @@ class Trainer:
     def __init__(self, config, exp_root, input_dim, output_dim):
         self.exp_root = exp_root
         self.config = config
-        self.model = Model(config, input_dim, output_dim)
+        self.model = Model(exp_root, config, input_dim, output_dim)
         self.loss1 = Loss(output_dim)
         self.loss2 = Loss(output_dim)
         self.optimizer = get_optimizer(config, self.model)

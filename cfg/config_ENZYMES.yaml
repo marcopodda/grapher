@@ -1,2 +1,3 @@
-device: gpu
 max_epochs: 2000
+embed_dim: 32
+hidden_dim: 512

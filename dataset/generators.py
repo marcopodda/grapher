@@ -58,18 +58,18 @@ def ego_graph_generator(config, radius=2):
     return graphs
 
 
-def community_graph_generator(config, num_graphs=1000, num_communities=2, max_edges=2, intra_connectivity=0.9):
+def community_graph_generator(config, num_graphs=1000, num_communities=2, max_edges=2, intra_connectivity=0.5):
     graphs = []
 
     for _ in range(num_graphs):
         min_num_nodes, max_num_nodes = config.min_num_nodes, config.max_num_nodes
-        n_nodes_communities = [randint(min_num_nodes, max_num_nodes // num_communities) for _ in range(num_communities)]
+        n_nodes_communities = [randint(min_num_nodes // num_communities, max_num_nodes // num_communities) for _ in range(num_communities)]
         cumsum_nodes = [sum(n_nodes_communities[:i]) for i in range(len(n_nodes_communities))]
 
         G = nx.disjoint_union_all([nx.erdos_renyi_graph(n, intra_connectivity) for n in n_nodes_communities])
 
         for (i, j) in itertools.combinations(range(num_communities), 2):
-            for _ in range(randint(1, max_edges)):
+            for _ in range(randint(1, max_edges + 1)):
                 u = randint(cumsum_nodes[i], cumsum_nodes[i] + n_nodes_communities[i])
                 v = randint(cumsum_nodes[j], cumsum_nodes[j] + n_nodes_communities[j])
                 G.add_edge(u, v)

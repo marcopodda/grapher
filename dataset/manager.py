@@ -148,9 +148,8 @@ class SyntheticData(DatasetManager):
 class Community(SyntheticData):
     generator_kwargs = {
         "num_graphs": 1000,
-        "num_communities": 2,
-        "max_edges": 2,
-        "intra_connectivity": 0.8
+        "c": 2,
+        "p_edge": 0.6
     }
 
     def _read_data(self):

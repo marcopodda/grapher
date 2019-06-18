@@ -109,7 +109,7 @@ def community_graph_generator(config, num_graphs=1000, num_reps=40, c=2, p_path=
             G = max(nx.connected_component_subgraphs(G), key=len)
             G = nx.convert_node_labels_to_integers(G)
 
-            if G.number_of_edges() <= 100 and G.number_of_nodes() >= 10:
+            if G.number_of_edges() <= 130 and G.number_of_nodes() >= 10:
                 graphs.append(G)
 
             count += 1

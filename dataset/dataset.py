@@ -14,12 +14,15 @@ EOS = 2
 def to_sorted_tensor(lst, order):
     return [torch.LongTensor(lst[i]) for i in order]
 
+
 def reverse_argsort(lst):
     arr = np.array(lst)
     return (-arr).argsort()
 
+
 def pad_right(arr, pad):
     return arr + (pad,)
+
 
 def pad_left(arr, pad):
     return (pad,) + arr
@@ -36,7 +39,7 @@ class GraphDataset(Dataset):
 
     def __getitem__(self, index):
         G = self.graphlist[index]
-        l1, l2 = encode_graph(G, self.config.bfs_order)
+        l1, l2 = encode_graph(G, self.config.order)
         return l1, l2
 
     @property
@@ -78,5 +81,3 @@ class GraphDataCollator:
         output_padded = nn.utils.rnn.pad_sequence(outputs, batch_first=True)
 
         return input_padded, shifted_input_padded, output_padded, lengths
-
-

@@ -63,7 +63,8 @@ def community_graph_generator(config, num_graphs=1000, num_communities=2, max_ed
 
     while count < num_graphs:
         min_num_nodes, max_num_nodes = config.min_num_nodes, config.max_num_nodes
-        n_nodes_communities = [randint(min_num_nodes // num_communities, max_num_nodes // num_communities) for _ in range(num_communities)]
+        n_nodes_communities = [randint(min_num_nodes // num_communities, max_num_nodes //
+                                       num_communities) for _ in range(num_communities)]
         cumsum_nodes = [sum(n_nodes_communities[:i]) for i in range(len(n_nodes_communities))]
 
         G = nx.disjoint_union_all([nx.erdos_renyi_graph(n, intra_connectivity) for n in n_nodes_communities])

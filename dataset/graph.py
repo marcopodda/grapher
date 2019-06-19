@@ -1,3 +1,4 @@
+import numpy as np
 import networkx as nx
 
 
@@ -80,7 +81,7 @@ class GraphList:
         return GraphList(graphs)
 
 
-def bfs_seq(G, start_id):
+def bfs_order(G, start_id):
     dictionary = dict(nx.bfs_successors(G, start_id))
     start = [start_id]
     output = [start_id]
@@ -96,22 +97,27 @@ def bfs_seq(G, start_id):
     return output
 
 
-def encode_graph(G, bfs_order=False):
+def encode_graph(G, order):
     G = max(nx.connected_component_subgraphs(G), key=len)
-    if bfs_order:
+
+    if order == "bfs":
         start_node = min(G.nodes())
-        seq = bfs_seq(G, start_id=start_node)
-        # start from 3 because we are also counting pad, sos and eos tokens
-        mapping = {n: i for (i, n) in enumerate(seq, 3)}
-        G = G.subgraph(seq)
+        seq = bfs_order(G, start_id=start_node)
+    elif order == "random":
+        seq = list(G.nodes())
+        np.random.shuffle(seq)
     else:
-        # start from 3 because we are also counting pad, sos and eos tokens
-        mapping = {n: i for (i, n) in enumerate(G.nodes(), 3)}
+        # this is the case of SMILES ordering, which
+        # for chemical datasets is given by default
+        seq = list(G.nodes())
+
+    # start from 3 because we are also counting pad, sos and eos tokens
+    mapping = {n: i for (i, n) in enumerate(seq, 3)}
 
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
-    if bfs_order:
+    if order == "bfs":
         edges = sorted(edges)
 
     return list(zip(*edges))

@@ -4,7 +4,7 @@ from .base import BaseConfigWithSerializer
 class Config(BaseConfigWithSerializer):
     def set_defaults(self):
         Config._params.update(
-            bfs_order=True,
+            order="bfs",
             batch_size=32,
             max_num_edges=130,
             min_num_edges=2,
@@ -16,11 +16,7 @@ class Config(BaseConfigWithSerializer):
             hidden_dim=256,
             num_layers=2,
             temperature=0.8,
-            force_teacher=0.9,
-            sample_interval=5,
-            num_intermediate_samples=50,
-            num_samples=1000,
-            max_epochs=1000,
+            max_epochs=30,
             scheduler_class="StepLR",
             scheduler_params={"step_size": 100, "gamma": 0.5},
             optimizer_class="Adam",
@@ -42,6 +38,7 @@ class BaselineConfig(BaseConfigWithSerializer):
             device="gpu"
         )
 
+
 class GraphRNNConfig(BaseConfigWithSerializer):
     def set_defaults(self):
         GraphRNNConfig._params.update(
@@ -58,19 +55,13 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             embedding_size_output=32,
             batch_size=32,
             test_batch_size=32,
-            test_total_size=1000,
             test_size=0.3,
             num_layers=3,
             num_workers=4,  # num workers to load data, default 4
             batch_ratio=32,
             epochs=1000,  # now one epoch means batch_ratio x batch_size
-            epochs_test_start=1000,
-            epochs_test=1000,
-            epochs_log=1000,
-            epochs_save=1000,
             lr=0.003,
             milestones=[400, 1000],
             lr_rate=0.3,
-            sample_time=2,   # sample time in each time step, when validating
             device="gpu"
         )

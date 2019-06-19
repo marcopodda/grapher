@@ -69,7 +69,7 @@ class DatasetManager:
     def get_data(self, name):
         indices = self.splits[name]
         graphs = operator.itemgetter(*indices)(self.data.graphlist)
-        return GraphList(graphs)
+        return GraphList(graphs[:20])
 
     def __len__(self):
         return len(self.data)
@@ -153,7 +153,7 @@ class Community(SyntheticData):
 
     def _read_data(self):
         graphs = community_graph_generator(self.config, **self.generator_kwargs)
-        graphlist = GraphList(graphs)
+        graphlist = GraphList(graphs[:20])
 
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
@@ -170,7 +170,7 @@ class Ego(SyntheticData):
 
     def _read_data(self):
         graphs = ego_graph_generator(self.config, **self.generator_kwargs)
-        return GraphList(graphs)
+        return GraphList(graphs[:20])
 
 
 class Ladders(SyntheticData):
@@ -180,7 +180,7 @@ class Ladders(SyntheticData):
 
     def _read_data(self):
         graphs = ladder_graph_generator(self.config, **self.generator_kwargs)
-        graphlist = GraphList(graphs)
+        graphlist = GraphList(graphs[:20])
 
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
@@ -198,16 +198,3 @@ class Ladders(SyntheticData):
         save_yaml(splits, self.raw_dir / 'splits.yaml')
         # save a copy inside the experiment folder too
         save_yaml(splits, self.processed_dir / 'splits.yaml')
-
-
-def get_dataset_class(name):
-    if name.lower() == 'community':
-        return Community
-
-    if name.lower() == 'ego':
-        return Ego
-
-    if name.lower() == 'ladders':
-        return Ladders
-
-    return TUData

@@ -181,13 +181,12 @@ def train(config, exp_root, dataloader, rnn, output):
         print('Epoch: {}/{}, train loss: {:.6f}'.format(
             epoch, config.epochs, loss / len(dataloader)))
 
-        # save model checkpoint
-        if epoch % config.epochs_save == 0:
-            fname = exp_root / "ckpt" / "rnn.pt"
-            torch.save(rnn.state_dict(), fname)
-            fname = exp_root / "ckpt" / "output.pt"
-            torch.save(output.state_dict(), fname)
         epoch += 1
+
+    fname = exp_root / "ckpt" / "rnn.pt"
+    torch.save(rnn.state_dict(), fname)
+    fname = exp_root / "ckpt" / "output.pt"
+    torch.save(output.state_dict(), fname)
 
 
 def sample(config, rnn, output, num_samples):

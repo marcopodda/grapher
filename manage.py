@@ -2,11 +2,10 @@
 Manage experiments.
 
 Usage:
-    manage.py train <dataset>
-    manage.py resume <rundir>
-    manage.py baseline <name> <dataset> --metric=<metric>
-    manage.py graphrnn <dataset>
+    manage.py train <model>
+    manage.py order
     manage.py evaluate
+    manage.py evaluate_order
     manage.py (-h | --help)
 
 Options:
@@ -14,28 +13,34 @@ Options:
 """
 
 from docopt import docopt
-from learner.experiment import Experiment, BaselineExperiment, GraphRNNExperiment
-from learner.evaluator import Evaluator
+from learner import get_exp_class
+from learner.evaluator import Evaluator, OrderEvaluator
+
+DATASET_NAMES = ["community", "ego", "ladders", "ENZYMES", "PROTEINS_full"]
 
 
 def main():
     args = docopt(__doc__, help=True, version=None)
 
     if args["train"]:
-        exp = Experiment(args["<dataset>"])
-        exp.train()
-    elif args["resume"]:
-        exp = Experiment.load(args["<rundir>"])
-        exp.resume()
-    elif args["baseline"]:
-        exp = BaselineExperiment(args['<name>'], args['--metric'], args['<dataset>'])
-        exp.train()
-    elif args["graphrnn"]:
-        exp = GraphRNNExperiment(args['<dataset>'])
-        exp.train()
+        exp_class = get_exp_class(args['<model>'])
+        for dataset in DATASET_NAMES:
+            exp = exp_class(dataset)
+            exp.train()
+    elif args["order"]:
+        exp_class = get_exp_class("ORDER")
+        for order in ["bfs", "random", "smiles"]:
+            for dataset in DATASET_NAMES:
+                if order == "smiles" and dataset not in ["ENZYMES", "PROTEINS_full"]:
+                    continue
+                exp = exp_class(order, dataset)
+                exp.train()
     elif args["evaluate"]:
         ev = Evaluator()
-        print(ev.evaluate())
+        ev.evaluate()
+    elif args["evaluate_order"]:
+        ev = OrderEvaluator()
+        ev.evaluate()
 
 
 if __name__ == "__main__":

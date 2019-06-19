@@ -5,7 +5,6 @@ from torch import optim
 from torch.optim import lr_scheduler
 from .model import Model, Loss
 from dataset.graph import decode_graphs, GraphList
-from utils.evaluation import compute_statistics
 from utils.training import get_device
 
 
@@ -26,7 +25,7 @@ class Trainer:
         path = exp_root / "ckpt" / filename
         device = get_device(config)
         ckpt = torch.load(path, map_location=device)
-        
+
         trainer = cls(config, exp_root, input_dim, output_dim)
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
@@ -34,11 +33,8 @@ class Trainer:
         trainer.loss1.load_state_dict(ckpt["loss1"])
         trainer.loss2.load_state_dict(ckpt["loss2"])
         trainer.best_loss = ckpt["best_loss"]
-        trainer.best_valid = ckpt["best_valid"]
         trainer.losses1 = ckpt["losses1"]
         trainer.losses2 = ckpt["losses2"]
-        trainer.klcs = ckpt["klcs"]
-        trainer.klds = ckpt["klds"]
         trainer.current_epoch = ckpt['epoch'] + 1
         return trainer
 
@@ -54,11 +50,9 @@ class Trainer:
 
         self.losses1 = []
         self.losses2 = []
-        self.klcs = []
-        self.klds = []
+
         self.current_epoch = 0
         self.best_loss = np.float('inf')
-        self.best_valid = np.float('inf')
 
     def _train_epoch(self, loader):
         self.model.train()
@@ -90,11 +84,6 @@ class Trainer:
 
         return epoch_loss1 / len(loader), epoch_loss2 / len(loader)
 
-    def _valid_epoch(self, test_data):
-        self.model.eval()
-        samples = self.sample(self.config.num_intermediate_samples)
-        return compute_statistics(test_data, samples)
-
     def fit(self, loader, test_data):
         self.model.train()
 
@@ -112,15 +101,6 @@ class Trainer:
                 self.best_loss = total_loss
                 self.save(best=True)
 
-            if False: # self.current_epoch >= 20:
-                kld, klc = self._valid_epoch(test_data)
-                self.klds.append(kld)
-                self.klcs.append(klc)
-
-                if (kld + klc) < self.best_valid:
-                    self.best_valid = kld + klc
-                    self.save(best=True)
-
             self.log_epoch()
 
     def sample(self, num_samples):
@@ -137,11 +117,8 @@ class Trainer:
         torch.save({
             "epoch": self.current_epoch,
             "best_loss": self.best_loss,
-            "best_valid": self.best_valid,
             "losses1": self.losses1,
             "losses2": self.losses2,
-            "klcs": self.klcs,
-            "klds": self.klds,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict(),
@@ -155,9 +132,4 @@ class Trainer:
             f"loss2: {self.losses2[-1]:.6f} - " + \
             f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
 
-        if False: # self.current_epoch >= 20:
-            msg += f" - " + \
-                f"kld: {self.klds[-1]:.6f} - " + \
-                f"klc: {self.klcs[-1]:.6f} - " + \
-                f"total: {self.klds[-1] + self.klcs[-1]:.6f}"
         print(msg)

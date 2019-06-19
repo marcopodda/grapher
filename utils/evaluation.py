@@ -54,9 +54,3 @@ def degree_kl(graph_ref, graph_pred):
     max_num_pred = max([G.number_of_nodes() for G in graph_pred])
     max_num = max(max_num_ref, max_num_pred)
     return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
-
-
-def compute_statistics(graph_ref, graph_pred):
-    kl_degree, degree_counts_ref, degree_counts_pred = degree_kl(graph_ref, graph_pred)
-    kl_clust, clust_counts_ref, clust_counts_pred = clustering_kl(graph_ref, graph_pred)
-    return kl_degree, degree_counts_ref, degree_counts_pred, kl_clust, clust_counts_ref, clust_counts_pred

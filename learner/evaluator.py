@@ -1,4 +1,3 @@
-import torch
 from config.config import Config, BaselineConfig, GraphRNNConfig
 from utils.evaluation import compute_statistics
 from .experiment import Experiment, BaselineExperiment, GraphRNNExperiment
@@ -17,6 +16,7 @@ def get_exp_class(model_name):
         return GraphRNNExperiment
 
     return BaselineExperiment
+
 
 def get_config_class(model_name):
     if model_name == "GRAPHER":

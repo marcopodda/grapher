@@ -8,6 +8,7 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 from .model import binary_cross_entropy_weight, sample_sigmoid
 from .data import decode_adj
+from utils.training import get_device
 
 
 def get_graph(adj):
@@ -113,7 +114,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
     return loss_sum / (batch_idx + 1)
 
 
-def test_rnn_epoch(epoch, config, rnn, output, device, test_batch_size=16):
+def test_rnn_epoch(config, rnn, output, device, test_batch_size=16):
     rnn.hidden = rnn.init_hidden(test_batch_size)
     rnn.eval()
     output.eval()
@@ -156,7 +157,8 @@ def test_rnn_epoch(epoch, config, rnn, output, device, test_batch_size=16):
 
 
 # train function for RNN
-def train(config, exp_root, dataloader, rnn, output, device):
+def train(config, exp_root, dataloader, rnn, output):
+    device = get_device(config)
     # check if load existing model
     epoch = 1
 
@@ -187,15 +189,18 @@ def train(config, exp_root, dataloader, rnn, output, device):
             torch.save(output.state_dict(), fname)
         epoch += 1
 
-    G_pred = []
-    while len(G_pred) < config.test_total_size:
-        G_pred_step = test_rnn_epoch(
-            epoch,
+
+def sample(config, rnn, output, num_samples):
+    samples = []
+    device = get_device(config)
+
+    while len(samples) < num_samples:
+        samples_step = test_rnn_epoch(
             config,
             rnn,
             output,
             device,
             test_batch_size=config.test_batch_size)
-        G_pred.extend(G_pred_step)
+        samples.extend(samples_step)
 
-    return G_pred
+    return samples[:num_samples]

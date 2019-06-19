@@ -4,7 +4,7 @@ import torch
 from torch import optim
 from torch.optim import lr_scheduler
 from .model import Model, Loss
-from dataset.graph import decode_graphs
+from dataset.graph import decode_graphs, GraphList
 from utils.evaluation import compute_statistics
 from utils.training import get_device
 
@@ -24,8 +24,9 @@ class Trainer:
     def load(cls, config, exp_root, input_dim, output_dim, best=False):
         filename = "best.pt" if best else "last.pt"
         path = exp_root / "ckpt" / filename
-        ckpt = torch.load(path)
-
+        device = get_device(config)
+        ckpt = torch.load(path, map_location=device)
+        
         trainer = cls(config, exp_root, input_dim, output_dim)
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
@@ -122,20 +123,13 @@ class Trainer:
 
             self.log_epoch()
 
-    def sample(self, num_samples, final=False):
-        if final:
-            ckpt = torch.load(self.exp_root / "ckpt" / "best.pt")
-            self.model.load_state_dict(ckpt["model"])
-
+    def sample(self, num_samples):
         self.model.to('cpu')
         samples = self.model.sample(num_samples)
-        graphs = decode_graphs(samples)
+        samples = decode_graphs(samples)
         self.model.to(self.device)
 
-        if final:
-            torch.save(graphs, self.exp_root / "samples" / "samples.pt")
-
-        return graphs
+        return GraphList(samples)
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"

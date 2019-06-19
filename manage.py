@@ -2,21 +2,20 @@
 Manage experiments.
 
 Usage:
-  manage.py train <dataset>
-  manage.py resume <rundir>
-  manage.py baseline <name> <dataset> --metric=<metric>
-  manage.py graphrnn <dataset>
-  manage.py (-h | --help)
+    manage.py train <dataset>
+    manage.py resume <rundir>
+    manage.py baseline <name> <dataset> --metric=<metric>
+    manage.py graphrnn <dataset>
+    manage.py evaluate
+    manage.py (-h | --help)
 
 Options:
-  -d --dataset DATASET    Path to a hyperparameter config file [default: MUTAG].
-  -r --rundir PATH        Use specific run.
-  -l --last               Use last run.
-  -h --help               Show this screen.
+    -h --help               Show this screen.
 """
 
 from docopt import docopt
 from learner.experiment import Experiment, BaselineExperiment, GraphRNNExperiment
+from learner.evaluator import Evaluator
 
 
 def main():
@@ -34,6 +33,9 @@ def main():
     elif args["graphrnn"]:
         exp = GraphRNNExperiment(args['<dataset>'])
         exp.train()
+    elif args["evaluate"]:
+        ev = Evaluator()
+        print(ev.evaluate())
 
 
 if __name__ == "__main__":

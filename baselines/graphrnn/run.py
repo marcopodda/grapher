@@ -1,8 +1,6 @@
 from .model import GRU_plain
 from .train import train
-from .args import Args
 from .data import Graph_sequence_sampler_pytorch
-import os
 import torch
 from utils.training import get_device
 
@@ -29,7 +27,13 @@ def run_graphrnn(config, dataset_name, exp_root, graphlist):
         sampler=sample_strategy)
 
     config.update(max_prev_node=dataset.max_prev_node)
+    # model initialization
+    rnn, output = load_model(config)
 
+    train(config, exp_root, dataloader, rnn, output)
+
+
+def load_model(config, rnn_state_dict=None, output_state_dict=None):
     device = get_device(config)
 
     # model initialization
@@ -53,5 +57,10 @@ def run_graphrnn(config, dataset_name, exp_root, graphlist):
         has_output=True,
         output_size=1).to(device)
 
-    samples = train(config, exp_root, dataloader, rnn, output, device)
-    return samples
+    if rnn_state_dict is not None:
+        rnn.load_state_dict(rnn_state_dict)
+
+    if output_state_dict is not None:
+        output.load_state_dict(output_state_dict)
+
+    return rnn, output

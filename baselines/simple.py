@@ -66,7 +66,6 @@ def loss(x, n, G_real, generator, metric):
     return loss
 
 
-
 def optimizer_brute(x_min, x_max, x_step, n, G_real, generator, metric):
     loss_all = []
     x_list = np.arange(x_min, x_max, x_step)
@@ -75,7 +74,6 @@ def optimizer_brute(x_min, x_max, x_step, n, G_real, generator, metric):
             loss_all.append(loss(x_test, n, G_real, generator, metric))
     x_optim = x_list[np.argmin(np.array(loss_all))]
     return x_optim
-
 
 
 def train_optimizationbased(graphlist, generator, metric):
@@ -105,23 +103,23 @@ def train_optimizationbased(graphlist, generator, metric):
     return parameter
 
 
-def sampler(nodelist, parameter, generator):
-    graphs = []
+def sample(graphlist, parameters, generator):
+    samples = []
 
-    for nodes in nodelist:
-        if nodes not in parameter.keys():
-            nodes = min(parameter.keys(), key=lambda k: abs(k - nodes))
+    for nodes in graphlist.num_nodes():
+        if nodes not in parameters.keys():
+            nodes = min(parameters.keys(), key=lambda k: abs(k - nodes))
         if generator == 'BA':
-            n = int(parameter[nodes][0])
-            m = int(np.rint(parameter[nodes][1]))
+            n = int(parameters[nodes][0])
+            m = int(np.rint(parameters[nodes][1]))
             graph = nx.barabasi_albert_graph(n, m)
         if generator == 'ER':
-            n = int(parameter[nodes][0])
-            p = parameter[nodes][1]
+            n = int(parameters[nodes][0])
+            p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
-        graphs.append(graph)
+        samples.append(graph)
 
-    return graphs
+    return GraphList(samples)
 
 
 def run_baseline(generator, metric, graphlist):
@@ -129,12 +127,8 @@ def run_baseline(generator, metric, graphlist):
     print('total graph num: {}'.format(len(graphlist)))
     print('max number node: {}'.format(graphlist.max_nodes))
 
-    parameter = train_optimizationbased(graphlist,
-                                        generator=generator,
-                                        metric=metric)
+    parameters = train_optimizationbased(graphlist,
+                                         generator=generator,
+                                         metric=metric)
 
-    samples = sampler(graphlist.num_nodes(),
-                      parameter=parameter,
-                      generator=generator)
-    samples = GraphList(samples)
-    return samples, parameter
+    return parameters

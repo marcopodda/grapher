@@ -5,7 +5,6 @@ import zipfile
 from pathlib import Path
 import operator
 
-import numpy as np
 import networkx as nx
 import torch
 from torch.utils.data import DataLoader, Subset
@@ -59,7 +58,6 @@ class DatasetManager:
         train_idxs, test_idxs = train_test_split(indices, test_size=self.config.test_size)
         splits = {'train': train_idxs, 'test': test_idxs}
         save_yaml(splits, self.raw_dir / 'splits.yaml')
-
 
     def get_loader(self, name):
         indices = self.splits[name]

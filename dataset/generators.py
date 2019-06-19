@@ -5,6 +5,7 @@ import io
 import zipfile
 import requests
 import itertools
+import random
 from pathlib import Path
 import networkx as nx
 
@@ -67,7 +68,13 @@ def community_graph_generator(config, num_graphs=1000, num_communities=2, max_ed
                                        num_communities) for _ in range(num_communities)]
         cumsum_nodes = [sum(n_nodes_communities[:i]) for i in range(len(n_nodes_communities))]
 
-        G = nx.disjoint_union_all([nx.erdos_renyi_graph(n, intra_connectivity) for n in n_nodes_communities])
+        communities = [nx.erdos_renyi_graph(n, 1.0) for n in n_nodes_communities]
+        for community in communities:
+            for edge in list(community.edges()):
+                if random.random() < intra_connectivity:
+                    community.remove_edge(*edge)
+
+        G = nx.disjoint_union_all(communities)
 
         for (i, j) in itertools.combinations(range(num_communities), 2):
             for _ in range(randint(1, max_edges + 1)):

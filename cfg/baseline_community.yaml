@@ -1,1 +1,2 @@
 device: gpu
+min_num_nodes: 16

@@ -66,11 +66,11 @@ class Experiment:
         trainer.fit(loader, test_data)
         config.save(self.root / "config")
 
-    def sample(self):
+    def sample(self, num_samples):
         config = Config.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-        samples = trainer.sample(num_samples=len(dataset.splits['test']))
+        samples = trainer.sample(num_samples=num_samples)
         return samples
 
 
@@ -80,7 +80,6 @@ class BaselineExperiment(Experiment):
         assert root is not None
         dataset = Path(root).parts[-2]
         model_name, metric = Path(root).parts[-3].split("_")
-        print(dataset, model_name, metric)
         return cls(model_name, metric, dataset, root=root)
 
     def __init__(self, model_name, metric, dataset, root=None):
@@ -113,7 +112,7 @@ class BaselineExperiment(Experiment):
         parameters = run_baseline(self.model_name, self.metric, train_data)
         torch.save(parameters, self.root / "ckpt" / f"parameters.pt")
 
-    def sample(self):
+    def sample(self, num_samples):
         config = BaselineConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         parameters = torch.load(self.root / "ckpt" / f"parameters.pt")
@@ -148,12 +147,11 @@ class GraphRNNExperiment(Experiment):
         run_graphrnn(config, self.dataset, self.root, train_data)
         config.save(self.root / "config")
 
-    def sample(self):
+    def sample(self, num_samples):
         config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
         device = get_device(config)
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)
-        samples = sample_graphrnn(config, rnn, output, num_samples=len(dataset.splits['test']))
+        samples = sample_graphrnn(config, rnn, output, num_samples=num_samples)
         return samples

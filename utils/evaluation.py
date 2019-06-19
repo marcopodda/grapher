@@ -26,21 +26,6 @@ def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     return cc_hists
 
 
-def clustering_kl(graph_ref, graph_pred):
-    clust_hist_ref = get_cc_hists(graph_ref, bins=BINS)
-    clust_hist_pred = get_cc_hists(graph_pred, bins=BINS)
-    return kl_divergence(clust_hist_ref, clust_hist_pred, BINS)
-
-
-def degree_kl(graph_ref, graph_pred):
-    deg_hist_ref = get_dd_hists(graph_ref)
-    deg_hist_pred = get_dd_hists(graph_pred)
-    max_num_ref = max([G.number_of_nodes() for G in graph_ref])
-    max_num_pred = max([G.number_of_nodes() for G in graph_pred])
-    max_num = max(max_num_ref, max_num_pred)
-    return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
-
-
 def pad_vectors(sample_ref, sample_pred, bin_size):
     counts_ref = np.zeros((bin_size, )) + EPS
     counts_pred = np.zeros((bin_size, )) + EPS
@@ -56,22 +41,25 @@ def pad_vectors(sample_ref, sample_pred, bin_size):
 
 def kl_divergence(sample_ref, sample_pred, bin_size):
     counts_ref, counts_pred = pad_vectors(sample_ref, sample_pred, bin_size)
-    return entropy(counts_ref, counts_pred)
+    return entropy(counts_ref, counts_pred), counts_ref, counts_pred
+
+
+def clustering_kl(graph_ref, graph_pred):
+    clust_hist_ref = get_cc_hists(graph_ref, bins=BINS)
+    clust_hist_pred = get_cc_hists(graph_pred, bins=BINS)
+    return kl_divergence(clust_hist_ref, clust_hist_pred, BINS)
+
+
+def degree_kl(graph_ref, graph_pred):
+    deg_hist_ref = get_dd_hists(graph_ref)
+    deg_hist_pred = get_dd_hists(graph_pred)
+    max_num_ref = max([G.number_of_nodes() for G in graph_ref])
+    max_num_pred = max([G.number_of_nodes() for G in graph_pred])
+    max_num = max(max_num_ref, max_num_pred)
+    return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
 
 
 def compute_statistics(graph_ref, graph_pred):
-    kl_degree = degree_kl(graph_ref, graph_pred)
-    kl_clust = clustering_kl(graph_ref, graph_pred)
-    return kl_degree, kl_clust
-
-
-def evaluate_model(name):
-    root = Path("RUNS") / name
-    for dataset in ["community", "ego", "ladders", "ENZYMES", "PROTEINS_full"]:
-        path = root / dataset
-        exp_dir = Path(list(path.glob("*"))[0])
-        data = torch.load(exp_dir / "data" / f"{dataset}.pt").graphlist
-        samples = torch.load(exp_dir / "samples" / "samples.pt")
-        kl_degree, kl_clust = compute_statistics(data, samples)
-        print(f"{name:14} {dataset:14} degree: {kl_degree:.6f} cluster coef: {kl_clust:.6f}")
-
+    kl_degree, degree_counts_ref, degree_counts_pred = degree_kl(graph_ref, graph_pred)
+    kl_clust, clust_counts_ref, clust_counts_pred = clustering_kl(graph_ref, graph_pred)
+    return kl_degree, degree_counts_ref, degree_counts_pred, kl_clust, clust_counts_ref, clust_counts_pred

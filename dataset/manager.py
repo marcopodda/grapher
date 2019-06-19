@@ -69,7 +69,7 @@ class DatasetManager:
     def get_data(self, name):
         indices = self.splits[name]
         graphs = operator.itemgetter(*indices)(self.data.graphlist)
-        return GraphList(graphs[:20])
+        return GraphList(graphs)
 
     def __len__(self):
         return len(self.data)
@@ -153,7 +153,7 @@ class Community(SyntheticData):
 
     def _read_data(self):
         graphs = community_graph_generator(self.config, **self.generator_kwargs)
-        graphlist = GraphList(graphs[:20])
+        graphlist = GraphList(graphs)
 
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
@@ -170,7 +170,7 @@ class Ego(SyntheticData):
 
     def _read_data(self):
         graphs = ego_graph_generator(self.config, **self.generator_kwargs)
-        return GraphList(graphs[:20])
+        return GraphList(graphs)
 
 
 class Ladders(SyntheticData):
@@ -180,7 +180,7 @@ class Ladders(SyntheticData):
 
     def _read_data(self):
         graphs = ladder_graph_generator(self.config, **self.generator_kwargs)
-        graphlist = GraphList(graphs[:20])
+        graphlist = GraphList(graphs)
 
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)

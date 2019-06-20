@@ -16,7 +16,7 @@ from docopt import docopt
 from learner import get_exp_class
 from learner.evaluator import Evaluator, OrderEvaluator
 
-DATASET_NAMES = ["community"] #, "ego", "ladders", "ENZYMES", "PROTEINS_full"]
+DATASET_NAMES = ["community", "ego", "ladders", "ENZYMES", "PROTEINS_full"]
 
 
 def main():

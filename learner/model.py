@@ -54,7 +54,7 @@ class Model(nn.Module):
         model = self.rnn1
 
         step = 0
-        max_length = self.output_dim
+        max_length = self.config.max_num_edges
         temperature = self.config.temperature
 
         sample = []

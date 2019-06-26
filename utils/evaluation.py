@@ -25,6 +25,18 @@ def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     return cc_hists
 
 
+def get_gl_hists(graphs, bins=10, range=(0.0, 1.0)):
+    hists = []
+
+    for G in graphs:
+        counts = graphlet_count(G)
+        values = list(counts.values())
+        hist, _ = np.histogram(values, bins=10, range=range)
+        hists.append(hist)
+
+    return hists
+
+
 def pad_vectors(sample_ref, sample_pred, bin_size):
     counts_ref = np.zeros((bin_size, )) + EPS
     counts_pred = np.zeros((bin_size, )) + EPS
@@ -43,6 +55,13 @@ def kl_divergence(sample_ref, sample_pred, bin_size):
     return entropy(counts_ref, counts_pred), counts_ref, counts_pred
 
 
+def graphlet_kl(graph_ref, graph_pred):
+    bins = 30
+    gl_hist_ref = get_gl_hists(graph_ref, bins=bins)
+    gl_hist_pred = get_gl_hists(graph_pred, bins=bins)
+    return kl_divergence(gl_hist_ref, gl_hist_pred, bins)
+
+
 def clustering_kl(graph_ref, graph_pred):
     clust_hist_ref = get_cc_hists(graph_ref, bins=BINS)
     clust_hist_pred = get_cc_hists(graph_pred, bins=BINS)
@@ -56,8 +75,3 @@ def degree_kl(graph_ref, graph_pred):
     max_num_pred = max([G.number_of_nodes() for G in graph_pred])
     max_num = max(max_num_ref, max_num_pred)
     return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
-
-
-def graphlet_kl(graph_ref, graph_pred):
-    gc_ref = graphlet_count(graph_ref)
-    gc_pred = graphlet_count(graph_pred)

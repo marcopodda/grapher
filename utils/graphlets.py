@@ -16,15 +16,9 @@ def all_matching_subgraphs(G, target):
             yield subg
 
 
-def graphlet_count(Gs):
-    counts = {'g1': [], 'g2': [], 'g3': []}
-
-    for G in Gs:
-        count = {'g1': 0, 'g2': 0, 'g3': 0}
-        for name, graphlet in graphlets.items():
-            for subg in all_matching_subgraphs(G, graphlet):
-                count[name] += 1
-        for name, value in count.items():
-            counts[name].append(value)
-
-    return counts
+def graphlet_count(G):
+    count = {'g1': 0, 'g2': 0, 'g3': 0}
+    for name, graphlet in graphlets.items():
+        for subg in all_matching_subgraphs(G, graphlet):
+            count[name] += 1
+    return count

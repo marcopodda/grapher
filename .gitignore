@@ -7,3 +7,4 @@ RUNS/**
 *.env
 *.out
 run_*.sh
+*.log

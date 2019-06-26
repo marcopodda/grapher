@@ -178,5 +178,5 @@ class OrderEvaluator:
                 self.results.set_count_stat(model_name, dataset_name, 'degree', self.num_trials)
                 self.results.set_count_stat(model_name, dataset_name, 'clustering', self.num_trials)
 
-        save_yaml(self.results.results, self.root / "results.yaml")
+        save_yaml(self.results.results, self.root / "results_order.yaml")
         return self.results

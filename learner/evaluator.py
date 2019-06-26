@@ -109,8 +109,11 @@ class Evaluator:
                 test_data = dataset.get_data('test')
 
                 for i, trial in enumerate(range(self.num_trials)):
-                    samples = exp.sample(num_samples=len(test_data))
-                    torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
+                    if not (exp.root / "samples" / f"samples_{i}.pt").exists():
+                        samples = exp.sample(num_samples=len(test_data))
+                        torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
+                    else:
+                        samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
                     kld, d_count_data, d_count_samples = degree_kl(test_data, samples)
                     self.results.set_perf(model_name, dataset_name, 'degree', kld)
@@ -166,8 +169,11 @@ class OrderEvaluator:
                 test_data = dataset.get_data('test')
 
                 for i, trial in enumerate(range(self.num_trials)):
-                    samples = exp.sample(num_samples=len(test_data))
-                    torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
+                    if not (exp.root / "samples" / f"samples_{i}.pt").exists():
+                        samples = exp.sample(num_samples=len(test_data))
+                        torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
+                    else:
+                        samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
                     kld, d_count_data, d_count_samples = degree_kl(test_data, samples)
                     self.results.set_perf(model_name, dataset_name, 'degree', kld)

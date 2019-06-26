@@ -2,6 +2,8 @@ import numpy as np
 import networkx as nx
 from scipy.stats import entropy
 
+from .graphlets import graphlet_count
+
 BINS = 100
 EPS = 1e-8
 
@@ -54,3 +56,8 @@ def degree_kl(graph_ref, graph_pred):
     max_num_pred = max([G.number_of_nodes() for G in graph_pred])
     max_num = max(max_num_ref, max_num_pred)
     return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
+
+
+def graphlet_kl(graph_ref, graph_pred):
+    gc_ref = graphlet_count(graph_ref)
+    gc_pred = graphlet_count(graph_pred)

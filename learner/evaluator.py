@@ -1,3 +1,4 @@
+import torch
 import numpy as np
 from pathlib import Path
 
@@ -100,15 +101,16 @@ class Evaluator:
 
     def evaluate(self):
         for model_name in self.results.model_names:
+            print(model_name)
             for dataset_name in self.results.dataset_names:
-                print(dataset_name)
+                print("  ", dataset_name)
                 exp = self._load_experiment(model_name, dataset_name)
                 dataset = self._load_dataset(dataset_name, model_name, exp)
                 test_data = dataset.get_data('test')
 
-                for trial in range(self.num_trials):
+                for i, trial in enumerate(range(self.num_trials)):
                     samples = exp.sample(num_samples=len(test_data))
-                    # print(model_name, dataset_name, [G for G in samples], [G for G in test_data])
+                    torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
 
                     kld, d_count_data, d_count_samples = degree_kl(test_data, samples)
                     self.results.set_perf(model_name, dataset_name, 'degree', kld)
@@ -152,16 +154,20 @@ class OrderEvaluator:
 
     def evaluate(self):
         for model_name in self.results.model_names:
+            print(model_name)
             for dataset_name in self.results.dataset_names:
+
                 if model_name == "smiles" and dataset_name not in ["ENZYMES", "PROTEINS_full"]:
                     continue
+                print("  ", dataset_name)
+
                 exp = self._load_experiment(model_name, dataset_name)
                 dataset = self._load_dataset(dataset_name, model_name, exp)
                 test_data = dataset.get_data('test')
 
-                for trial in range(self.num_trials):
+                for i, trial in enumerate(range(self.num_trials)):
                     samples = exp.sample(num_samples=len(test_data))
-                    # print(model_name, dataset_name, samples, test_data)
+                    torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
 
                     kld, d_count_data, d_count_samples = degree_kl(test_data, samples)
                     self.results.set_perf(model_name, dataset_name, 'degree', kld)
@@ -178,5 +184,5 @@ class OrderEvaluator:
                 self.results.set_count_stat(model_name, dataset_name, 'degree', self.num_trials)
                 self.results.set_count_stat(model_name, dataset_name, 'clustering', self.num_trials)
 
-        save_yaml(self.results.results, self.root / "results_order.yaml")
+        save_yaml(self.results.results, self.root / "results.yaml")
         return self.results

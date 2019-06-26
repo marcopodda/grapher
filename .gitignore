@@ -8,3 +8,5 @@ RUNS/**
 *.out
 run_*.sh
 *.log
+*.png
+*.svg

@@ -4,6 +4,19 @@ from torch.utils.data import Dataset
 from utils.data import SOS, EOS, to_sorted_tensor, reverse_argsort, pad_left, pad_right
 
 
+def build_vocab(graphlist):
+    e2i, i2e = {(0, 0): 0, (1, 1): 1, (2, 2): 2}, {0: (0, 0), 1: (1, 1), 2: (2, 2)}
+    count = 3  # start from 3 because of special symbols
+    for G in graphlist:
+        edges = list(G.edges())
+        for e in edges:
+            if e not in e2i:
+                e2i[e] = count
+                i2e[count] = e
+                count += 1
+    return e2i, i2e
+
+
 class GRUDataset(Dataset):
     def __init__(self, config, e2i, graphlist):
         super().__init__()

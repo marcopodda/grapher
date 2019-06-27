@@ -7,7 +7,9 @@ import torch
 from baselines.simple import run_baseline, sample as sample_baseline
 from baselines.graphrnn.run import run_graphrnn, load_model
 from baselines.graphrnn.train import sample as sample_graphrnn
-from config.config import Config, BaselineConfig, GraphRNNConfig
+from baselines.gru.trainer import GRUTrainer
+from baselines.gru.data import GRUDataset, GRUDataCollator, build_vocab
+from config.config import Config, BaselineConfig, GraphRNNConfig, GRUConfig
 
 from dataset import get_dataset_class
 from .trainer import Trainer
@@ -60,6 +62,58 @@ class Experiment:
 
     def sample(self, num_samples):
         config = Config.from_file(self.root / "config" / f"config.yaml")
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
+        trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
+        samples = trainer.sample(num_samples=num_samples)
+        return samples
+
+
+class GRUExperiment:
+    model_name = "GRU"
+
+    @classmethod
+    def load(cls, root):
+        assert root is not None
+        dataset = Path(root).parts[-2]
+        return cls(dataset, root=root)
+
+    def __init__(self, dataset, root=None):
+        self.dataset = dataset
+        self.dataset_class = get_dataset_class(dataset)
+
+        if root is None:
+            now = datetime.now().isoformat()
+            self.name = f"{self.dataset}_{now}"
+            self.root = RUNS_DIR / self.model_name / f"{self.dataset}" / f"{now}"
+        else:
+            self.root = Path(root)
+            self.name = "_".join(self.root.parts[-2:])
+
+        maybe_makedir(self.root)
+        maybe_makedir(self.root / "ckpt")
+        maybe_makedir(self.root / "data")
+        maybe_makedir(self.root / "config")
+        maybe_makedir(self.root / "samples")
+
+    def train(self):
+        config = GRUConfig.from_file(Path("cfg") / f"GRU_{self.dataset}.yaml")
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
+        graphlist = dataset.data.graphlist
+        e2i, i2e = build_vocab(graphlist)
+        input_dim = output_dim = len(e2i)
+        dataset = GRUDataset(config, e2i, graphlist)
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=config.batch_size,
+            shuffle=config.shuffle,
+            collate_fn=GRUDataCollator(config))
+
+        trainer = GRUTrainer(config, self.root, input_dim, output_dim, i2e)
+        trainer.fit(loader, None)
+        config.save(self.root / "config")
+
+    def sample(self, num_samples):
+        config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
         samples = trainer.sample(num_samples=num_samples)

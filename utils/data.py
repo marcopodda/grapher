@@ -17,8 +17,12 @@ def reverse_argsort(lst):
 
 
 def pad_right(arr, pad):
-    return arr + (pad,)
+    if isinstance(arr, tuple):
+        return arr + (pad,)
+    return arr + [pad]
 
 
 def pad_left(arr, pad):
-    return (pad,) + arr
+    if isinstance(arr, tuple):
+        return (pad,) + arr
+    return [pad] + arr

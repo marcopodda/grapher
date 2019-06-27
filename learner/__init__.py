@@ -1,6 +1,6 @@
 from .experiment import (
     Experiment, GraphRNNExperiment, OrderExperiment,
-    ERDegreeExperiment, ERClusteringExperiment, BADegreeExperiment, BAClusteringExperiment)
+    ERDegreeExperiment, ERClusteringExperiment, BADegreeExperiment, BAClusteringExperiment, GRUExperiment)
 
 
 def get_exp_class(model_name):
@@ -21,5 +21,8 @@ def get_exp_class(model_name):
 
     if model_name == "BA_clustering":
         return BAClusteringExperiment
+
+    if model_name == "GRU":
+        return GRUExperiment
 
     return OrderExperiment

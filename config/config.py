@@ -25,6 +25,30 @@ class Config(BaseConfigWithSerializer):
         )
 
 
+class GRUConfig(BaseConfigWithSerializer):
+    def set_defaults(self):
+        Config._params.update(
+            order="bfs",
+            batch_size=32,
+            max_num_edges=130,
+            min_num_edges=2,
+            max_num_nodes=40,
+            min_num_nodes=4,
+            shuffle=True,
+            test_size=0.3,
+            embed_dim=32,
+            hidden_dim=128,
+            num_layers=2,
+            temperature=0.8,
+            max_epochs=2000,
+            scheduler_class="StepLR",
+            scheduler_params={"step_size": 100, "gamma": 0.5},
+            optimizer_class="Adam",
+            optimizer_params={'lr': 0.001},
+            device="gpu"
+        )
+
+
 class BaselineConfig(BaseConfigWithSerializer):
     def set_defaults(self):
         BaselineConfig._params.update(

@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 
 import torch
 
@@ -7,25 +8,25 @@ from dataset.graph import GraphList
 from utils.training import get_device, get_scheduler, get_optimizer
 
 
-class BaselineTrainer:
+class GRUTrainer:
     @classmethod
-    def load(cls, config, exp_root, input_dim, output_dim, best=False):
+    def load(cls, config, exp_root, input_dim, output_dim, i2e, best=False):
         filename = "best.pt" if best else "last.pt"
         path = exp_root / "ckpt" / filename
         device = get_device(config)
         ckpt = torch.load(path, map_location=device)
 
-        trainer = cls(config, exp_root, input_dim, output_dim)
+        trainer = cls(config, exp_root, input_dim, output_dim, i2e)
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
         trainer.scheduler.load_state_dict(ckpt["scheduler"])
         trainer.loss1.load_state_dict(ckpt["loss"])
         trainer.best_loss = ckpt["best_loss"]
-        trainer.losses1 = ckpt["losses"]
+        trainer.losses = ckpt["losses"]
         trainer.current_epoch = ckpt['epoch'] + 1
         return trainer
 
-    def __init__(self, config, exp_root, input_dim, output_dim):
+    def __init__(self, config, exp_root, input_dim, output_dim, i2e):
         self.exp_root = exp_root
         self.config = config
         self.model = Model(config, input_dim, output_dim)
@@ -33,6 +34,7 @@ class BaselineTrainer:
         self.optimizer = get_optimizer(config, self.model)
         self.scheduler = get_scheduler(config, self.optimizer)
         self.device = get_device(config)
+        self.i2e = i2e
 
         self.losses = []
 
@@ -46,11 +48,13 @@ class BaselineTrainer:
         epoch_loss = 0
 
         for batch in loader:
-            x, y = batch
+            x, y, lengths = batch
             x = x.to(self.device)
             y = y.to(self.device)
+            lengths = lengths.to(self.device)
+
             self.optimizer.zero_grad()
-            outputs = self.model(x)
+            outputs, h = self.model(x, lengths)
             loss = self.loss(outputs, y)
             epoch_loss += loss.item()
 
@@ -77,9 +81,13 @@ class BaselineTrainer:
 
     def sample(self, num_samples):
         self.model.to('cpu')
+        graphs = []
         samples = self.model.sample(num_samples)
+        for sample in samples:
+            edges = [self.i2e[i] for i in sample]
+            graphs.append(nx.Graph(edges))
         self.model.to(self.device)
-        return GraphList(samples)
+        return GraphList(graphs)
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"
@@ -91,11 +99,11 @@ class BaselineTrainer:
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict(),
-            "loss": self.loss1.state_dict()
+            "loss": self.loss.state_dict()
         }, path)
 
     def log_epoch(self):
         msg = f"{self.current_epoch:06d} - " + \
-            f"loss: {self.losses[-1]:.6f} - "
+            f"loss: {self.losses[-1]:.6f}"
 
         print(msg)

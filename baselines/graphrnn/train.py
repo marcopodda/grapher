@@ -190,10 +190,14 @@ def train(config, exp_root, dataloader, rnn, output):
 
 
 def sample(config, rnn, output, train_data, num_samples):
-    samples = []
+    samples, max_iters = [], 0
     device = get_device(config)
 
     while len(samples) < num_samples:
+        max_iters += 1
+        if max_iters > 100000:
+            break
+
         sample = test_rnn_epoch(
             config,
             rnn,
@@ -201,7 +205,7 @@ def sample(config, rnn, output, train_data, num_samples):
             device,
             test_batch_size=1)
 
-        if list(sample.edges()) in samples:
+        if list(sample.edges()) in [list(G.edges()) for G in samples]:
             continue
 
         if list(sample.edges()) in train_data:
@@ -209,4 +213,4 @@ def sample(config, rnn, output, train_data, num_samples):
 
         samples.append(sample)
 
-    return GraphList(samples[:num_samples])
+    return GraphList(samples)

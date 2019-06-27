@@ -54,13 +54,17 @@ class Model(nn.Module):
         return sample, hs
 
     def sample(self, train_data, i2e, num_samples=1000):
-        samples = []
+        samples, max_iters = [], 0
 
         while len(samples) < num_samples:
+            max_iters += 1
+            if max_iters > 100000:
+                break
+
             seq, hs = self._sample()
             edges = [i2e[i] for i in seq]
 
-            if edges in samples:
+            if edges in [list(G.edges()) for G in samples]:
                 # remove duplicates
                 continue
 
@@ -70,7 +74,7 @@ class Model(nn.Module):
 
             samples.append(nx.Graph(edges))
 
-        return samples[:num_samples]
+        return samples
 
 
 class Loss(nn.Module):

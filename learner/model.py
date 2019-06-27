@@ -96,14 +96,18 @@ class Model(nn.Module):
             return outputs.numpy().tolist()
 
     def sample(self, train_data, num_samples=1000):
-        samples = []
+        samples, max_iters = [], 0
 
         while len(samples) < num_samples:
+            max_iters += 1
+            if max_iters > 100000:
+                break
+
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
             edges = list(zip(inputs, outputs))
 
-            if edges in samples:
+            if edges in [list(G.edges()) for G in samples]:
                 continue
 
             if edges in train_data:
@@ -111,7 +115,7 @@ class Model(nn.Module):
 
             samples.append(nx.Graph(edges))
 
-        return samples[:num_samples]
+        return samples
 
 
 class Loss(nn.Module):

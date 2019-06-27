@@ -33,40 +33,40 @@ class Results:
             self.results[model_key] = {}
             for dataset_key in self.dataset_names:
                 self.results[model_key][dataset_key] = {
-                    f'{self.metric}': [],
-                    f'{self.metric}_mean': None,
-                    f'{self.metric}_std': None,
-                    f'{self.metric}_count_data': None,
-                    f'{self.metric}_count_samples': None
+                    'scores': [],
+                    'mean': None,
+                    'std': None,
+                    'count_data': None,
+                    'count_samples': None
                 }
 
     def set_perf(self, model_key, dataset_key, value):
-        self.results[model_key][dataset_key][self.metric].append(float(value))
+        self.results[model_key][dataset_key]["scores"].append(float(value))
 
     def get_perf(self, model_key, dataset_key):
-        return self.results[model_key][dataset_key][self.metric]
+        return self.results[model_key][dataset_key]["scores"]
 
     def get_count(self, model_key, dataset_key, data_key):
-        key = f"{self.metric}_count_{data_key}"
+        key = f"count_{data_key}"
         return self.results[model_key][dataset_key][key]
 
     def set_count(self, model_key, dataset_key, data_key, new_value):
-        key = f"{self.metric}_count_{data_key}"
+        key = f"count_{data_key}"
         value = self.get_count(model_key, dataset_key, data_key)
         self.results[model_key][dataset_key][key] = pad_and_add(value, new_value)
 
     def set_perf_stat(self, model_key, dataset_key):
         perf = self.get_perf(model_key, dataset_key)
-        self.results[model_key][dataset_key][f"{self.metric}_mean"] = float(np.mean(perf))
-        self.results[model_key][dataset_key][f"{self.metric}_std"] = float(np.std(perf))
-        self.results[model_key][dataset_key][self.metric] = self.results[model_key][dataset_key][self.metric]
+        self.results[model_key][dataset_key]["mean"] = float(np.mean(perf))
+        self.results[model_key][dataset_key]["std"] = float(np.std(perf))
+        self.results[model_key][dataset_key]["scores"] = self.results[model_key][dataset_key]["scores"]
 
     def set_count_stat(self, model_key, dataset_key, num_trials):
-        key = f"{self.metric}_count_data"
+        key = "count_data"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
 
-        key = f"{self.metric}_count_samples"
+        key = "count_samples"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
 
@@ -119,13 +119,15 @@ class Evaluator(EvaluatorBase):
                 dataset = self._load_dataset(dataset_name, model_name, exp)
                 test_data = dataset.get_data('test')
 
-                for i, trial in enumerate(range(self.num_trials)):
-                    if not (exp.root / "samples" / f"samples_{i}.pt").exists():
-                        samples = exp.sample(num_samples=len(test_data))
-                        torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
-                    else:
-                        samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
+                if not (exp.root / "samples" / f"samples_0.pt").exists():
+                    num_samples = len(test_data) * self.num_trials
+                    samples = exp.sample(num_samples=num_samples)
+                    for trial in range(self.num_trials):
+                        start, end = trial * num_samples, (trial+1) * num_samples
+                        torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
 
+                for trial in range(self.num_trials):
+                    samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
                     self._eval(model_name, dataset_name, test_data, samples)
 
                 self._calc_mean(model_name, dataset_name)
@@ -145,7 +147,6 @@ class OrderEvaluator(EvaluatorBase):
         for model_name in self.results.model_names:
             print(model_name)
             for dataset_name in self.results.dataset_names:
-
                 if model_name == "smiles" and dataset_name not in ["ENZYMES", "PROTEINS_full"]:
                     continue
                 print("  ", dataset_name)

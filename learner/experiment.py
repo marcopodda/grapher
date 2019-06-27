@@ -191,7 +191,7 @@ class GraphRNNExperiment(Experiment):
 
         if root is None:
             now = datetime.now().isoformat()
-            self.name = f"{self.dataset}_{now}"None
+            self.name = f"{self.dataset}_{now}"
             self.root = RUNS_DIR / f"{self.model_name}" / f"{self.dataset}" / f"{now}"
         else:
             self.root = Path(root)

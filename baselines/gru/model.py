@@ -40,7 +40,7 @@ class Model(nn.Module):
 
                 outputs, h = model(inputs, lengths, h)
                 probs = F.softmax(outputs.squeeze(0) / temperature, dim=1)
-                inputs = torch.argmax(probs, 1).reshape(1, -1)
+                inputs = torch.multinomial(probs, 1).reshape(1, -1)
 
                 if inputs.item() == 2:
                     break

@@ -111,7 +111,7 @@ class Model(nn.Module):
 
             samples.append(nx.Graph(edges))
 
-        return samples
+        return samples[:num_samples]
 
 
 class Loss(nn.Module):

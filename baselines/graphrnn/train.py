@@ -204,7 +204,7 @@ def sample(config, rnn, output, train_data, num_samples):
         if list(sample.edges()) in samples:
             continue
 
-        if list(samples.edges()) in train_data:
+        if list(sample.edges()) in train_data:
             continue
 
         samples.append(sample)

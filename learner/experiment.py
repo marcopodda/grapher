@@ -116,7 +116,7 @@ class GRUExperiment:
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         e2i, i2e = build_vocab(dataset.data.graphlist)
         input_dim = output_dim = len(e2i)
-        trainer = Trainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
+        trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
         samples = trainer.sample(num_samples=num_samples)
         return samples
 

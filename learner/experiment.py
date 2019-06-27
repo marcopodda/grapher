@@ -63,7 +63,8 @@ class Experiment:
         config = Config.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-        samples = trainer.sample(num_samples=num_samples)
+        train_data = [list(G.edges()) for G in dataset.get_data('train')]
+        samples = trainer.sample(train_data, num_samples=num_samples)
         return samples
 
 
@@ -117,7 +118,8 @@ class GRUExperiment:
         e2i, i2e = build_vocab(dataset.data.graphlist)
         input_dim = output_dim = len(e2i)
         trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
-        samples = trainer.sample(num_samples=num_samples)
+        train_data = [list(G.edges()) for G in dataset.get_data('train')]
+        samples = trainer.sample(train_data, i2e, num_samples=num_samples)
         return samples
 
 
@@ -213,10 +215,13 @@ class GraphRNNExperiment(Experiment):
     def sample(self, num_samples):
         config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
         device = get_device(config)
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)
-        samples = sample_graphrnn(config, rnn, output, num_samples=num_samples)
+
+        train_data = [list(G.edges()) for G in dataset.get_data('train')]
+        samples = sample_graphrnn(config, rnn, output, train_data, num_samples=num_samples)
         return samples
 
 

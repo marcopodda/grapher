@@ -1,3 +1,5 @@
+import networkx as nx
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -51,15 +53,24 @@ class Model(nn.Module):
 
         return sample, hs
 
-    def sample(self, num_samples=1000):
+    def sample(self, train_data, i2e, num_samples=1000):
         samples = []
 
         while len(samples) < num_samples:
             seq, hs = self._sample()
-            if seq not in samples:
-                samples.append(seq)
+            edges = [i2e[i] for i in seq]
 
-        return samples
+            if edges in samples:
+                # remove duplicates
+                continue
+
+            if edges in train_data:
+                # remove duplicates in training data
+                continue
+
+            samples.append(nx.Graph(edges))
+
+        return samples[:num_samples]
 
 
 class Loss(nn.Module):

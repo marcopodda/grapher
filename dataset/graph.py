@@ -121,16 +121,3 @@ def encode_graph(G, order):
         edges = sorted(edges)
 
     return list(zip(*edges))
-
-
-def decode_graph(xs, ys):
-    G = nx.Graph()
-    G.add_edges_from(zip(xs, ys))
-    return G
-
-
-def decode_graphs(samples):
-    graphs = []
-    for (xs, ys) in samples:
-        graphs.append(decode_graph(xs, ys))
-    return GraphList(graphs)

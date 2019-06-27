@@ -1,3 +1,5 @@
+import networkx as nx
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -93,16 +95,21 @@ class Model(nn.Module):
 
             return outputs.numpy().tolist()
 
-    def sample(self, num_samples=1000):
+    def sample(self, train_data, num_samples=1000):
         samples = []
 
         while len(samples) < num_samples:
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
-            sample = [inputs, outputs]
+            edges = list(zip(inputs, outputs))
 
-            if sample not in samples:
-                samples.append(sample)
+            if edges in samples:
+                continue
+
+            if edges in train_data:
+                continue
+
+            samples.append(nx.Graph(edges))
 
         return samples
 

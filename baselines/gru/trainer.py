@@ -79,15 +79,11 @@ class GRUTrainer:
 
             self.log_epoch()
 
-    def sample(self, num_samples):
+    def sample(self, train_data, i2e, num_samples):
         self.model.to('cpu')
-        graphs = []
-        samples = self.model.sample(num_samples)
-        for sample in samples:
-            edges = [self.i2e[i] for i in sample]
-            graphs.append(nx.Graph(edges))
+        samples = self.model.sample(train_data, i2e, num_samples)
         self.model.to(self.device)
-        return GraphList(graphs)
+        return GraphList(samples)
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"

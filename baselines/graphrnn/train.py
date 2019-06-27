@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 from .model import binary_cross_entropy_weight, sample_sigmoid
 from .data import decode_adj
 from utils.training import get_device
+from dataset.graph import GraphList
 
 
 def get_graph(adj):
@@ -146,14 +147,13 @@ def test_rnn_epoch(config, rnn, output, device, test_batch_size=16):
         rnn.hidden = Variable(rnn.hidden.data).to(device)
     y_pred_long_data = y_pred_long.data.long()
 
-    # save graphs as pickle
     G_pred_list = []
     for i in range(test_batch_size):
         adj_pred = decode_adj(y_pred_long_data[i].cpu().numpy())
         G_pred = get_graph(adj_pred)  # get a graph from zero-padded adj
         G_pred_list.append(G_pred)
 
-    return G_pred_list
+    return G_pred_list[0]
 
 
 # train function for RNN
@@ -189,20 +189,24 @@ def train(config, exp_root, dataloader, rnn, output):
     torch.save(output.state_dict(), fname)
 
 
-def sample(config, rnn, output, num_samples):
+def sample(config, rnn, output, train_data, num_samples):
     samples = []
     device = get_device(config)
 
     while len(samples) < num_samples:
-        samples_step = test_rnn_epoch(
+        sample = test_rnn_epoch(
             config,
             rnn,
             output,
             device,
-            test_batch_size=config.test_batch_size)
+            test_batch_size=1)
 
-        for sample in samples_step:
-            if sample not in samples:
-                samples.append(sample)
+        if list(sample.edges()) in samples:
+            continue
 
-    return samples[:num_samples]
+        if list(samples.edges()) in train_data:
+            continue
+
+        samples.append(sample)
+
+    return GraphList(samples[:num_samples])

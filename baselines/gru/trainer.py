@@ -63,7 +63,7 @@ class GRUTrainer:
 
         return epoch_loss / len(loader)
 
-    def fit(self, loader, test_data):
+    def fit(self, loader):
         self.model.train()
 
         for epoch in range(self.current_epoch, self.config.max_epochs):

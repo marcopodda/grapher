@@ -72,7 +72,7 @@ class Trainer:
 
         return epoch_loss1 / len(loader), epoch_loss2 / len(loader)
 
-    def fit(self, loader, test_data):
+    def fit(self, loader):
         self.model.train()
 
         for epoch in range(self.current_epoch, self.config.max_epochs):

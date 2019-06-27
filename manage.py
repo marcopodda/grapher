@@ -4,8 +4,8 @@ Manage experiments.
 Usage:
     manage.py train <model>
     manage.py order
-    manage.py evaluate
-    manage.py evaluate_order
+    manage.py evaluate <metric>
+    manage.py evaluate_order <metric>
     manage.py (-h | --help)
 
 Options:
@@ -35,10 +35,10 @@ def main():
                 exp = exp_class(order, dataset)
                 exp.train()
     elif args["evaluate"]:
-        ev = Evaluator()
+        ev = Evaluator(args['<metric>'])
         ev.evaluate()
     elif args["evaluate_order"]:
-        ev = OrderEvaluator()
+        ev = OrderEvaluator(args['<metric>'])
         ev.evaluate()
 
 

@@ -56,8 +56,7 @@ class Experiment:
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
         loader = dataset.get_loader('train')
-        test_data = dataset.get_data('test')
-        trainer.fit(loader, test_data)
+        trainer.fit(loader)
         config.save(self.root / "config")
 
     def sample(self, num_samples):
@@ -98,24 +97,26 @@ class GRUExperiment:
     def train(self):
         config = GRUConfig.from_file(Path("cfg") / f"GRU_{self.dataset}.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
-        graphlist = dataset.data.graphlist
-        e2i, i2e = build_vocab(graphlist)
+        train_data = dataset.get_data('train')
+        e2i, i2e = build_vocab(dataset.data.graphlist)
         input_dim = output_dim = len(e2i)
-        dataset = GRUDataset(config, e2i, graphlist)
+
         loader = torch.utils.data.DataLoader(
-            dataset,
+            GRUDataset(config, e2i, train_data),
             batch_size=config.batch_size,
             shuffle=config.shuffle,
             collate_fn=GRUDataCollator(config))
 
         trainer = GRUTrainer(config, self.root, input_dim, output_dim, i2e)
-        trainer.fit(loader, None)
+        trainer.fit(loader)
         config.save(self.root / "config")
 
     def sample(self, num_samples):
         config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
+        e2i, i2e = build_vocab(dataset.data.graphlist)
+        input_dim = output_dim = len(e2i)
+        trainer = Trainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
         samples = trainer.sample(num_samples=num_samples)
         return samples
 
@@ -190,7 +191,7 @@ class GraphRNNExperiment(Experiment):
 
         if root is None:
             now = datetime.now().isoformat()
-            self.name = f"{self.dataset}_{now}"
+            self.name = f"{self.dataset}_{now}"None
             self.root = RUNS_DIR / f"{self.model_name}" / f"{self.dataset}" / f"{now}"
         else:
             self.root = Path(root)

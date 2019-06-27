@@ -7,7 +7,7 @@ from learner import get_exp_class
 from dataset import get_dataset_class
 
 from utils import evaluation
-from utils.constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES, METRIC_NAMES
+from utils.constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES
 from utils.serializer import save_yaml
 
 
@@ -23,8 +23,9 @@ def pad_and_add(v1, v2):
 
 
 class Results:
-    def __init__(self, model_names, dataset_names):
+    def __init__(self, metric, model_names, dataset_names):
         self.results = {}
+        self.metric = metric
         self.model_names = model_names
         self.dataset_names = dataset_names
 
@@ -32,65 +33,55 @@ class Results:
             self.results[model_key] = {}
             for dataset_key in self.dataset_names:
                 self.results[model_key][dataset_key] = {
-                    'degree': [],
-                    'degree_mean': None,
-                    'degree_std': None,
-                    'degree_count_data': None,
-                    'degree_count_samples': None,
-                    'clustering': [],
-                    'clustering_mean': None,
-                    'clustering_std': None,
-                    'clustering_count_data': None,
-                    'clustering_count_samples': None,
-                    'graphlet': [],
-                    'graphlet_mean': None,
-                    'graphlet_std': None,
-                    'graphlet_count_data': None,
-                    'graphlet_count_samples': None,
+                    f'{self.metric}': [],
+                    f'{self.metric}_mean': None,
+                    f'{self.metric}_std': None,
+                    f'{self.metric}_count_data': None,
+                    f'{self.metric}_count_samples': None
                 }
 
-    def set_perf(self, model_key, dataset_key, perf_key, value):
-        self.results[model_key][dataset_key][perf_key].append(float(value))
+    def set_perf(self, model_key, dataset_key, value):
+        self.results[model_key][dataset_key][self.metric].append(float(value))
 
-    def get_perf(self, model_key, dataset_key, perf_key):
-        return self.results[model_key][dataset_key][perf_key]
+    def get_perf(self, model_key, dataset_key):
+        return self.results[model_key][dataset_key][self.metric]
 
-    def get_count(self, model_key, dataset_key, perf_key, data_key):
-        key = f"{perf_key}_count_{data_key}"
+    def get_count(self, model_key, dataset_key, data_key):
+        key = f"{self.metric}_count_{data_key}"
         return self.results[model_key][dataset_key][key]
 
-    def set_count(self, model_key, dataset_key, perf_key, data_key, new_value):
-        key = f"{perf_key}_count_{data_key}"
-        value = self.get_count(model_key, dataset_key, perf_key, data_key)
+    def set_count(self, model_key, dataset_key, data_key, new_value):
+        key = f"{self.metric}_count_{data_key}"
+        value = self.get_count(model_key, dataset_key, data_key)
         self.results[model_key][dataset_key][key] = pad_and_add(value, new_value)
 
-    def set_perf_stat(self, model_key, dataset_key, perf_key):
-        perf = self.get_perf(model_key, dataset_key, perf_key)
-        self.results[model_key][dataset_key][f"{perf_key}_mean"] = float(np.mean(perf))
-        self.results[model_key][dataset_key][f"{perf_key}_std"] = float(np.std(perf))
-        self.results[model_key][dataset_key][perf_key] = self.results[model_key][dataset_key][perf_key]
+    def set_perf_stat(self, model_key, dataset_key):
+        perf = self.get_perf(model_key, dataset_key)
+        self.results[model_key][dataset_key][f"{self.metric}_mean"] = float(np.mean(perf))
+        self.results[model_key][dataset_key][f"{self.metric}_std"] = float(np.std(perf))
+        self.results[model_key][dataset_key][self.metric] = self.results[model_key][dataset_key][self.metric]
 
-    def set_count_stat(self, model_key, dataset_key, perf_key, num_trials):
-        key = f"{perf_key}_count_data"
+    def set_count_stat(self, model_key, dataset_key, num_trials):
+        key = f"{self.metric}_count_data"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
 
-        key = f"{perf_key}_count_samples"
+        key = f"{self.metric}_count_samples"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
 
 
 class EvaluatorBase:
-    def _eval(self, perf_name, model_name, dataset_name, test_data, samples):
-        func = getattr(evaluation, f'{perf_name}_kl')
+    def _eval(self, model_name, dataset_name, test_data, samples):
+        func = getattr(evaluation, f'{self.metric}_kl')
         kl, count_data, count_samples = func(test_data, samples)
-        self.results.set_perf(model_name, dataset_name, perf_name, kl)
-        self.results.set_count(model_name, dataset_name, perf_name, 'data', count_data)
-        self.results.set_count(model_name, dataset_name, perf_name, 'samples', count_samples)
+        self.results.set_perf(model_name, dataset_name, kl)
+        self.results.set_count(model_name, dataset_name, 'data', count_data)
+        self.results.set_count(model_name, dataset_name, 'samples', count_samples)
 
-    def _calc_mean(self, perf_name, model_name, dataset_name):
-        self.results.set_perf_stat(model_name, dataset_name, perf_name)
-        self.results.set_count_stat(model_name, dataset_name, perf_name, self.num_trials)
+    def _calc_mean(self, model_name, dataset_name):
+        self.results.set_perf_stat(model_name, dataset_name)
+        self.results.set_count_stat(model_name, dataset_name, self.num_trials)
 
     def _load_experiment(self, model_name, dataset_name):
         rundir = self.root / model_name / dataset_name
@@ -109,10 +100,11 @@ class EvaluatorBase:
 
 
 class Evaluator(EvaluatorBase):
-    def __init__(self):
+    def __init__(self, metric):
+        self.metric = metric
         self.root = Path("RUNS")
         self.num_trials = 10
-        self.results = Results(MODEL_NAMES, DATASET_NAMES)
+        self.results = Results(metric, MODEL_NAMES, DATASET_NAMES)
 
     def evaluate(self):
         for model_name in self.results.model_names:
@@ -134,21 +126,20 @@ class Evaluator(EvaluatorBase):
                     else:
                         samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
-                    for metric in METRIC_NAMES:
-                        self._eval(metric, model_name, dataset_name, test_data, samples)
+                    self._eval(model_name, dataset_name, test_data, samples)
 
-                for metric in METRIC_NAMES:
-                    self._calc_mean(metric, model_name, dataset_name)
+                self._calc_mean(model_name, dataset_name)
 
-        save_yaml(self.results.results, self.root / "results.yaml")
+        save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
         return self.results
 
 
 class OrderEvaluator(EvaluatorBase):
-    def __init__(self):
+    def __init__(self, metric):
+        self.metric = metric
         self.root = Path("RUNS") / "ORDER"
         self.num_trials = 10
-        self.results = Results(ORDER_NAMES, DATASET_NAMES)
+        self.results = Results(metric, ORDER_NAMES, DATASET_NAMES)
 
     def evaluate(self):
         for model_name in self.results.model_names:
@@ -170,11 +161,9 @@ class OrderEvaluator(EvaluatorBase):
                     else:
                         samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
-                    for metric in METRIC_NAMES:
-                        self._eval(metric, model_name, dataset_name, test_data, samples)
+                    self._eval(model_name, dataset_name, test_data, samples)
 
-                for metric in METRIC_NAMES:
-                    self._calc_mean(metric, model_name, dataset_name)
+                self._calc_mean(model_name, dataset_name)
 
-        save_yaml(self.results.results, self.root / "results.yaml")
+        save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
         return self.results

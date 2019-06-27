@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 
-
 PAD = 0
 SOS = 1
 EOS = 2

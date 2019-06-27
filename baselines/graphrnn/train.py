@@ -203,6 +203,6 @@ def sample(config, rnn, output, num_samples):
 
         for sample in samples_step:
             if sample not in samples:
-                samples.append(samples)
+                samples.append(sample)
 
     return samples[:num_samples]

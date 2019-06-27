@@ -155,13 +155,15 @@ class OrderEvaluator(EvaluatorBase):
                 dataset = self._load_dataset(dataset_name, model_name, exp)
                 test_data = dataset.get_data('test')
 
-                for i, trial in enumerate(range(self.num_trials)):
-                    if not (exp.root / "samples" / f"samples_{i}.pt").exists():
-                        samples = exp.sample(num_samples=len(test_data))
-                        torch.save(samples, exp.root / "samples" / f"samples_{i}.pt")
-                    else:
-                        samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
+                if not (exp.root / "samples" / f"samples_0.pt").exists():
+                    num_samples = len(test_data) * self.num_trials
+                    samples = exp.sample(num_samples=num_samples)
+                    for trial in range(self.num_trials):
+                        start, end = trial * num_samples, (trial+1) * num_samples
+                        torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
 
+                for trial in range(self.num_trials):
+                    samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
                     self._eval(model_name, dataset_name, test_data, samples)
 
                 self._calc_mean(model_name, dataset_name)

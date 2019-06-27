@@ -7,10 +7,8 @@ from learner import get_exp_class
 from dataset import get_dataset_class
 
 from utils import evaluation
+from utils.constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES, METRIC_NAMES
 from utils.serializer import save_yaml
-
-MODEL_NAMES = ["GRAPHER", "GRAPHRNN", "ER_degree", "ER_clustering", "BA_degree", "BA_clustering"]
-DATASET_NAMES = ["community", "ego", "ladders", "ENZYMES", "PROTEINS_full"]
 
 
 def pad_and_add(v1, v2):
@@ -136,13 +134,11 @@ class Evaluator(EvaluatorBase):
                     else:
                         samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
-                    self._eval('degree', model_name, dataset_name, test_data, samples)
-                    self._eval('clustering', model_name, dataset_name, test_data, samples)
-                    self._eval('graphlet', model_name, dataset_name, test_data, samples)
+                    for metric in METRIC_NAMES:
+                        self._eval(metric, model_name, dataset_name, test_data, samples)
 
-                self._calc_mean('degree', model_name, dataset_name)
-                self._calc_mean('clustering', model_name, dataset_name)
-                self._calc_mean('graphlet', model_name, dataset_name)
+                for metric in METRIC_NAMES:
+                    self._calc_mean(metric, model_name, dataset_name)
 
         save_yaml(self.results.results, self.root / "results.yaml")
         return self.results
@@ -152,7 +148,7 @@ class OrderEvaluator(EvaluatorBase):
     def __init__(self):
         self.root = Path("RUNS") / "ORDER"
         self.num_trials = 10
-        self.results = Results(["bfs", "random", "smiles"], DATASET_NAMES)
+        self.results = Results(ORDER_NAMES, DATASET_NAMES)
 
     def evaluate(self):
         for model_name in self.results.model_names:
@@ -174,13 +170,11 @@ class OrderEvaluator(EvaluatorBase):
                     else:
                         samples = torch.load(exp.root / "samples" / f"samples_{i}.pt")
 
-                    self._eval('degree', model_name, dataset_name, test_data, samples)
-                    self._eval('clustering', model_name, dataset_name, test_data, samples)
-                    self._eval('graphlet', model_name, dataset_name, test_data, samples)
+                    for metric in METRIC_NAMES:
+                        self._eval(metric, model_name, dataset_name, test_data, samples)
 
-                self._calc_mean('degree', model_name, dataset_name)
-                self._calc_mean('clustering', model_name, dataset_name)
-                self._calc_mean('graphlet', model_name, dataset_name)
+                for metric in METRIC_NAMES:
+                    self._calc_mean(metric, model_name, dataset_name)
 
         save_yaml(self.results.results, self.root / "results.yaml")
         return self.results

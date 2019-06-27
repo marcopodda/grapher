@@ -20,7 +20,7 @@ class GRUTrainer:
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
         trainer.scheduler.load_state_dict(ckpt["scheduler"])
-        trainer.loss1.load_state_dict(ckpt["loss"])
+        trainer.loss.load_state_dict(ckpt["loss"])
         trainer.best_loss = ckpt["best_loss"]
         trainer.losses = ckpt["losses"]
         trainer.current_epoch = ckpt['epoch'] + 1

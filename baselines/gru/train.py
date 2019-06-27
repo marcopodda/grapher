@@ -1,12 +1,13 @@
 import numpy as np
 
 import torch
+
 from .model import Model, Loss
-from dataset.graph import decode_graphs, GraphList
+from dataset.graph import GraphList
 from utils.training import get_device, get_scheduler, get_optimizer
 
 
-class Trainer:
+class BaselineTrainer:
     @classmethod
     def load(cls, config, exp_root, input_dim, output_dim, best=False):
         filename = "best.pt" if best else "last.pt"
@@ -18,11 +19,9 @@ class Trainer:
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
         trainer.scheduler.load_state_dict(ckpt["scheduler"])
-        trainer.loss1.load_state_dict(ckpt["loss1"])
-        trainer.loss2.load_state_dict(ckpt["loss2"])
+        trainer.loss1.load_state_dict(ckpt["loss"])
         trainer.best_loss = ckpt["best_loss"]
-        trainer.losses1 = ckpt["losses1"]
-        trainer.losses2 = ckpt["losses2"]
+        trainer.losses1 = ckpt["losses"]
         trainer.current_epoch = ckpt['epoch'] + 1
         return trainer
 
@@ -30,14 +29,12 @@ class Trainer:
         self.exp_root = exp_root
         self.config = config
         self.model = Model(config, input_dim, output_dim)
-        self.loss1 = Loss(output_dim)
-        self.loss2 = Loss(output_dim)
+        self.loss = Loss(output_dim)
         self.optimizer = get_optimizer(config, self.model)
         self.scheduler = get_scheduler(config, self.optimizer)
         self.device = get_device(config)
 
-        self.losses1 = []
-        self.losses2 = []
+        self.losses = []
 
         self.current_epoch = 0
         self.best_loss = np.float('inf')
@@ -46,47 +43,34 @@ class Trainer:
         self.model.train()
         self.model.to(self.device)
 
-        epoch_loss1 = 0
-        epoch_loss2 = 0
+        epoch_loss = 0
 
         for batch in loader:
-            i1, i2, i3, lengths = batch
-
-            i1 = i1.to(self.device)
-            i2 = i2.to(self.device)
-            i3 = i3.to(self.device)
-            lengths = lengths.to(self.device)
-
+            x, y = batch
+            x = x.to(self.device)
+            y = y.to(self.device)
             self.optimizer.zero_grad()
-            out1, out2 = self.model(i1, i2, lengths)
-
-            l1 = self.loss1(out1, i2)
-            l2 = self.loss2(out2, i3)
-            loss = l1 + l2
-
-            epoch_loss1 += l1.item()
-            epoch_loss2 += l2.item()
+            outputs = self.model(x)
+            loss = self.loss(outputs, y)
+            epoch_loss += loss.item()
 
             loss.backward()
             self.optimizer.step()
 
-        return epoch_loss1 / len(loader), epoch_loss2 / len(loader)
+        return epoch_loss / len(loader)
 
     def fit(self, loader, test_data):
         self.model.train()
 
         for epoch in range(self.current_epoch, self.config.max_epochs):
             self.current_epoch = epoch
-            epoch_loss1, epoch_loss2 = self._train_epoch(loader)
-            total_loss = epoch_loss1 + epoch_loss2
+            epoch_loss = self._train_epoch(loader)
 
-            self.losses1.append(epoch_loss1)
-            self.losses2.append(epoch_loss2)
-
+            self.losses.append(epoch_loss)
             self.save(best=False)
 
-            if total_loss < self.best_loss:
-                self.best_loss = total_loss
+            if epoch_loss < self.best_loss:
+                self.best_loss = epoch_loss
                 self.save(best=True)
 
             self.log_epoch()
@@ -94,9 +78,7 @@ class Trainer:
     def sample(self, num_samples):
         self.model.to('cpu')
         samples = self.model.sample(num_samples)
-        samples = decode_graphs(samples)
         self.model.to(self.device)
-
         return GraphList(samples)
 
     def save(self, best=False):
@@ -105,19 +87,15 @@ class Trainer:
         torch.save({
             "epoch": self.current_epoch,
             "best_loss": self.best_loss,
-            "losses1": self.losses1,
-            "losses2": self.losses2,
+            "losses": self.losses,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict(),
-            "loss1": self.loss1.state_dict(),
-            "loss2": self.loss2.state_dict(),
+            "loss": self.loss1.state_dict()
         }, path)
 
     def log_epoch(self):
         msg = f"{self.current_epoch:06d} - " + \
-            f"loss1: {self.losses1[-1]:.6f} - " + \
-            f"loss2: {self.losses2[-1]:.6f} - " + \
-            f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
+            f"loss: {self.losses[-1]:.6f} - "
 
         print(msg)

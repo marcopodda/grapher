@@ -96,10 +96,13 @@ class Model(nn.Module):
     def sample(self, num_samples=1000):
         samples = []
 
-        for _ in range(num_samples):
+        while len(samples) < num_samples:
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
-            samples.append([inputs, outputs])
+            sample = [inputs, outputs]
+
+            if sample not in samples:
+                samples.append(sample)
 
         return samples
 

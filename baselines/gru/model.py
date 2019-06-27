@@ -54,9 +54,10 @@ class Model(nn.Module):
     def sample(self, num_samples=1000):
         samples = []
 
-        for _ in range(num_samples):
+        while len(samples) < num_samples:
             seq, hs = self._sample()
-            samples.append(seq)
+            if seq not in samples:
+                samples.append(seq)
 
         return samples
 

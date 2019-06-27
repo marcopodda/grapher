@@ -200,6 +200,9 @@ def sample(config, rnn, output, num_samples):
             output,
             device,
             test_batch_size=config.test_batch_size)
-        samples.extend(samples_step)
+
+        for sample in samples_step:
+            if sample not in samples:
+                samples.append(samples)
 
     return samples[:num_samples]

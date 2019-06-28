@@ -37,7 +37,10 @@ class Results:
                     'mean': None,
                     'std': None,
                     'count_data': None,
-                    'count_samples': None
+                    'count_samples': None,
+                    "iters": None,
+                    "duplicate_train": None,
+                    "duplicate_sample": None
                 }
 
     def set_perf(self, model_key, dataset_key, value):
@@ -69,6 +72,15 @@ class Results:
         key = "count_samples"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
+
+    def set_iters(self, iters):
+        self.results["iters"] = iters
+
+    def set_duplicate_train(self, duplicate_train):
+        self.results["duplicate_train"] = duplicate_train
+
+    def set_duplicate_sample(self, duplicate_sample):
+        self.results["duplicate_sample"] = duplicate_sample
 
 
 class EvaluatorBase:
@@ -121,7 +133,10 @@ class Evaluator(EvaluatorBase):
 
                 if not (exp.root / "samples" / f"samples_0.pt").exists():
                     num_samples = len(test_data) * self.num_trials
-                    samples = exp.sample(num_samples=num_samples)
+                    samples, iters, duplicate_train, duplicate_sample = exp.sample(num_samples=num_samples)
+                    self.results.set_iters(iters)
+                    self.results.set_duplicate_sample(duplicate_sample)
+                    self.results.set_duplicate_train(duplicate_train)
                     for trial in range(self.num_trials):
                         start, end = trial * len(test_data), (trial+1) * len(test_data)
                         torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
@@ -157,7 +172,10 @@ class OrderEvaluator(EvaluatorBase):
 
                 if not (exp.root / "samples" / f"samples_0.pt").exists():
                     num_samples = len(test_data) * self.num_trials
-                    samples = exp.sample(num_samples=num_samples)
+                    samples, iters, duplicate_train, duplicate_sample = exp.sample(num_samples=num_samples)
+                    self.results.set_iters(iters)
+                    self.results.set_duplicate_sample(duplicate_sample)
+                    self.results.set_duplicate_train(duplicate_train)
                     for trial in range(self.num_trials):
                         start, end = trial * len(test_data), (trial+1) * len(test_data)
                         torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")

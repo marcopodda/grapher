@@ -16,3 +16,7 @@ def get_scheduler(config, optimizer):
 def get_optimizer(config, model):
     optimizer_class = getattr(optim, config.optimizer_class)
     return optimizer_class(model.parameters(), **config.optimizer_params)
+
+
+def is_duplicate(edges, graphlist):
+    return edges in [list(G.edges()) for G in graphlist]

@@ -84,6 +84,7 @@ class DatasetManager:
 
 
 class TUData(DatasetManager):
+    max_iters = 10000
     URL = "http://ls11-www.cs.uni-dortmund.de/people/morris/graphkerneldatasets/{name}.zip"
 
     def _fetch_data(self):
@@ -136,6 +137,7 @@ class TUData(DatasetManager):
 
 
 class SyntheticData(DatasetManager):
+    max_iters = 10000
     def __init__(self, config, exp_root, name):
         super().__init__(config, exp_root, name)
 
@@ -174,6 +176,7 @@ class Ego(SyntheticData):
 
 
 class Ladders(SyntheticData):
+    max_iters = 3000
     generator_kwargs = {
         "num_reps": 10
     }

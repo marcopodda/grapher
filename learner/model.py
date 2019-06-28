@@ -4,6 +4,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from utils.training import is_duplicate
+
 
 class RNN(nn.Module):
     def __init__(self, config, input_dim, embed_dim, hidden_dim, output_dim):
@@ -95,31 +97,30 @@ class Model(nn.Module):
 
             return outputs.numpy().tolist()
 
-    def sample(self, train_data, num_samples=1000):
-        samples, max_iters = [], 0
+    def sample(self, train_data, max_iters, num_samples=1000):
+        samples, iters = [], 0
+        duplicate_train, duplicate_sample = 0, 0
 
         while len(samples) < num_samples:
-            max_iters += 1
-            if max_iters > 100000:
+            iters += 1
+            if iters > max_iters:
                 break
 
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
             edges = list(zip(inputs, outputs))
 
-            if self.is_duplicate(edges, samples):
+            if is_duplicate(edges, train_data):
+                duplicate_train += 1
                 continue
 
-            if self.is_duplicate(edges, train_data):
+            if is_duplicate(edges, samples):
+                duplicate_sample += 1
                 continue
 
             samples.append(nx.Graph(edges))
         print("   sampled", len(samples), "num samples", num_samples)
-        return samples
-
-    @staticmethod
-    def is_duplicate(edges, graphlist):
-        return edges in [list(G.edges()) for G in graphlist]
+        return samples, iters, duplicate_train, duplicate_sample
 
 
 class Loss(nn.Module):

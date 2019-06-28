@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 from .model import binary_cross_entropy_weight, sample_sigmoid
 from .data import decode_adj
-from utils.training import get_device
+from utils.training import get_device, is_duplicate
 from dataset.graph import GraphList
 
 
@@ -189,17 +189,14 @@ def train(config, exp_root, dataloader, rnn, output):
     torch.save(output.state_dict(), fname)
 
 
-def is_duplicate(edges, graphlist):
-    return edges in [list(G.edges()) for G in graphlist]
-
-
-def sample(config, rnn, output, train_data, num_samples):
-    samples, max_iters = [], 0
+def sample(config, rnn, output, train_data, max_iters, num_samples):
+    samples, iters = [], 0
+    duplicate_train, duplicate_sample = 0, 0
     device = get_device(config)
 
     while len(samples) < num_samples:
-        max_iters += 1
-        if max_iters > 100000:
+        iters += 1
+        if iters > max_iters:
             break
 
         edges = test_rnn_epoch(
@@ -209,12 +206,14 @@ def sample(config, rnn, output, train_data, num_samples):
             device,
             test_batch_size=1)
 
-        if is_duplicate(edges, samples):
+        if is_duplicate(edges, train_data):
+            duplicate_train += 1
             continue
 
-        if is_duplicate(edges, train_data):
+        if is_duplicate(edges, samples):
+            duplicate_sample += 1
             continue
 
         samples.append(nx.Graph(edges))
 
-    return GraphList(samples)
+    return GraphList(samples), iters, duplicate_train, duplicate_sample

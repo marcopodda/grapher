@@ -115,7 +115,6 @@ class Model(nn.Module):
 
             samples.append(nx.Graph(edges))
         print("   sampled", len(samples), "num samples", num_samples)
-        print([G.number_of_nodes() for G in samples])
         return samples
 
 

@@ -123,7 +123,7 @@ class Evaluator(EvaluatorBase):
                     num_samples = len(test_data) * self.num_trials
                     samples = exp.sample(num_samples=num_samples)
                     for trial in range(self.num_trials):
-                        start, end = trial * num_samples, (trial+1) * num_samples
+                        start, end = trial * len(test_data), (trial+1) * len(test_data)
                         torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
 
                 for trial in range(self.num_trials):
@@ -159,7 +159,7 @@ class OrderEvaluator(EvaluatorBase):
                     num_samples = len(test_data) * self.num_trials
                     samples = exp.sample(num_samples=num_samples)
                     for trial in range(self.num_trials):
-                        start, end = trial * num_samples, (trial+1) * num_samples
+                        start, end = trial * len(test_data), (trial+1) * len(test_data)
                         torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
 
                 for trial in range(self.num_trials):

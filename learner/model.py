@@ -107,15 +107,19 @@ class Model(nn.Module):
             outputs = self._sample_rnn2(inputs, hs[-1])
             edges = list(zip(inputs, outputs))
 
-            if edges in [list(G.edges()) for G in samples]:
+            if self.is_duplicate(edges, samples):
                 continue
 
-            if edges in train_data:
+            if self.is_duplicate(edges, train_data):
                 continue
 
             samples.append(nx.Graph(edges))
         print("   sampled", len(samples), "num samples", num_samples)
         return samples
+
+    @staticmethod
+    def is_duplicate(edges, graphlist):
+        return edges in [list(G.edges()) for G in graphlist]
 
 
 class Loss(nn.Module):

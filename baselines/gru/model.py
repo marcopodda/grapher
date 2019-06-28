@@ -64,17 +64,19 @@ class Model(nn.Module):
             seq, hs = self._sample()
             edges = [i2e[i] for i in seq]
 
-            if edges in [list(G.edges()) for G in samples]:
-                # remove duplicates
+            if self.is_duplicate(edges, samples):
                 continue
 
-            if edges in train_data:
-                # remove duplicates in training data
+            if self.is_duplicate(edges, train_data):
                 continue
 
             samples.append(nx.Graph(edges))
 
         return samples
+
+    @staticmethod
+    def is_duplicate(edges, graphlist):
+        return edges in [list(G.edges()) for G in graphlist]
 
 
 class Loss(nn.Module):

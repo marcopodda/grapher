@@ -153,7 +153,7 @@ def test_rnn_epoch(config, rnn, output, device, test_batch_size=16):
         G_pred = get_graph(adj_pred)  # get a graph from zero-padded adj
         G_pred_list.append(G_pred)
 
-    return G_pred_list[0]
+    return list(G_pred_list[0].edges())
 
 
 # train function for RNN
@@ -189,6 +189,10 @@ def train(config, exp_root, dataloader, rnn, output):
     torch.save(output.state_dict(), fname)
 
 
+def is_duplicate(edges, graphlist):
+    return edges in [list(G.edges()) for G in graphlist]
+
+
 def sample(config, rnn, output, train_data, num_samples):
     samples, max_iters = [], 0
     device = get_device(config)
@@ -198,19 +202,19 @@ def sample(config, rnn, output, train_data, num_samples):
         if max_iters > 100000:
             break
 
-        sample = test_rnn_epoch(
+        edges = test_rnn_epoch(
             config,
             rnn,
             output,
             device,
             test_batch_size=1)
 
-        if list(sample.edges()) in [list(G.edges()) for G in samples]:
+        if is_duplicate(edges, samples):
             continue
 
-        if list(sample.edges()) in train_data:
+        if is_duplicate(edges, train_data):
             continue
 
-        samples.append(sample)
+        samples.append(nx.Graph(edges))
 
     return GraphList(samples)

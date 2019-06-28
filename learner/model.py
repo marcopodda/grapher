@@ -114,7 +114,7 @@ class Model(nn.Module):
                 continue
 
             samples.append(nx.Graph(edges))
-
+        print("   sampled", len(samples))
         return samples
 
 

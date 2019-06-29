@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from datetime import datetime
 from pathlib import Path
 
@@ -164,7 +165,9 @@ class BaselineExperiment(Experiment):
         config = BaselineConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         parameters = torch.load(self.root / "ckpt" / f"parameters.pt")
-        samples = sample_baseline(dataset.get_data('test'), parameters=parameters, generator=self.model_name)
+        nodes = [G.number_of_nodes() for G in dataset.get_data('test')]
+        nodes = np.random.choice(nodes, num_samples)
+        samples = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
         return samples, None, None, None
 
 

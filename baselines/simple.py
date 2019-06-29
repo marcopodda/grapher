@@ -103,10 +103,10 @@ def train_optimizationbased(graphlist, generator, metric):
     return parameter
 
 
-def sample(graphlist, parameters, generator):
+def sample(nodelist, parameters, generator):
     samples = []
 
-    for nodes in graphlist.num_nodes():
+    for nodes in nodelist:
         if nodes not in parameters.keys():
             nodes = min(parameters.keys(), key=lambda k: abs(k - nodes))
         if generator == 'BA':

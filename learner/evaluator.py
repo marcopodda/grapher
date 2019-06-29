@@ -135,6 +135,7 @@ class Evaluator(EvaluatorBase):
                     if not (exp.root / "samples" / f"samples_0.pt").exists():
                         num_samples = len(test_data) * self.num_trials
                         samples, iters, duplicate_train, duplicate_sample = exp.sample(num_samples=num_samples)
+                        print("    ", iters, duplicate_train, duplicate_sample)
                         self.results.set_iters(iters)
                         self.results.set_duplicate_sample(duplicate_sample)
                         self.results.set_duplicate_train(duplicate_train)

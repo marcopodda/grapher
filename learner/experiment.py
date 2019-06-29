@@ -165,7 +165,7 @@ class BaselineExperiment(Experiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         parameters = torch.load(self.root / "ckpt" / f"parameters.pt")
         samples = sample_baseline(dataset.get_data('test'), parameters=parameters, generator=self.model_name)
-        return samples
+        return samples, None, None, None
 
 
 class ERDegreeExperiment(BaselineExperiment):

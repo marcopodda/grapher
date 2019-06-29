@@ -63,8 +63,9 @@ class Experiment:
         config = Config.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-        samples = trainer.sample(dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
-        return samples
+        samples, iters, duplicate_train, duplicate_sample = trainer.sample(
+            dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
+        return samples, iters, duplicate_train, duplicate_sample
 
 
 class GRUExperiment:
@@ -117,8 +118,9 @@ class GRUExperiment:
         e2i, i2e = build_vocab(dataset.data.graphlist)
         input_dim = output_dim = len(e2i)
         trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
-        samples = trainer.sample(dataset.get_data('train'), i2e, dataset.max_iters, num_samples=num_samples)
-        return samples
+        samples, iters, duplicate_train, duplicate_sample = trainer.sample(
+            dataset.get_data('train'), i2e, dataset.max_iters, num_samples=num_samples)
+        return samples, iters, duplicate_train, duplicate_sample
 
 
 class BaselineExperiment(Experiment):

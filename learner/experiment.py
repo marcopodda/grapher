@@ -219,8 +219,9 @@ class GraphRNNExperiment(Experiment):
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)
-        samples = sample_graphrnn(config, rnn, output, dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
-        return samples
+        samples, iters, duplicate_train, duplicate_sample = sample_graphrnn(
+            config, rnn, output, dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
+        return samples, iters, duplicate_train, duplicate_sample
 
 
 class OrderExperiment(Experiment):

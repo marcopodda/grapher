@@ -97,30 +97,16 @@ class Model(nn.Module):
 
             return outputs.numpy().tolist()
 
-    def sample(self, train_data, max_iters, num_samples=1000):
-        samples, iters = [], 0
-        duplicate_train, duplicate_sample = 0, 0
+    def sample(self, num_samples=1000):
+        samples= []
 
         while len(samples) < num_samples:
-            iters += 1
-            if iters > max_iters:
-                break
-
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
             edges = list(zip(inputs, outputs))
 
-            if is_duplicate(edges, train_data):
-                duplicate_train += 1
-                continue
-
-            if is_duplicate(edges, samples):
-                duplicate_sample += 1
-                continue
-
-            samples.append(nx.Graph(edges))
-        print("   sampled", len(samples), "num samples", num_samples)
-        return samples, iters, duplicate_train, duplicate_sample
+            samples.append(edges)
+        return samples
 
 
 class Loss(nn.Module):

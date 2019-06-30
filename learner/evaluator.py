@@ -37,10 +37,7 @@ class Results:
                     'mean': None,
                     'std': None,
                     'count_data': None,
-                    'count_samples': None,
-                    "iters": None,
-                    "duplicate_train": None,
-                    "duplicate_sample": None
+                    'count_samples': None
                 }
 
     def set_perf(self, model_key, dataset_key, value):
@@ -73,17 +70,11 @@ class Results:
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
 
-    def set_iters(self, iters):
-        self.results["iters"] = iters
-
-    def set_duplicate_train(self, duplicate_train):
-        self.results["duplicate_train"] = duplicate_train
-
-    def set_duplicate_sample(self, duplicate_sample):
-        self.results["duplicate_sample"] = duplicate_sample
-
 
 class EvaluatorBase:
+    root = Path("RUNS")
+    num_samples = 10000
+
     def _eval(self, model_name, dataset_name, test_data, samples):
         func = getattr(evaluation, f'{self.metric}_kl')
         kl, count_data, count_samples = func(test_data, samples)
@@ -114,80 +105,53 @@ class EvaluatorBase:
 class Evaluator(EvaluatorBase):
     def __init__(self, metric):
         self.metric = metric
-        self.root = Path("RUNS")
-        self.num_trials = 10
         self.results = Results(metric, MODEL_NAMES, DATASET_NAMES)
 
     def evaluate(self):
         for model_name in self.results.model_names:
             print(model_name)
             for dataset_name in self.results.dataset_names:
-                if dataset_name != "ladders":
-                    print("  ", dataset_name)
-                    exp = self._load_experiment(model_name, dataset_name)
-                    dataset = self._load_dataset(dataset_name, model_name, exp)
-                    test_data = dataset.get_data('test')
+                print("  ", dataset_name)
+                exp = self._load_experiment(model_name, dataset_name)
+                dataset = self._load_dataset(dataset_name, model_name, exp)
+                test_data = dataset.get_data('test')
 
-                    exp = self._load_experiment(model_name, dataset_name)
-                    dataset = self._load_dataset(dataset_name, model_name, exp)
-                    test_data = dataset.get_data('test')
+                if not (exp.root / "samples" / f"samples.pt").exists():
+                    samples = exp.sample(num_samples=self.num_samples)
+                    torch.save(samples, exp.root / "samples" / f"samples.pt")
 
-                    if not (exp.root / "samples" / f"samples_0.pt").exists():
-                        num_samples = len(test_data) * self.num_trials
-                        samples, iters, duplicate_train, duplicate_sample = exp.sample(num_samples=num_samples)
-                        print("    ", iters, duplicate_train, duplicate_sample)
-                        self.results.set_iters(iters)
-                        self.results.set_duplicate_sample(duplicate_sample)
-                        self.results.set_duplicate_train(duplicate_train)
-                        for trial in range(self.num_trials):
-                            start, end = trial * len(test_data), (trial+1) * len(test_data)
-                            torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
+                samples = torch.load(exp.root / "samples" / f"samples.pt")
+                # self._eval(model_name, dataset_name, test_data, samples)
+                # self._calc_mean(model_name, dataset_name)
 
-                    for trial in range(self.num_trials):
-                        samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
-                        self._eval(model_name, dataset_name, test_data, samples)
-
-                    self._calc_mean(model_name, dataset_name)
-
-        save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
+        # save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
         return self.results
 
 
 class OrderEvaluator(EvaluatorBase):
     def __init__(self, metric):
         self.metric = metric
-        self.root = Path("RUNS") / "ORDER"
-        self.num_trials = 10
         self.results = Results(metric, ORDER_NAMES, DATASET_NAMES)
 
     def evaluate(self):
         for model_name in self.results.model_names:
             print(model_name)
             for dataset_name in self.results.dataset_names:
-                if dataset_name != "ladders":
-                    if model_name == "smiles" and dataset_name not in ["ENZYMES", "PROTEINS_full"]:
-                        continue
-                    print("  ", dataset_name)
+                if model_name == "smiles" and dataset_name not in ["ENZYMES", "PROTEINS_full"]:
+                    continue
+                print("  ", dataset_name)
 
-                    exp = self._load_experiment(model_name, dataset_name)
-                    dataset = self._load_dataset(dataset_name, model_name, exp)
-                    test_data = dataset.get_data('test')
+                exp = self._load_experiment(model_name, dataset_name)
+                dataset = self._load_dataset(dataset_name, model_name, exp)
+                test_data = dataset.get_data('test')
 
-                    if not (exp.root / "samples" / f"samples_0.pt").exists():
-                        num_samples = len(test_data) * self.num_trials
-                        samples, iters, duplicate_train, duplicate_sample = exp.sample(num_samples=num_samples)
-                        self.results.set_iters(iters)
-                        self.results.set_duplicate_sample(duplicate_sample)
-                        self.results.set_duplicate_train(duplicate_train)
-                        for trial in range(self.num_trials):
-                            start, end = trial * len(test_data), (trial+1) * len(test_data)
-                            torch.save(samples[start:end], exp.root / "samples" / f"samples_{trial}.pt")
+                if not (exp.root / "samples" / f"samples.pt").exists():
+                    samples = exp.sample(num_samples=self.num_samples)
+                    torch.save(samples, exp.root / "samples" / f"samples.pt")
 
-                    for trial in range(self.num_trials):
-                        samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
-                        self._eval(model_name, dataset_name, test_data, samples)
+                # samples = torch.load(exp.root / "samples" / f"samples.pt")
+                # self._eval(model_name, dataset_name, test_data, samples)
+                # self._calc_mean(model_name, dataset_name)
 
-                    self._calc_mean(model_name, dataset_name)
-
-        save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
+        # save_yaml(self.results.results, self.root / f"results_{self.metric}.yaml")
         return self.results

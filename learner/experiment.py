@@ -64,9 +64,8 @@ class Experiment:
         config = Config.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-        samples, iters, duplicate_train, duplicate_sample = trainer.sample(
-            dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
-        return samples, iters, duplicate_train, duplicate_sample
+        samples = trainer.sample(num_samples=num_samples)
+        return samples
 
 
 class GRUExperiment:
@@ -119,9 +118,8 @@ class GRUExperiment:
         e2i, i2e = build_vocab(dataset.data.graphlist)
         input_dim = output_dim = len(e2i)
         trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
-        samples, iters, duplicate_train, duplicate_sample = trainer.sample(
-            dataset.get_data('train'), i2e, dataset.max_iters, num_samples=num_samples)
-        return samples, iters, duplicate_train, duplicate_sample
+        samples = trainer.sample(num_samples=num_samples)
+        return samples
 
 
 class BaselineExperiment(Experiment):
@@ -168,7 +166,7 @@ class BaselineExperiment(Experiment):
         nodes = [G.number_of_nodes() for G in dataset.get_data('test')]
         nodes = np.random.choice(nodes, num_samples)
         samples = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
-        return samples, None, None, None
+        return samples
 
 
 class ERDegreeExperiment(BaselineExperiment):
@@ -222,9 +220,8 @@ class GraphRNNExperiment(Experiment):
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)
-        samples, iters, duplicate_train, duplicate_sample = sample_graphrnn(
-            config, rnn, output, dataset.get_data('train'), dataset.max_iters, num_samples=num_samples)
-        return samples, iters, duplicate_train, duplicate_sample
+        samples = sample_graphrnn(config, rnn, output, num_samples=num_samples)
+        return samples
 
 
 class OrderExperiment(Experiment):

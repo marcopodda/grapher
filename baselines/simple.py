@@ -117,9 +117,9 @@ def sample(nodelist, parameters, generator):
             n = int(parameters[nodes][0])
             p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
-        samples.append(graph)
+        samples.append(list(graph.edges()))
 
-    return GraphList(samples)
+    return samples
 
 
 def run_baseline(generator, metric, graphlist):

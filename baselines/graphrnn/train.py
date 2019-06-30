@@ -189,15 +189,11 @@ def train(config, exp_root, dataloader, rnn, output):
     torch.save(output.state_dict(), fname)
 
 
-def sample(config, rnn, output, train_data, max_iters, num_samples):
-    samples, iters = [], 0
-    duplicate_train, duplicate_sample = 0, 0
+def sample(config, rnn, output, num_samples):
+    samples = []
     device = get_device(config)
 
     while len(samples) < num_samples:
-        iters += 1
-        if iters > max_iters:
-            break
 
         edges = test_rnn_epoch(
             config,
@@ -206,14 +202,6 @@ def sample(config, rnn, output, train_data, max_iters, num_samples):
             device,
             test_batch_size=1)
 
-        if is_duplicate(edges, train_data):
-            duplicate_train += 1
-            continue
+        samples.append(edges)
 
-        if is_duplicate(edges, samples):
-            duplicate_sample += 1
-            continue
-
-        samples.append(nx.Graph(edges))
-
-    return GraphList(samples), iters, duplicate_train, duplicate_sample
+    return samples

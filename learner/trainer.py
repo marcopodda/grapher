@@ -91,9 +91,9 @@ class Trainer:
 
             self.log_epoch()
 
-    def sample(self, train_data, max_iters, num_samples):
+    def sample(self, num_samples):
         self.model.to('cpu')
-        samples = self.model.sample(train_data, max_iters, num_samples)
+        samples = self.model.sample(num_samples)
         self.model.to(self.device)
 
         return GraphList(samples)

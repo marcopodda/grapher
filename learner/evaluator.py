@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import netowrkx as nx
+import networkx as nx
 from pathlib import Path
 
 from config import get_config_class

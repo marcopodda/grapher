@@ -101,7 +101,7 @@ def encode_graph(G, order):
     G = max(nx.connected_component_subgraphs(G), key=len)
 
     if order == "bfs":
-        start_node = min(G.nodes())
+        start_node = np.random.choice(list(G.nodes()))
         seq = bfs_order(G, start_id=start_node)
     elif order == "random":
         seq = list(G.nodes())

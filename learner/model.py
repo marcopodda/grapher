@@ -10,7 +10,7 @@ class RNN(nn.Module):
         self.config = config
         self.output_dim = output_dim
         self.embed = nn.Embedding(input_dim, embed_dim, padding_idx=0)
-        self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, dropout=0.3, batch_first=True)
+        self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, batch_first=True)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.output_dim = output_dim
 
@@ -82,7 +82,7 @@ class Model(nn.Module):
         return sample, hs
 
     def _sample_rnn2(self, inputs, h):
-        temperature = 0.3 # self.config.temperature
+        temperature = 0.5 # self.config.temperature
 
         with torch.no_grad():
             model = self.rnn2
@@ -91,10 +91,13 @@ class Model(nn.Module):
             inputs = torch.LongTensor(inputs).unsqueeze(0)
             outputs, h = model(inputs, lengths, h, log_softmax=False)
             probs = F.softmax(outputs / temperature, dim=1)
-            outputs = torch.multinomial(probs, 1)
+            outputs = torch.argmax(probs, 1)
 
             outputs = outputs.numpy().tolist()
-            return [o[0] for o in outputs]
+            if isinstance(outputs[0], list):
+                outputs = [o[0] for o in outputs]
+
+            return outputs
 
     def sample(self, num_samples=1000):
         samples = []

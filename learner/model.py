@@ -55,7 +55,7 @@ class Model(nn.Module):
 
         step = 0
         max_length = self.config.max_num_edges
-        temperature = 0.8 #self.config.temperature
+        temperature = 1.0 #self.config.temperature
 
         sample = []
         hs = []
@@ -82,7 +82,7 @@ class Model(nn.Module):
         return sample, hs
 
     def _sample_rnn2(self, inputs, h):
-        temperature = 0.5 # self.config.temperature
+        temperature = 0.3 # self.config.temperature
 
         with torch.no_grad():
             model = self.rnn2

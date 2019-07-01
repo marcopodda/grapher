@@ -145,10 +145,10 @@ class Evaluator(EvaluatorBase):
                     torch.save(samples, exp.root / "samples" / f"samples.pt")
                 samples = torch.load(exp.root / "samples" / f"samples.pt")
 
-                novelty_score = get_novelty_score(train_data, samples)
-                self.results.set_novelty_score(model_name, dataset_name, novelty_score)
-                uniqueness_score = get_uniqueness_score(train_data, samples)
-                self.results.set_uniqueness_score(model_name, dataset_name, uniqueness_score)
+                # novelty_score = get_novelty_score(train_data, samples)
+                # self.results.set_novelty_score(model_name, dataset_name, novelty_score)
+                # uniqueness_score = get_uniqueness_score(train_data, samples)
+                # self.results.set_uniqueness_score(model_name, dataset_name, uniqueness_score)
                 # self._eval(model_name, dataset_name, test_data, samples)
                 # self._calc_mean(model_name, dataset_name)
 

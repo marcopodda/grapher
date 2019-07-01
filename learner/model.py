@@ -1,10 +1,6 @@
-import networkx as nx
-
 import torch
 from torch import nn
 from torch.nn import functional as F
-
-from utils.training import is_duplicate
 
 
 class RNN(nn.Module):
@@ -99,7 +95,7 @@ class Model(nn.Module):
             return [o[0] for o in outputs]
 
     def sample(self, num_samples=1000):
-        samples= []
+        samples = []
 
         while len(samples) < num_samples:
             inputs, hs = self._sample_rnn1()

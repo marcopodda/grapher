@@ -119,7 +119,7 @@ class GRUExperiment:
         input_dim = output_dim = len(e2i)
         trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
         samples = trainer.sample(num_samples=num_samples)
-        return samples
+        return [[i2e[i] for i in sample] for sample in samples]
 
 
 class BaselineExperiment(Experiment):
@@ -216,7 +216,6 @@ class GraphRNNExperiment(Experiment):
     def sample(self, num_samples):
         config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
         device = get_device(config)
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)

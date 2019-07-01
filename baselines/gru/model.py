@@ -1,11 +1,6 @@
-import networkx as nx
-
 import torch
 from torch import nn
 from torch.nn import functional as F
-
-
-from utils.training import is_duplicate
 
 
 class Model(nn.Module):

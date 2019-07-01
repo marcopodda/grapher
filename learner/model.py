@@ -10,7 +10,7 @@ class RNN(nn.Module):
         self.config = config
         self.output_dim = output_dim
         self.embed = nn.Embedding(input_dim, embed_dim, padding_idx=0)
-        self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, batch_first=True)
+        self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, dropout=0.3, batch_first=True)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.output_dim = output_dim
 

@@ -169,7 +169,7 @@ class Evaluator(EvaluatorBase):
                         samples = exp.sample(num_samples=len(test_data))
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
-                    samples = GraphList([nx.Graph(e) for e in samples])
+                    samples = GraphList([nx.Graph(clean_graph(e)) for e in samples])
                     self._eval(model_name, dataset_name, test_data, samples)
                     self._calc_mean(model_name, dataset_name)
 
@@ -213,7 +213,7 @@ class OrderEvaluator(EvaluatorBase):
                         samples = exp.sample(num_samples=len(test_data))
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
-                    samples = GraphList([nx.Graph(e) for e in samples])
+                    samples = GraphList([nx.Graph(clean_graph(e)) for e in samples])
                     self._eval(model_name, dataset_name, test_data, samples)
                     self._calc_mean(model_name, dataset_name)
 

@@ -15,7 +15,7 @@ Options:
 from docopt import docopt
 from learner import get_exp_class
 from learner.evaluator import Evaluator, OrderEvaluator
-from utils.constants import DATASET_NAMES
+from utils.constants import DATASET_NAMES, ORDER_NAMES
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
             exp.train()
     elif args["order"]:
         exp_class = get_exp_class("ORDER")
-        for order in ["bfs", "random", "smiles"]:
+        for order in ORDER_NAMES:
             for dataset in DATASET_NAMES:
                 if order == "smiles" and dataset not in ["ENZYMES", "PROTEINS_full"]:
                     continue

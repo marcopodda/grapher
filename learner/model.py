@@ -55,7 +55,7 @@ class Model(nn.Module):
 
         step = 0
         max_length = self.config.max_num_edges
-        temperature = 1.0 #self.config.temperature
+        temperature = 0.75
 
         sample = []
         hs = []
@@ -82,7 +82,7 @@ class Model(nn.Module):
         return sample, hs
 
     def _sample_rnn2(self, inputs, h):
-        temperature = 0.3 # self.config.temperature
+        temperature = 0.3
 
         with torch.no_grad():
             model = self.rnn2
@@ -91,7 +91,7 @@ class Model(nn.Module):
             inputs = torch.LongTensor(inputs).unsqueeze(0)
             outputs, h = model(inputs, lengths, h, log_softmax=False)
             probs = F.softmax(outputs / temperature, dim=1)
-            outputs = torch.argmax(probs, 1)
+            outputs = torch.multinomial(probs, 1)
 
             outputs = outputs.numpy().tolist()
             if isinstance(outputs[0], list):

@@ -37,7 +37,9 @@ class Results:
                     'mean': None,
                     'std': None,
                     'count_data': None,
-                    'count_samples': None
+                    'count_samples': None,
+                    'novelty_score': None,
+                    'uniqueness_score': None,
                 }
 
     def set_perf(self, model_key, dataset_key, value):
@@ -69,6 +71,12 @@ class Results:
         key = "count_samples"
         for i, _ in enumerate(self.results[model_key][dataset_key][key]):
             self.results[model_key][dataset_key][key][i] /= num_trials
+
+    def set_novelty_score(self, model_key, dataset_key, score):
+        self.results[model_key][dataset_key]['novelty_score'] = score
+
+    def set_uniqueness_score(self, model_key, dataset_key, score):
+        self.results[model_key][dataset_key]['uniqueness_score'] = score
 
 
 class EvaluatorBase:
@@ -102,6 +110,20 @@ class EvaluatorBase:
         return dataset
 
 
+def get_novelty_score(train, samples):
+    def process(G):
+        mapping = {n:n+3 for n in G.nodes()}
+        return sorted(G.edges())
+    train = [process(G) for G in train]
+    novel = [e for e in samples if e not in train]
+    return len(novel) / len(samples)
+
+
+def get_uniqueness_score(samples):
+    unique = set([tuple(e) for e in samples])
+    return len(unique) / len(samples)
+
+
 class Evaluator(EvaluatorBase):
     def __init__(self, metric):
         self.metric = metric
@@ -114,13 +136,19 @@ class Evaluator(EvaluatorBase):
                 print("  ", dataset_name)
                 exp = self._load_experiment(model_name, dataset_name)
                 dataset = self._load_dataset(dataset_name, model_name, exp)
+
+                train_data = dataset.get_data('train')
                 test_data = dataset.get_data('test')
 
                 if not (exp.root / "samples" / f"samples.pt").exists():
                     samples = exp.sample(num_samples=self.num_samples)
                     torch.save(samples, exp.root / "samples" / f"samples.pt")
-
                 samples = torch.load(exp.root / "samples" / f"samples.pt")
+
+                novelty_score = get_novelty_score(train_data, samples)
+                self.results.set_novelty_score(model_name, dataset_name, novelty_score)
+                uniqueness_score = get_uniqueness_score(train_data, samples)
+                self.results.set_uniqueness_score(model_name, dataset_name, uniqueness_score)
                 # self._eval(model_name, dataset_name, test_data, samples)
                 # self._calc_mean(model_name, dataset_name)
 
@@ -129,6 +157,8 @@ class Evaluator(EvaluatorBase):
 
 
 class OrderEvaluator(EvaluatorBase):
+    root = Path("RUNS") / "ORDER"
+
     def __init__(self, metric):
         self.metric = metric
         self.results = Results(metric, ORDER_NAMES, DATASET_NAMES)
@@ -143,13 +173,18 @@ class OrderEvaluator(EvaluatorBase):
 
                 exp = self._load_experiment(model_name, dataset_name)
                 dataset = self._load_dataset(dataset_name, model_name, exp)
+                train_data = dataset.get_data('train')
                 test_data = dataset.get_data('test')
 
                 if not (exp.root / "samples" / f"samples.pt").exists():
                     samples = exp.sample(num_samples=self.num_samples)
                     torch.save(samples, exp.root / "samples" / f"samples.pt")
+                samples = torch.load(exp.root / "samples" / f"samples.pt")
 
-                # samples = torch.load(exp.root / "samples" / f"samples.pt")
+                novelty_score = get_novelty_score(train_data, samples)
+                self.results.set_novelty_score(model_name, dataset_name, novelty_score)
+                uniqueness_score = get_uniqueness_score(train_data, samples)
+                self.results.set_uniqueness_score(model_name, dataset_name, uniqueness_score)
                 # self._eval(model_name, dataset_name, test_data, samples)
                 # self._calc_mean(model_name, dataset_name)
 

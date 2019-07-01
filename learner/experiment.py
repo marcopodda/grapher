@@ -259,5 +259,5 @@ class OrderExperiment(Experiment):
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
         loader = dataset.get_loader('train')
         test_data = dataset.get_data('test')
-        trainer.fit(loader, test_data)
+        trainer.fit(loader)
         config.save(self.root / "config")

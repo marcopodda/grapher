@@ -120,7 +120,7 @@ def encode_graph(G, order):
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
-    if order == "bfs":
+    if order in ["bfs", "bfs-fixed"]:
         edges = sorted(edges)
 
     return list(zip(*edges))

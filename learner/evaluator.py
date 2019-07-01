@@ -135,7 +135,7 @@ def get_novelty_score(train, samples):
 
 
 def get_uniqueness_score(samples):
-    unique = set([tuple(e) for e in samples])
+    unique = set([tuple(clean_graph(e)) for e in samples])
     return len(unique) / len(samples)
 
 

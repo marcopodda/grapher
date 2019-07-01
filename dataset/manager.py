@@ -214,7 +214,7 @@ def fun(model, dataset):
     exp_root = list((Path("RUNS") / model / dataset).glob("*"))[0]
     d = dc(c, exp_root, dataset)
     s = torch.load(exp_root / "samples" / "samples.pt")
-    return d, s
+    return d, s, exp_root
 
 def unique(s):
     ins = set([tuple(sorted(e)) for e in s])

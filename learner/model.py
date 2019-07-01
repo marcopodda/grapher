@@ -93,9 +93,10 @@ class Model(nn.Module):
             inputs = torch.LongTensor(inputs).unsqueeze(0)
             outputs, h = model(inputs, lengths, h, log_softmax=False)
             probs = F.softmax(outputs / self.config.temperature, dim=1)
-            outputs = torch.argmax(probs, 1)
+            outputs = torch.multinomial(probs, 1)
 
-            return outputs.numpy().tolist()
+            outputs = outputs.numpy().tolist()
+            return [o[0] for o in outputs]
 
     def sample(self, num_samples=1000):
         samples= []

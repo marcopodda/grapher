@@ -2,7 +2,6 @@ import numpy as np
 
 import torch
 from .model import Model, Loss
-from dataset.graph import GraphList
 from utils.training import get_device, get_scheduler, get_optimizer
 
 
@@ -95,8 +94,7 @@ class Trainer:
         self.model.to('cpu')
         samples = self.model.sample(num_samples)
         self.model.to(self.device)
-
-        return GraphList(samples)
+        return samples
 
     def save(self, best=False):
         filename = "best.pt" if best else "last.pt"

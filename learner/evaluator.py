@@ -104,7 +104,7 @@ class EvaluatorBase:
         expdir = list(rundir.glob("*"))
         assert len(expdir) > 0
         exp_class = get_exp_class(model_name)
-        exp = exp_class.load(expdir[0])
+        exp = exp_class.load(expdir[-1])
         return exp
 
     def _load_dataset(self, dataset_name, model_name, exp):
@@ -115,13 +115,21 @@ class EvaluatorBase:
         return dataset
 
 
+def clean_graph(G):
+    if isinstance(G, list) or isinstance(G, tuple):
+        G = nx.Graph(G)
+
+    if min(list(G.nodes())) == 3:
+        mapping = {n: n-3 for n in G.nodes()}
+        G = nx.relabel_nodes(G, mapping)
+
+    G = max(nx.connected_component_subgraphs(G), key=len)
+    return sorted(G.edges())
+
+
 def get_novelty_score(train, samples):
-    def process(G):
-        if min(list(G.nodes())) != 3:
-            mapping = {n: n+3 for n in G.nodes()}
-            G = nx.relabel_nodes(G, mapping)
-        return sorted(G.edges())
-    train = [process(G) for G in train]
+    train = [clean_graph(G) for G in train]
+    samples = [clean_graph(G) for G in samples]
     novel = [e for e in samples if e not in train]
     return len(novel) / len(samples)
 

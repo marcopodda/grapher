@@ -138,6 +138,7 @@ class TUData(DatasetManager):
 
 class SyntheticData(DatasetManager):
     max_iters = 10000
+
     def __init__(self, config, exp_root, name):
         super().__init__(config, exp_root, name)
 
@@ -215,6 +216,7 @@ def fun(model, dataset):
     d = dc(c, exp_root, dataset)
     s = torch.load(exp_root / "samples" / "samples.pt")
     return d, s, exp_root
+
 
 def unique(s):
     ins = set([tuple(sorted(e)) for e in s])

@@ -3,7 +3,7 @@ Manage experiments.
 
 Usage:
     manage.py train <model>
-    manage.py evaluate <metric> --order
+    manage.py evaluate <metric> [--order]
     manage.py (-h | --help)
 
 Options:

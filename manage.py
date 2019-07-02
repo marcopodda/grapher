@@ -3,13 +3,12 @@ Manage experiments.
 
 Usage:
     manage.py train <model>
-    manage.py order
-    manage.py evaluate <metric>
-    manage.py evaluate_order <metric>
+    manage.py evaluate <metric> --order
     manage.py (-h | --help)
 
 Options:
     -h --help               Show this screen.
+    -o --order              Evaluate ordering.
 """
 
 from docopt import docopt
@@ -22,24 +21,26 @@ def main():
     args = docopt(__doc__, help=True, version=None)
 
     if args["train"]:
-        exp_class = get_exp_class(args['<model>'])
-        for dataset in DATASET_NAMES:
-            exp = exp_class(dataset)
-            exp.train()
-    elif args["order"]:
-        exp_class = get_exp_class("ORDER")
-        for order in ORDER_NAMES:
+        if args['<model>'] == 'order':
+            exp_class = get_exp_class("ORDER")
+            for order in ORDER_NAMES:
+                for dataset in DATASET_NAMES:
+                    if order == "smiles" and dataset not in ["ENZYMES", "PROTEINS_full"]:
+                        continue
+                    exp = exp_class(order, dataset)
+                    exp.train()
+        else:
+            exp_class = get_exp_class(args['<model>'])
             for dataset in DATASET_NAMES:
-                if order == "smiles" and dataset not in ["ENZYMES", "PROTEINS_full"]:
-                    continue
-                exp = exp_class(order, dataset)
+                exp = exp_class(dataset)
                 exp.train()
     elif args["evaluate"]:
-        ev = Evaluator(args['<metric>'])
+        if args['--order']:
+            ev = OrderEvaluator(args['<metric>'])
+        else:
+            ev = Evaluator(args['<metric>'])
         ev.evaluate()
-    elif args["evaluate_order"]:
-        ev = OrderEvaluator(args['<metric>'])
-        ev.evaluate()
+
 
 
 if __name__ == "__main__":

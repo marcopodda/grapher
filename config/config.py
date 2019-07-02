@@ -30,7 +30,6 @@ class Config(BaseConfigWithSerializer):
 class GRUConfig(BaseConfigWithSerializer):
     def set_defaults(self):
         Config._params.update(
-            order="bfs",
             batch_size=32,
             max_num_edges=130,
             min_num_edges=2,
@@ -42,6 +41,8 @@ class GRUConfig(BaseConfigWithSerializer):
             hidden_dim=128,
             num_layers=2,
             max_epochs=2000,
+            dropout=0.15,
+            temperature=0.8,
             scheduler_class="StepLR",
             scheduler_params={"step_size": 100, "gamma": 0.5},
             optimizer_class="Adam",

@@ -2,13 +2,17 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from utils.constants import EOS, SOS
+
 
 class Model(nn.Module):
     def __init__(self, config, input_dim, output_dim):
         super().__init__()
         self.config = config
         self.embed = nn.Embedding(input_dim, config.embed_dim)
-        self.gru = nn.GRU(config.embed_dim, config.hidden_dim)
+        self.gru = nn.GRU(config.embed_dim, config.hidden_dim,
+                          num_layers=config.num_layers,
+                          dropout=config.dropout)
         self.linear = nn.Linear(config.hidden_dim, output_dim)
 
     def forward(self, x, lengths, h0=None):
@@ -32,7 +36,7 @@ class Model(nn.Module):
 
         with torch.no_grad():
             h = None
-            inputs = torch.LongTensor([1])  # SOS
+            inputs = torch.LongTensor([SOS])
             lengths = torch.LongTensor([1])
             while step < max_length:
                 if inputs.dim() == 1:
@@ -42,7 +46,7 @@ class Model(nn.Module):
                 probs = F.softmax(outputs.squeeze(0) / temperature, dim=1)
                 inputs = torch.multinomial(probs, 1).reshape(1, -1)
 
-                if inputs.item() == 2:
+                if inputs.item() == EOS:
                     break
 
                 sample.append(inputs.item())

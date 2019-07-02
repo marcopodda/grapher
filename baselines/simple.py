@@ -117,7 +117,9 @@ def sample(nodelist, parameters, generator):
             n = int(parameters[nodes][0])
             p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
-        samples.append(list(graph.edges()))
+
+        if graph.number_of_edges() > 0:
+            samples.append(list(graph.edges()))
 
     return samples
 

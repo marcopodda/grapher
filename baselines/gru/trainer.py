@@ -22,6 +22,7 @@ class GRUTrainer:
         trainer.best_loss = ckpt["best_loss"]
         trainer.losses = ckpt["losses"]
         trainer.current_epoch = ckpt['epoch'] + 1
+        trainer.stop_loss = ckpt['stop_loss']
         return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim, i2e):
@@ -35,6 +36,7 @@ class GRUTrainer:
         self.i2e = i2e
 
         self.losses = []
+        self.stop_loss = 0
 
         self.current_epoch = 0
         self.best_loss = np.float('inf')
@@ -75,6 +77,13 @@ class GRUTrainer:
                 self.best_loss = epoch_loss
                 self.save(best=True)
 
+            if epoch > 0 and epoch % 50:
+                self.stop_loss = self.best_loss
+
+            if self.stop_loss - self.best_loss < 1e-4:
+                print("Early stopping")
+                break
+
             self.log_epoch()
 
     def sample(self, num_samples):
@@ -88,6 +97,7 @@ class GRUTrainer:
         path = self.exp_root / "ckpt" / filename
         torch.save({
             "epoch": self.current_epoch,
+            "stop_loss": self.stop_loss,
             "best_loss": self.best_loss,
             "losses": self.losses,
             "model": self.model.state_dict(),

@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from utils.constants import PAD, SOS, EOS
 
 class RNN(nn.Module):
     def __init__(self, config, input_dim, embed_dim, hidden_dim, output_dim):
@@ -10,7 +11,10 @@ class RNN(nn.Module):
         self.config = config
         self.output_dim = output_dim
         self.embed = nn.Embedding(input_dim, embed_dim, padding_idx=0)
-        self.rnn = nn.GRU(embed_dim, hidden_dim, num_layers=2, dropout=0.3, batch_first=True)
+        self.rnn = nn.GRU(embed_dim, hidden_dim,
+                          num_layers=config.num_layers,
+                          dropout=config.dropout,
+                          batch_first=True)
         self.linear = nn.Linear(hidden_dim, output_dim)
         self.output_dim = output_dim
 
@@ -55,14 +59,14 @@ class Model(nn.Module):
 
         step = 0
         max_length = self.config.max_num_edges
-        temperature = 0.75
+        temperature = self.config.temperature1
 
         sample = []
         hs = []
 
         with torch.no_grad():
             h = None
-            inputs = torch.LongTensor([1])  # SOS
+            inputs = torch.LongTensor([SOS])
             lengths = torch.LongTensor([1])
             while step < max_length:
                 if inputs.dim() == 1:
@@ -72,7 +76,7 @@ class Model(nn.Module):
                 probs = F.softmax(outputs / temperature, dim=1)
                 inputs = torch.multinomial(probs, 1).reshape(1, -1)
 
-                if inputs.item() == 2:
+                if inputs.item() == EOS:
                     break
 
                 sample.append(inputs.item())
@@ -82,7 +86,7 @@ class Model(nn.Module):
         return sample, hs
 
     def _sample_rnn2(self, inputs, h):
-        temperature = 0.3
+        temperature = self.config.temperature2
 
         with torch.no_grad():
             model = self.rnn2
@@ -130,8 +134,7 @@ class Loss(nn.Module):
         outputs = outputs.view(-1, self.output_dim)
 
         # create a mask by filtering out all tokens that ARE NOT the padding token
-        tag_pad_token = 0
-        mask = (targets > tag_pad_token).float()
+        mask = (targets > PAD).float()
 
         # count how many tokens we have
         nb_tokens = int(torch.sum(mask).item())

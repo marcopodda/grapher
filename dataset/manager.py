@@ -202,22 +202,3 @@ class Ladders(SyntheticData):
         save_yaml(splits, self.raw_dir / 'splits.yaml')
         # save a copy inside the experiment folder too
         save_yaml(splits, self.processed_dir / 'splits.yaml')
-
-
-def fun(model, dataset):
-    import torch
-    from config.config import Config
-    from dataset import get_dataset_class
-    from pathlib import Path
-
-    c = Config()
-    dc = get_dataset_class(dataset)
-    exp_root = list((Path("RUNS") / model / dataset).glob("*"))[0]
-    d = dc(c, exp_root, dataset)
-    s = torch.load(exp_root / "samples" / "samples.pt")
-    return d, s, exp_root
-
-
-def unique(s):
-    ins = set([tuple(sorted(e)) for e in s])
-    return len(ins) / len(s)

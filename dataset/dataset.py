@@ -3,7 +3,8 @@ from torch import nn
 from torch.utils.data import Dataset
 
 from .graph import encode_graph
-from utils.data import SOS, EOS, to_sorted_tensor, reverse_argsort, pad_left, pad_right
+from utils.data import to_sorted_tensor, reverse_argsort, pad_left, pad_right
+from utils.constants import SOS, EOS
 
 
 class GraphDataset(Dataset):

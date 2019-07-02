@@ -23,7 +23,8 @@ class Trainer:
         trainer.losses1 = ckpt["losses1"]
         trainer.losses2 = ckpt["losses2"]
         trainer.current_epoch = ckpt['epoch'] + 1
-        trainer.stop_loss = ckpt['stop_loss']
+        if 'stop_loss' in ckpt:
+            trainer.stop_loss = ckpt['stop_loss']
         return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim):

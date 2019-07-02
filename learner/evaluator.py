@@ -167,7 +167,7 @@ class Evaluator(EvaluatorBase):
                     if not (exp.root / "samples" / f"samples_{num_samples}.pt").exists():
                         start = time.time()
                         samples = exp.sample(num_samples=num_samples)
-                        self.results.set_time(time.time() - start, num_samples)
+                        self.results.set_time(model_name, dataset_name, time.time() - start, num_samples)
                         torch.save(samples, exp.root / "samples" / f"samples_{num_samples}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{num_samples}.pt")
                     novelty_score = get_novelty_score(train_data, samples)
@@ -212,7 +212,9 @@ class OrderEvaluator(EvaluatorBase):
                 train_data = dataset.get_data('train')
                 for num_samples in self.num_samples:
                     if not (exp.root / "samples" / f"samples_{num_samples}.pt").exists():
+                        start = time.time()
                         samples = exp.sample(num_samples=num_samples)
+                        self.results.set_time(model_name, dataset_name, time.time() - start, num_samples)
                         torch.save(samples, exp.root / "samples" / f"samples_{num_samples}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{num_samples}.pt")
                     novelty_score = get_novelty_score(train_data, samples)

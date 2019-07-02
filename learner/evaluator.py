@@ -174,8 +174,9 @@ class Evaluator(EvaluatorBase):
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
                     samples = GraphList([nx.Graph(clean_graph(e)) for e in samples])
-                    self._eval(model_name, dataset_name, test_data, samples)
-                    self._calc_mean(model_name, dataset_name)
+                    if len(samples) > 0:
+                        self._eval(model_name, dataset_name, test_data, samples)
+                        self._calc_mean(model_name, dataset_name)
 
                 result = self.results.results[model_name][dataset_name]
                 save_yaml(result, self.root / f"results_{model_name}_{dataset_name}_{self.metric}.yaml")
@@ -218,8 +219,9 @@ class OrderEvaluator(EvaluatorBase):
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{trial}.pt")
                     samples = GraphList([nx.Graph(clean_graph(e)) for e in samples])
-                    self._eval(model_name, dataset_name, test_data, samples)
-                    self._calc_mean(model_name, dataset_name)
+                    if len(samples) > 0:
+                        self._eval(model_name, dataset_name, test_data, samples)
+                        self._calc_mean(model_name, dataset_name)
 
                 result = self.results.results[model_name][dataset_name]
                 save_yaml(result, self.root / f"results_{model_name}_{dataset_name}_{self.metric}.yaml")

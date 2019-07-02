@@ -1,3 +1,4 @@
+import time
 import torch
 import numpy as np
 import networkx as nx
@@ -44,6 +45,8 @@ class Results:
                     'novelty@10000': None,
                     'uniqueness@1000': None,
                     'uniqueness@10000': None,
+                    'time@1000': None,
+                    'time@10000': None
                 }
 
     def set_perf(self, model_key, dataset_key, value):
@@ -81,6 +84,9 @@ class Results:
 
     def set_uniqueness_score(self, model_key, dataset_key, num_samples, score):
         self.results[model_key][dataset_key][f'uniqueness@{num_samples}'] = score
+
+    def set_time(self, model_key, dataset_key, elapsed, num_samples):
+        self.results[model_key][dataset_key][f'time@{num_samples}'] = elapsed
 
 
 class EvaluatorBase:
@@ -159,7 +165,9 @@ class Evaluator(EvaluatorBase):
                 train_data = dataset.get_data('train')
                 for num_samples in self.num_samples:
                     if not (exp.root / "samples" / f"samples_{num_samples}.pt").exists():
+                        start = time.time()
                         samples = exp.sample(num_samples=num_samples)
+                        self.results.set_time(time.time() - start, num_samples)
                         torch.save(samples, exp.root / "samples" / f"samples_{num_samples}.pt")
                     samples = torch.load(exp.root / "samples" / f"samples_{num_samples}.pt")
                     novelty_score = get_novelty_score(train_data, samples)

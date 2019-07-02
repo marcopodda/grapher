@@ -16,11 +16,11 @@ class Config(BaseConfigWithSerializer):
             hidden_dim=128,
             num_layers=2,
             dropout=0.15,
-            temperature1=0.8,
-            temperature2=0.8,
+            temperature1=0.75,
+            temperature2=0.75,
             max_epochs=2000,
             scheduler_class="StepLR",
-            scheduler_params={"step_size": 100, "gamma": 0.5},
+            scheduler_params={"step_size": 200, "gamma": 0.5},
             optimizer_class="Adam",
             optimizer_params={'lr': 0.001},
             device="gpu"
@@ -80,7 +80,6 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             embedding_size_rnn_output=8,  # the embedding size for output rnn
             embedding_size_output=32,
             batch_size=32,
-            test_batch_size=32,
             test_size=0.3,
             num_layers=3,
             num_workers=4,  # num workers to load data, default 4

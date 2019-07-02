@@ -164,6 +164,7 @@ class Evaluator(EvaluatorBase):
 
                 train_data = dataset.get_data('train')
                 for num_samples in self.num_samples:
+                    print("    ", num_samples)
                     if not (exp.root / "samples" / f"samples_{num_samples}.pt").exists():
                         start = time.time()
                         samples = exp.sample(num_samples=num_samples)
@@ -177,6 +178,7 @@ class Evaluator(EvaluatorBase):
 
                 test_data = dataset.get_data('test')
                 for trial in range(self.num_trials):
+                    print("    ", trial)
                     if not (exp.root / "samples" / f"samples_{trial}.pt").exists():
                         samples = exp.sample(num_samples=len(test_data))
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")

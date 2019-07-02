@@ -128,6 +128,8 @@ def clean_graph(G):
 
 
 def get_novelty_score(train, samples):
+    if samples == []:
+        return 0.0
     train = [clean_graph(G) for G in train]
     samples = [clean_graph(G) for G in samples]
     novel = [e for e in samples if e not in train]
@@ -135,6 +137,8 @@ def get_novelty_score(train, samples):
 
 
 def get_uniqueness_score(samples):
+    if samples == []:
+        return 0.0
     unique = set([tuple(clean_graph(e)) for e in samples])
     return len(unique) / len(samples)
 

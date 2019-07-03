@@ -23,8 +23,8 @@ class Trainer:
         trainer.losses1 = ckpt["losses1"]
         trainer.losses2 = ckpt["losses2"]
         trainer.current_epoch = ckpt['epoch'] + 1
-        if 'stop_loss' in ckpt:
-            trainer.stop_loss = ckpt['stop_loss']
+        if 'best_losses' in ckpt:
+            trainer.stop_loss = ckpt['best_losses']
         return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim):
@@ -42,7 +42,7 @@ class Trainer:
 
         self.current_epoch = 0
         self.best_loss = np.float('inf')
-        self.stop_loss = 0
+        self.best_losses = []
 
     def _train_epoch(self, loader):
         self.model.train()
@@ -89,15 +89,15 @@ class Trainer:
 
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
+                self.best_losses.append(total_loss)
                 self.save(best=True)
 
             if order is not None and order != "bfs":
-                if epoch > 0 and epoch % 50:
-                    self.stop_loss = self.best_loss
-
-                if self.stop_loss - self.best_loss < 1e-4:
-                    print("Early stopping")
-                    break
+                if len(self.best_losses) > 20:
+                    best_losses = self.best_losses[-20:]
+                    if max(best_losses) - min(best_losses) < 1e-3:
+                        print("Early stopping")
+                        break
 
             self.log_epoch()
 
@@ -120,7 +120,7 @@ class Trainer:
             "scheduler": self.scheduler.state_dict(),
             "loss1": self.loss1.state_dict(),
             "loss2": self.loss2.state_dict(),
-            "stop_loss": self.stop_loss
+            "best_losses": self.best_losses
         }, path)
 
     def log_epoch(self):

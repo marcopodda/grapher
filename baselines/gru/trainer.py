@@ -37,8 +37,6 @@ class GRUTrainer:
         self.i2e = i2e
 
         self.losses = []
-        self.stop_loss = np.float('inf')
-
         self.current_epoch = 0
         self.best_loss = np.float('inf')
 
@@ -77,13 +75,6 @@ class GRUTrainer:
             if epoch_loss < self.best_loss:
                 self.best_loss = epoch_loss
                 self.save(best=True)
-
-            if epoch > 0 and epoch % 50:
-                self.stop_loss = self.best_loss
-
-            if self.stop_loss - self.best_loss < 1e-4:
-                print("Early stopping")
-                break
 
             self.log_epoch()
 

@@ -74,7 +74,7 @@ class GRUTrainer:
 
             if epoch_loss < self.best_loss:
                 self.best_loss = epoch_loss
-                self.best_losses.append(best_loss)
+                self.best_losses.append(epoch_loss)
                 self.save(best=True)
 
             if len(self.best_losses > 20):

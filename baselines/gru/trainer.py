@@ -70,6 +70,7 @@ class GRUTrainer:
             epoch_loss = self._train_epoch(loader)
 
             self.losses.append(epoch_loss)
+
             self.save(best=False)
 
             if epoch_loss < self.best_loss:
@@ -77,6 +78,7 @@ class GRUTrainer:
                 self.best_losses.append(epoch_loss)
                 self.save(best=True)
 
+            self.best_losses.append(self.best_loss)
             if len(self.best_losses) > 20:
                 best_losses = self.best_losses[-20:]
                 if max(best_losses) - min(best_losses) < 1e-3:

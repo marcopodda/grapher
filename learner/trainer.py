@@ -89,9 +89,9 @@ class Trainer:
 
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
-                self.best_losses.append(total_loss)
                 self.save(best=True)
 
+            self.best_losses.append(self.best_loss)
             if order is not None and order != "bfs":
                 if len(self.best_losses) > 20:
                     best_losses = self.best_losses[-20:]

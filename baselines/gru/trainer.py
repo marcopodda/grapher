@@ -37,7 +37,7 @@ class GRUTrainer:
         self.i2e = i2e
 
         self.losses = []
-        self.stop_loss = 0
+        self.stop_loss = np.float('inf')
 
         self.current_epoch = 0
         self.best_loss = np.float('inf')

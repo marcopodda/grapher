@@ -39,6 +39,7 @@ class GRUTrainer:
         self.losses = []
         self.current_epoch = 0
         self.best_loss = np.float('inf')
+        self.best_losses = []
 
     def _train_epoch(self, loader):
         self.model.train()
@@ -74,7 +75,14 @@ class GRUTrainer:
 
             if epoch_loss < self.best_loss:
                 self.best_loss = epoch_loss
+                self.best_losses.append(best_loss)
                 self.save(best=True)
+
+            if len(self.best_losses > 20):
+                best_losses = self.best_losses[-20:]
+                if max(best_losses) - min(best_losses) < 1e-4:
+                    print("Early stopping")
+                    break
 
             self.log_epoch()
 

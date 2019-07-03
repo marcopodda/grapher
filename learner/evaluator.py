@@ -91,7 +91,7 @@ class Results:
 
 class EvaluatorBase:
     root = Path("RUNS")
-    num_samples = [1000, 10000]
+    num_samples = [100,]# 10000]
     num_trials = 10
 
     def _eval(self, model_name, dataset_name, test_data, samples):

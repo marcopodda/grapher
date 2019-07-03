@@ -81,7 +81,7 @@ class GRUTrainer:
             self.best_losses.append(self.best_loss)
             if len(self.best_losses) > 20:
                 best_losses = self.best_losses[-20:]
-                if max(best_losses) - min(best_losses) < 1e-3:
+                if max(best_losses) - min(best_losses) < 1e-4:
                     print("Early stopping")
                     break
 

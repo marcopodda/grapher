@@ -107,6 +107,7 @@ class GRUTrainer:
 
     def log_epoch(self):
         msg = f"{self.current_epoch:06d} - " + \
-            f"loss: {self.losses[-1]:.6f}"
+            f"loss: {self.losses[-1]:.6f} - " + \
+            f"best loss: {self.best_loss}"
 
         print(msg)

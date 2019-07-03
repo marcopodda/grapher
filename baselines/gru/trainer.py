@@ -22,8 +22,7 @@ class GRUTrainer:
         trainer.best_loss = ckpt["best_loss"]
         trainer.losses = ckpt["losses"]
         trainer.current_epoch = ckpt['epoch'] + 1
-        if 'stop_loss' in ckpt:
-            trainer.stop_loss = ckpt['stop_loss']
+        trainer.best_losses = ckpt['best_losses']
         return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim, i2e):
@@ -97,8 +96,8 @@ class GRUTrainer:
         path = self.exp_root / "ckpt" / filename
         torch.save({
             "epoch": self.current_epoch,
-            "stop_loss": self.stop_loss,
             "best_loss": self.best_loss,
+            "best_losses": self.best_losses,
             "losses": self.losses,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),

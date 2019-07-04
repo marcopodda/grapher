@@ -93,7 +93,7 @@ class Result:
         return data
 
     def save(self, path):
-        save_yaml(self.asdict(), path / f"{self.name}.yaml")
+        save_yaml(self.asdict(), path / f"{self.dataset_name}.yaml")
 
     def update(self, name, value):
         setattr(self, name, value)

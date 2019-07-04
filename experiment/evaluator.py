@@ -85,8 +85,8 @@ class Result:
         self.time1000 = None
         self.time10000 = None
 
-    def __setattr__(self, key, value):
-        self.__dict__[key] = value
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
 
     def asdict(self):
         data = self.__dict__

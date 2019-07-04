@@ -3,7 +3,7 @@ Manage experiments.
 
 Usage:
     manage.py train <model>
-    manage.py evaluate <metric> [--model MODEL] [--order]
+    manage.py evaluate [--model MODEL] [--order]
     manage.py (-h | --help)
 
 Options:
@@ -20,6 +20,8 @@ from utils.constants import DATASET_NAMES, ORDER_NAMES, MODEL_NAMES
 
 def main():
     args = docopt(__doc__, help=True, version=None)
+    print(args)
+    return
 
     if args["train"]:
         if args['<model>'] == 'order':
@@ -41,11 +43,11 @@ def main():
         else:
             ev_class = Evaluator
         if args['--model']:
-            ev = ev_class(args['--model'], args['<metric>'])
+            ev = ev_class(args['MODEL'])
             ev.evaluate()
         else:
             for model in MODEL_NAMES:
-                ev = ev_class(model, args['<metric>'])
+                ev = ev_class(model)
                 ev.evaluate()
 
 

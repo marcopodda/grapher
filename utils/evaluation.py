@@ -16,7 +16,7 @@ def _get_hist(graphs, func):
         if values.max() > rng[1]:
             values = values / values.sum()
         hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
-        hists.append(hist + 1e-9)
+        hists.append(hist)
     return np.array(hists).sum(axis=0)
 
 
@@ -27,6 +27,7 @@ def kl_divergence(ref, sample, metric):
     if isinstance(sample[0], tuple) or isinstance(sample[0], list):
         sample = [clean_graph(e) for e in sample]
 
+    eps =  + 1e-9
     metric_fun = {
         'clustering': nx.clustering,
         'degree': nx.degree,
@@ -35,7 +36,7 @@ def kl_divergence(ref, sample, metric):
 
     ref_hist = _get_hist(ref, metric_fun)
     sample_hist = _get_hist(sample, metric_fun)
-    return entropy(ref_hist, sample_hist), ref_hist, sample_hist
+    return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
 
 
 def clean_graph(G_or_edges):

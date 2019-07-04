@@ -8,7 +8,7 @@ BINS = 30
 EPS = 1e-8
 
 
-def _get_hist(graphs, func, bins=BINS):
+def _get_hist(graphs, func, bins):
     rng = (0.0, 1.0)
     hists = []
 
@@ -21,75 +21,15 @@ def _get_hist(graphs, func, bins=BINS):
     return hists
 
 
-def get_dd_hists(graphs, bins=BINS):
-    return _get_hist(graphs, nx.degree, bins)
-
-
-def get_cc_hists(graphs, bins=BINS):
-    return _get_hist(graphs, nx.clustering, bins)
-
-
-def get_gl_hists(graphs, bins=BINS):
-    return _get_hist(graphs, graphlet_count, bins)
-
-
-def pad_vectors(sample_ref, sample_pred, bin_size):
-    counts_ref = np.zeros((bin_size, )) + EPS
-    counts_pred = np.zeros((bin_size, )) + EPS
-
-    for hist in sample_ref:
-        counts_ref[:hist.shape[0]] += np.array(hist)
-
-    for hist in sample_pred:
-        counts_pred[:hist.shape[0]] += np.array(hist)
-
-    return counts_ref, counts_pred
-
-
-def kl_divergence(sample_ref, sample_pred, bin_size):
-    counts_ref, counts_pred = pad_vectors(sample_ref, sample_pred, bin_size)
-    return entropy(counts_ref, counts_pred), counts_ref, counts_pred
-
-
-def graphlet_kl(ref, target):
-    if isinstance(ref[0], tuple) or isinstance(ref[0], list):
-        ref = [clean_graph(e) for e in ref]
-
-    if isinstance(target[0], tuple) or isinstance(target[0], list):
-        target = [clean_graph(e) for e in target]
-
-    bins = 30
-    gl_hist_ref = get_gl_hists(ref, bins=bins)
-    gl_hist_pred = get_gl_hists(target, bins=bins)
-    return kl_divergence(gl_hist_ref, gl_hist_pred, bins)
-
-
-def clustering_kl(ref, target):
-    if isinstance(ref[0], tuple) or isinstance(ref[0], list):
-        ref = [clean_graph(e) for e in ref]
-
-    if isinstance(target[0], tuple) or isinstance(target[0], list):
-        target = [clean_graph(e) for e in target]
-
-    clust_hist_ref = get_cc_hists(ref, bins=BINS)
-    clust_hist_pred = get_cc_hists(target, bins=BINS)
-    return kl_divergence(clust_hist_ref, clust_hist_pred, BINS)
-
-
-def degree_kl(ref, target):
-    if isinstance(ref[0], tuple) or isinstance(ref[0], list):
-        ref = [clean_graph(e) for e in ref]
-
-    if isinstance(target[0], tuple) or isinstance(target[0], list):
-        target = [clean_graph(e) for e in target]
-
-    deg_hist_ref = get_dd_hists(ref)
-    deg_hist_pred = get_dd_hists(target)
-    max_num_ref = max([G.number_of_nodes() for G in ref])
-    max_num_pred = max([G.number_of_nodes() for G in target])
-    max_num = max(max_num_ref, max_num_pred)
-    return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
-
+def kl_divergence(ref, sample, metric):
+    metric_fun = {
+        'clustering': nx.clustering,
+        'degree': nx.degree,
+        'graphlet': graphlet_count
+    }[metric]
+    ref_hist = _get_hist(ref, metric_fun, BINS)
+    pred_hist = _get_hist(ref, metric_fun, BINS)
+    return entropy(ref_hist, pred_hist), ref_hist, pred_hist
 
 
 def clean_graph(G_or_edges):
@@ -106,29 +46,29 @@ def find_duplicates(G, Gs):
     return False
 
 
-def novelty(ref, target):
+def novelty(ref, sample):
     if isinstance(ref[0], tuple) or isinstance(ref[0], list):
         ref = [clean_graph(e) for e in ref]
 
-    if isinstance(target[0], tuple) or isinstance(target[0], list):
-        target = [clean_graph(e) for e in target]
+    if isinstance(sample[0], tuple) or isinstance(sample[0], list):
+        sample = [clean_graph(e) for e in sample]
 
     res = []
 
     for G in ref:
-        res.append(find_duplicates(G, target))
+        res.append(find_duplicates(G, sample))
 
     return 1 - sum(res) / len(ref)
 
 
-def uniqueness(target):
-    if isinstance(target[0], tuple) or isinstance(target[0], list):
-        target = [clean_graph(e) for e in target]
+def uniqueness(sample):
+    if isinstance(sample[0], tuple) or isinstance(sample[0], list):
+        sample = [clean_graph(e) for e in sample]
 
     res = []
 
-    for i, G in enumerate(target):
-        new_target = target[:i] + target[i + 1:]
-        res.append(find_duplicates(G, new_target))
+    for i, G in enumerate(sample):
+        new_sample = sample[:i] + sample[i + 1:]
+        res.append(find_duplicates(G, new_sample))
 
-    return 1 - sum(res) / len(target)
+    return 1 - sum(res) / len(sample)

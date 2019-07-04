@@ -30,45 +30,38 @@ class Metric:
         self.scores = []
         self.mean = None
         self.std = None
-        self.count_data = None
-        self.count_samples = None
+        self.data_hist = None
+        self.samples_hist = None
 
     def get_score_func(self):
         raise NotImplementedError
 
     def update(self, test_data, samples):
-        score_func = self.get_score_func()
-        score, count_data, count_samples = score_func(test_data, samples)
+        score, data_hist, samples_hist = evaluation.kl_divergence(test_data, samples, self.name)
         self.scores.append(float(score))
-        self.count_data = pad_and_add(self.count_data, count_data)
-        self.count_samples = pad_and_add(self.count_samples, count_samples)
+        self.data_hist = pad_and_add(self.data_hist, data_hist)
+        self.samples_hist = pad_and_add(self.samples_hist, samples_hist)
 
     def finalize(self, num_trials):
         self.mean = float(np.mean(self.scores))
         self.std = float(np.std(self.scores))
-        self.count_data = [float(x) for x in self.count_data / num_trials]
-        self.count_samples = [float(x) for x in self.count_samples / num_trials]
+        self.data_hist = [float(x) for x in self.data_hist / num_trials]
+        self.samples_hist = [float(x) for x in self.samples_hist / num_trials]
 
     def asdict(self):
         return self.__dict__
 
 
 class DegreeDistribution(Metric):
-    name = "degree_distribution"
-    def get_score_func(self):
-        return evaluation.degree_kl
+    name = "degree"
 
 
 class ClusteringCoefficient(Metric):
-    name = "clustering_coefficient"
-    def get_score_func(self):
-        return evaluation.clustering_kl
+    name = "clustering"
 
 
 class GraphletCount(Metric):
-    name = "graphlet_count"
-    def get_score_func(self):
-        return evaluation.graphlet_count
+    name = "graphlet"
 
 
 class Result:

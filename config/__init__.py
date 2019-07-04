@@ -11,7 +11,7 @@ def get_config_class(model_name):
     if model_name == "GRAPHRNN":
         return GraphRNNConfig
 
-    if model_name in ["ER_degree", "ER_clustering", "BA_degree", "BA_clustering"]:
+    if model_name in ["ER", "BA"]:
         return BaselineConfig
 
     return Config

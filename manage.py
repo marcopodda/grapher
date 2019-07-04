@@ -20,8 +20,6 @@ from utils.constants import DATASET_NAMES, ORDER_NAMES, MODEL_NAMES
 
 def main():
     args = docopt(__doc__, help=True, version=None)
-    print(args)
-    return
 
     if args["train"]:
         if args['<model>'] == 'order':

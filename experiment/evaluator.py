@@ -85,9 +85,6 @@ class Result:
         self.time1000 = None
         self.time10000 = None
 
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
-
     def asdict(self):
         data = self.__dict__
         data['degree'] = data['degree'].asdict()
@@ -99,17 +96,19 @@ class Result:
         save_yaml(self.asdict(), path / f"{self.name}.yaml")
 
     def update(self, name, value):
-        self[name] = value
+        setattr(self, name, value)
 
     def update_time(self, num_samples, time_elapsed):
         if time_elapsed is not None:
-            self[f"time{num_samples}"] = time_elapsed
+            setattr(self, f"time{num_samples}", time_elapsed)
 
     def update_metric(self, name, test_data, samples):
-        self[name].update(test_data, samples)
+        metric = getattr(self, name)
+        metric.update(test_data, samples)
 
     def finalize_metric(self, name):
-        self[name].finalize()
+        metric = getattr(self, name)
+        metric.finalize()
 
 
 class EvaluatorBase:

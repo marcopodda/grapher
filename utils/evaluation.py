@@ -4,7 +4,7 @@ from scipy.stats import entropy
 
 from .graphlets import graphlet_count
 
-BINS = 100
+BINS = 30
 EPS = 1e-8
 
 
@@ -25,13 +25,13 @@ def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     return cc_hists
 
 
-def get_gl_hists(graphs, bins=10, range=(0.0, 1.0)):
+def get_gl_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     hists = []
 
     for G in graphs:
         counts = graphlet_count(G)
         values = list(counts.values())
-        hist, _ = np.histogram(values, bins=10, range=range)
+        hist, _ = np.histogram(values, bins=bins, range=range)
         hists.append(hist)
 
     return hists

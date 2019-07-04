@@ -16,7 +16,7 @@ def _get_hist(graphs, func):
         if values.max() > rng[1]:
             values = values / values.sum()
         hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
-        hists.append(hist)
+        hists.append(hist + 1e-9)
     return np.array(hists).sum(axis=0)
 
 

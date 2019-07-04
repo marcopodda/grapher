@@ -37,8 +37,9 @@ class Metric:
         raise NotImplementedError
 
     def update(self, test_data, samples):
-        score, data_hist, samples_hist = evaluation.kl_divergence(test_data, samples, self.name)
-        self.scores.append(float(score))
+        kld, data_hist, samples_hist = evaluation.kl_divergence(test_data, samples, self.name)
+        print(kld)
+        self.scores.append(float(kld))
         self.data_hist = pad_and_add(self.data_hist, data_hist)
         self.samples_hist = pad_and_add(self.samples_hist, samples_hist)
 

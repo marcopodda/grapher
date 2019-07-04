@@ -122,7 +122,7 @@ class EvaluatorBase:
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
             result = Result(self.model_name, dataset_name)
-
+            print(self.root, model_name, dataset_name)
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
 

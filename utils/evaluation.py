@@ -8,22 +8,25 @@ BINS = 30
 EPS = 1e-8
 
 
-def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
-    degree_hists = []
+def _get_hist(graphs, func, bins=BINS):
+    rng = (0.0, 1.0)
+    hists = []
+
     for G in graphs:
-        degrees = np.array(list(dict(nx.degree(G)).values()))
-        hist, _ = np.histogram(degrees, bins=bins, range=range, density=False)
-        degree_hists.append(hist)
-    return degree_hists
+        values = np.array(list(dict(func(G)).values()))
+        if values.max() > rng[1]:
+            values /= values.sum()
+        hist, _ = np.histogram(values, bins=bins, range=range, density=False)
+        hists.append(hist)
+    return hists
+
+
+def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
+    return _get_hist(graphs, nx.degree, bins)
 
 
 def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
-    cc_hists = []
-    for G in graphs:
-        coefs = np.array(list(dict(nx.clustering(G)).values()))
-        hist, _ = np.histogram(coefs, bins=bins, range=range, density=False)
-        cc_hists.append(hist)
-    return cc_hists
+    return _get_hist(graphs, nx.clustering, bins)
 
 
 def get_gl_hists(graphs, bins=BINS, range=(0.0, 1.0)):

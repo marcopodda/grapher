@@ -15,7 +15,7 @@ def _get_hist(graphs, func, bins=BINS):
     for G in graphs:
         values = np.array(list(dict(func(G)).values()))
         if values.max() > rng[1]:
-            values /= values.sum()
+            values = values / values.sum()
         hist, _ = np.histogram(values, bins=bins, range=range, density=False)
         hists.append(hist)
     return hists

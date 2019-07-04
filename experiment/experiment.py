@@ -155,13 +155,13 @@ class BaselineExperiment(BaseExperiment):
 
     def train(self):
         config = BaselineConfig.from_file(Path("cfg") / f"baseline_{self.dataset}.yaml")
-        config.update(metric=self.metric, name=self.model_name)
+        config.update(name=self.model_name)
         config.save(self.root / "config")
 
         dataset = self.dataset_class(config, self.root, name=self.dataset)
 
         train_data = dataset.get_data('train')
-        parameters = run_baseline(self.model_name, self.metric, train_data)
+        parameters = run_baseline(self.model_name, train_data)
         torch.save(parameters, self.root / "ckpt" / f"parameters.pt")
 
     def sample(self, num_samples):

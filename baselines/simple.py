@@ -24,7 +24,7 @@ def emd_distance(x, y, distance_scaling=1.0):
     return emd
 
 
-def loss(x, n, G_real, generator, metric):
+def loss(x, n, G_real, generator):
     '''
     :param x: 1-D array, parameters to be optimized
     :param
@@ -51,17 +51,17 @@ def loss(x, n, G_real, generator, metric):
     return loss
 
 
-def optimizer_brute(x_min, x_max, x_step, n, G_real, generator, metric):
+def optimizer_brute(x_min, x_max, x_step, n, G_real, generator):
     loss_all = []
     x_list = np.arange(x_min, x_max, x_step)
     for x_test in x_list:
         if x_test < n:
-            loss_all.append(loss(x_test, n, G_real, generator, metric))
+            loss_all.append(loss(x_test, n, G_real, generator))
     x_optim = x_list[np.argmin(np.array(loss_all))]
     return x_optim
 
 
-def train_optimizationbased(graphlist, generator, metric):
+def train_optimizationbased(graphlist, generator):
     nodelist = graphlist.num_nodes()
 
     parameter = {}
@@ -69,11 +69,11 @@ def train_optimizationbased(graphlist, generator, metric):
 
         if generator == 'BA':
             n = nodes
-            m = optimizer_brute(1, 10, 1, nodes, G, generator, metric)
+            m = optimizer_brute(1, 10, 1, nodes, G, generator)
             parameter_temp = [n, m, 1]
         elif generator == 'ER':
             n = nodes
-            p = optimizer_brute(1e-6, 1, 0.01, nodes, G, generator, metric)
+            p = optimizer_brute(1e-6, 1, 0.01, nodes, G, generator)
             parameter_temp = [n, p, 1]
 
         # update parameter list
@@ -109,13 +109,12 @@ def sample(nodelist, parameters, generator):
     return samples
 
 
-def run_baseline(generator, metric, graphlist):
+def run_baseline(generator, graphlist):
     # show graphlist statistics
     print('total graph num: {}'.format(len(graphlist)))
     print('max number node: {}'.format(graphlist.max_nodes))
 
     parameters = train_optimizationbased(graphlist,
-                                         generator=generator,
-                                         metric=metric)
+                                         generator=generator)
 
     return parameters

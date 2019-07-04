@@ -15,7 +15,7 @@ class Config(BaseConfigWithSerializer):
             embed_dim=32,
             hidden_dim=128,
             num_layers=2,
-            dropout=0.15,
+            dropout=0.3,
             temperature1=0.75,
             temperature2=0.75,
             max_epochs=2000,

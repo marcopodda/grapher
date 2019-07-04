@@ -23,8 +23,7 @@ class Trainer:
         trainer.losses1 = ckpt["losses1"]
         trainer.losses2 = ckpt["losses2"]
         trainer.current_epoch = ckpt['epoch'] + 1
-        if 'best_losses' in ckpt:
-            trainer.stop_loss = ckpt['best_losses']
+        trainer.best_losses = ckpt['best_losses']
         return trainer
 
     def __init__(self, config, exp_root, input_dim, output_dim):
@@ -127,6 +126,7 @@ class Trainer:
         msg = f"{self.current_epoch:06d} - " + \
             f"loss1: {self.losses1[-1]:.6f} - " + \
             f"loss2: {self.losses2[-1]:.6f} - " + \
-            f"total: {self.losses1[-1] + self.losses2[-1]:.6f}"
+            f"total: {self.losses1[-1] + self.losses2[-1]:.6f} - " + \
+            f"best_loss: {self.best_loss:.6f}"
 
         print(msg)

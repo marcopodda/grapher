@@ -3,18 +3,19 @@ Manage experiments.
 
 Usage:
     manage.py train <model>
-    manage.py evaluate <metric> [--order]
+    manage.py evaluate <metric> [--model MODEL] [--order]
     manage.py (-h | --help)
 
 Options:
     -h --help               Show this screen.
     -o --order              Evaluate ordering.
+    -m --model              Model name.
 """
 
 from docopt import docopt
-from learner import get_exp_class
-from learner.evaluator import Evaluator, OrderEvaluator
-from utils.constants import DATASET_NAMES, ORDER_NAMES
+from experiment import get_exp_class, load_experiment
+from experiment.evaluator import Evaluator, OrderEvaluator
+from utils.constants import DATASET_NAMES, ORDER_NAMES, MODEL_NAMES
 
 
 def main():
@@ -36,10 +37,16 @@ def main():
                 exp.train()
     elif args["evaluate"]:
         if args['--order']:
-            ev = OrderEvaluator(args['<metric>'])
+            ev_class = OrderEvaluator
         else:
-            ev = Evaluator(args['<metric>'])
-        ev.evaluate()
+            ev_class = Evaluator
+        if args['--model']:
+            ev = ev_class(args['--model'], args['<metric>'])
+            ev.evaluate()
+        else:
+            for model in MODEL_NAMES:
+                ev = ev_class(model, args['<metric>'])
+                ev.evaluate()
 
 
 

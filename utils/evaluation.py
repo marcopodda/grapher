@@ -75,3 +75,46 @@ def degree_kl(graph_ref, graph_pred):
     max_num_pred = max([G.number_of_nodes() for G in graph_pred])
     max_num = max(max_num_ref, max_num_pred)
     return kl_divergence(deg_hist_ref, deg_hist_pred, max_num)
+
+
+
+def clean_graph(G_or_edges):
+    if isinstance(G_or_edges, list) or isinstance(G_or_edges, tuple):
+        G = nx.Graph(G_or_edges)
+    return max(nx.connected_component_subgraphs(G), key=len)
+
+
+def find_duplicates(G, Gs):
+    for g in Gs:
+        if nx.is_isomorphic(G, g):
+            return True
+
+    return False
+
+
+def novelty(ref, target):
+    if isinstance(ref[0], tuple) or isinstance(ref[0], list):
+        ref = [clean_graph(e) for e in ref]
+
+    if isinstance(target[0], tuple) or isinstance(target[0], list):
+        target = [clean_graph(e) for e in target]
+
+    res = []
+
+    for G in ref:
+        res.append(find_duplicates(G, target))
+
+    return 1 - sum(res) / len(ref)
+
+
+def uniqueness(target):
+    if isinstance(target[0], tuple) or isinstance(target[0], list):
+        target = [clean_graph(e) for e in target]
+
+    res = []
+
+    for i, G in enumerate(target):
+        new_target = target[:i] + target[i + 1:]
+        res.append(find_duplicates(G, new_target))
+
+    return 1 - sum(res) / len(target)

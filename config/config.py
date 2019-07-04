@@ -84,7 +84,7 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             num_layers=3,
             num_workers=4,  # num workers to load data, default 4
             batch_ratio=32,
-            epochs=1000,  # now one epoch means batch_ratio x batch_size
+            epochs=2000,  # now one epoch means batch_ratio x batch_size
             lr=0.003,
             milestones=[400, 1000],
             lr_rate=0.3,

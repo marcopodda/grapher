@@ -14,6 +14,7 @@ from .generators import community_graph_generator, ego_graph_generator, ladder_g
 from .graph import GraphList
 from .dataset import GraphDataset, GraphDataCollator
 from utils.serializer import load_yaml, save_yaml
+from config import get_config_class
 
 
 DATA_DIR = Path('DATA')
@@ -84,7 +85,6 @@ class DatasetManager:
 
 
 class TUData(DatasetManager):
-    max_iters = 10000
     URL = "http://ls11-www.cs.uni-dortmund.de/people/morris/graphkerneldatasets/{name}.zip"
 
     def _fetch_data(self):
@@ -137,7 +137,6 @@ class TUData(DatasetManager):
 
 
 class SyntheticData(DatasetManager):
-    max_iters = 10000
 
     def __init__(self, config, exp_root, name):
         super().__init__(config, exp_root, name)
@@ -148,14 +147,9 @@ class SyntheticData(DatasetManager):
     def _fetch_data(self):
         pass
 
-
-class Community(SyntheticData):
-    generator_kwargs = {
-        "num_graphs": 1000,
-    }
-
     def _read_data(self):
-        graphs = community_graph_generator(self.config, **self.generator_kwargs)
+        generator = self.get_generator()
+        graphs = generator(self.config, **self.generator_kwargs)
         graphlist = GraphList(graphs)
 
         graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
@@ -165,15 +159,26 @@ class Community(SyntheticData):
 
         return graphlist
 
+    def get_generator(self):
+        raise NotImplementedError
+
+
+class Community(SyntheticData):
+    generator_kwargs = {
+        "num_graphs": 1000,
+    }
+
+    def get_generator(self):
+        return community_graph_generator
+
 
 class Ego(SyntheticData):
     generator_kwargs = {
         "radius": 2
     }
 
-    def _read_data(self):
-        graphs = ego_graph_generator(self.config, **self.generator_kwargs)
-        return GraphList(graphs)
+    def get_generator(self):
+        return ego_graph_generator
 
 
 class Ladders(SyntheticData):
@@ -182,16 +187,8 @@ class Ladders(SyntheticData):
         "num_reps": 10
     }
 
-    def _read_data(self):
-        graphs = ladder_graph_generator(self.config, **self.generator_kwargs)
-        graphlist = GraphList(graphs)
-
-        graphlist = graphlist.filter(lambda G: G.number_of_nodes() <= self.config.max_num_nodes)
-        graphlist = graphlist.filter(lambda G: G.number_of_nodes() >= self.config.min_num_nodes)
-        graphlist = graphlist.filter(lambda G: G.number_of_edges() <= self.config.max_num_edges)
-        graphlist = graphlist.filter(lambda G: G.number_of_edges() >= self.config.min_num_edges)
-
-        return graphlist
+    def get_generator(self):
+        return ladder_graph_generator
 
     def _make_splits(self):
         num_nodes = [G.number_of_nodes() for G in self.data.graphlist]
@@ -202,3 +199,24 @@ class Ladders(SyntheticData):
         save_yaml(splits, self.raw_dir / 'splits.yaml')
         # save a copy inside the experiment folder too
         save_yaml(splits, self.processed_dir / 'splits.yaml')
+
+
+def get_dataset_class(name):
+    if name.lower() == 'community':
+        return Community
+
+    if name.lower() == 'ego':
+        return Ego
+
+    if name.lower() == 'ladders':
+        return Ladders
+
+    return TUData
+
+
+def load_dataset(dataset_name, model_name, exp):
+    config_class = get_config_class(model_name)
+    config = config_class.from_file(exp.root / "config" / "config.yaml")
+    dataset_class = get_dataset_class(dataset_name)
+    dataset = dataset_class(config, exp.root, dataset_name)
+    return dataset

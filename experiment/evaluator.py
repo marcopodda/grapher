@@ -107,8 +107,8 @@ class Result:
 class EvaluatorBase:
     def __init__(self, model_name):
         self.model_name = model_name
-        self.num_samples = [1000, 10000]
-        self.num_trials = 10
+        self.num_samples = [1,1] #[1000, 10000]
+        self.num_trials = [3] #10
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:

@@ -4,15 +4,15 @@ from scipy.stats import entropy
 
 from .graphlets import graphlet_count
 
-BINS = 40
+BINS = 100
 
 
-def _get_hist(graphs, func):
+def _get_hist(graphs, func, rng):
     hists = np.zeros((BINS,))
 
     for G in graphs:
         values = np.array(list(dict(func(G)).values()))
-        hist, _ = np.histogram(values, bins=BINS, density=False)
+        hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
         hists += hist
 
     return hists / hists.sum()
@@ -26,14 +26,14 @@ def kl_divergence(ref, sample, metric):
         sample = [clean_graph(e) for e in sample]
 
     eps =  + 1e-9
-    metric_fun = {
-        'clustering': nx.clustering,
-        'degree': nx.degree,
-        'graphlet': graphlet_count
+    metric_fun, rng = {
+        'clustering': (nx.clustering, (0.0, 1.0)),
+        'degree': (nx.degree, (0.0, 100.0)),
+        'graphlet': (graphlet_count, (0.0, 100.0))
     }[metric]
 
-    ref_hist = _get_hist(ref, metric_fun)
-    sample_hist = _get_hist(sample, metric_fun)
+    ref_hist = _get_hist(ref, metric_fun, rng)
+    sample_hist = _get_hist(sample, metric_fun, rng)
     return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
 
 

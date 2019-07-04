@@ -106,9 +106,9 @@ class Result:
         metric = getattr(self, name)
         metric.update(test_data, samples)
 
-    def finalize_metric(self, name):
+    def finalize_metric(self, name, num_trials):
         metric = getattr(self, name)
-        metric.finalize()
+        metric.finalize(num_trials)
 
 
 class EvaluatorBase:

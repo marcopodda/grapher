@@ -8,10 +8,11 @@ BINS = 30
 EPS = 1e-8
 
 
-def get_dd_hists(graphs):
+def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     degree_hists = []
     for G in graphs:
-        hist = np.array(nx.degree_histogram(G))
+        degrees = np.array(nx.degree_histogram(G))
+        hist, _ = np.histogram(degrees, bins=bins, range=range, density=False)
         degree_hists.append(hist)
     return degree_hists
 

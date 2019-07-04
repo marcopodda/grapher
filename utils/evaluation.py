@@ -21,24 +21,16 @@ def _get_hist(graphs, func, bins=BINS):
     return hists
 
 
-def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
+def get_dd_hists(graphs, bins=BINS):
     return _get_hist(graphs, nx.degree, bins)
 
 
-def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
+def get_cc_hists(graphs, bins=BINS):
     return _get_hist(graphs, nx.clustering, bins)
 
 
-def get_gl_hists(graphs, bins=BINS, range=(0.0, 1.0)):
-    hists = []
-
-    for G in graphs:
-        counts = graphlet_count(G)
-        values = list(counts.values())
-        hist, _ = np.histogram(values, bins=bins, range=range)
-        hists.append(hist)
-
-    return hists
+def get_gl_hists(graphs, bins=BINS):
+    return _get_hist(graphs, graphlet_count, bins)
 
 
 def pad_vectors(sample_ref, sample_pred, bin_size):

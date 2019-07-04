@@ -80,9 +80,9 @@ class Result:
 
     def asdict(self):
         data = self.__dict__
-        data['degree'] = data['degree'].asdict()
-        data['clustering'] = data['clustering'].asdict()
-        data['graphlet'] = data['graphlet'].asdict()
+        data['degree'] = data.degre.asdict()
+        data['clustering'] = data.clustering.asdict()
+        data['graphlet'] = data.graphlet.asdict()
         return data
 
     def save(self, path):

@@ -38,7 +38,7 @@ class Metric:
 
     def update(self, test_data, samples):
         kld, data_hist, samples_hist = evaluation.kl_divergence(test_data, samples, self.name)
-        print(kld)
+        print(data_hist, samples_hist, kld)
         self.scores.append(float(kld))
         self.data_hist = pad_and_add(self.data_hist, data_hist)
         self.samples_hist = pad_and_add(self.samples_hist, samples_hist)
@@ -81,7 +81,7 @@ class Result:
 
     def asdict(self):
         data = self.__dict__
-        data['degree'] = data.degre.asdict()
+        data['degree'] = data.degree.asdict()
         data['clustering'] = data.clustering.asdict()
         data['graphlet'] = data.graphlet.asdict()
         return data

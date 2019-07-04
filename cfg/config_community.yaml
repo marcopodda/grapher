@@ -1,1 +1,4 @@
 device: gpu
+order: bfs-fixed
+max_epochs: 800
+dropout: 0

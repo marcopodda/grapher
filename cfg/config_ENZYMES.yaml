@@ -1,2 +1,7 @@
 device: gpu
-order: smiles
+order: bfs-fixed
+dropout: 0
+embed_dim: 64
+hidden_dim: 256
+max_epochs: 2000
+

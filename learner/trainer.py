@@ -91,7 +91,7 @@ class Trainer:
                 self.save(best=True)
 
             self.best_losses.append(self.best_loss)
-            if self.best_loss < 0.20:
+            if self.best_loss < 0.13:
                 break
             # if order is not None and order != "bfs":
             #     if len(self.best_losses) > 20:

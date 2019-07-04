@@ -226,6 +226,7 @@ class OrderEvaluator(EvaluatorBase):
 
                 test_data = dataset.get_data('test')
                 for trial in range(self.num_trials):
+                    print("    ", trial)
                     if not (exp.root / "samples" / f"samples_{trial}.pt").exists():
                         samples = exp.sample(num_samples=len(test_data))
                         torch.save(samples, exp.root / "samples" / f"samples_{trial}.pt")

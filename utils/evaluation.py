@@ -4,11 +4,10 @@ from scipy.stats import entropy
 
 from .graphlets import graphlet_count
 
-BINS = 30
+BINS = 40
 
 
 def _get_hist(graphs, func):
-    rng = (0.0, 1.0)
     hists = np.zeros((BINS,))
 
     for G in graphs:

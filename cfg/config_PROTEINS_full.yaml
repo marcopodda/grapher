@@ -1,9 +1,2 @@
 device: gpu
-<<<<<<< HEAD
 order: smiles
-=======
-embed_dim: 64
-hidden_dim: 256
-dropout: 0.1
-max_epochs: 10000
->>>>>>> 722bed0f16bc35280b12ca4458d528ab28d2db20

@@ -44,10 +44,10 @@ class Metric:
         self.count_samples = pad_and_add(self.count_samples, count_samples)
 
     def finalize(self):
-        self.mean = np.mean(self.scores).astype(float)
-        self.std = np.std(self.scores).astype(float)
-        self.count_data = np.mean(self.count_data, axis=0).astype(float).tolist()
-        self.count_samples = np.mean(self.count_samples, axis=0).astype(float).tolist()
+        self.mean = float(np.mean(self.scores))
+        self.std = float(np.std(self.scores))
+        self.count_data = [float(x) for x in np.mean(self.count_data, axis=0)]
+        self.count_samples = [float(x) for x in np.mean(self.count_samples, axis=0)]
 
     def asdict(self):
         return self.__dict__

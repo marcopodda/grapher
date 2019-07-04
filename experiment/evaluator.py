@@ -38,7 +38,6 @@ class Metric:
 
     def update(self, test_data, samples):
         kld, data_hist, samples_hist = evaluation.kl_divergence(test_data, samples, self.name)
-        print(data_hist, samples_hist, kld)
         self.scores.append(float(kld))
         self.data_hist = pad_and_add(self.data_hist, data_hist)
         self.samples_hist = pad_and_add(self.samples_hist, samples_hist)

@@ -9,15 +9,14 @@ BINS = 30
 
 def _get_hist(graphs, func):
     rng = (0.0, 1.0)
-    hists = []
+    hists = np.zeros((BINS,))
 
     for G in graphs:
         values = np.array(list(dict(func(G)).values()))
-        if values.max() > rng[1]:
-            values = values / values.sum()
-        hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
-        hists.append(hist)
-    return np.array(hists).sum(axis=0)
+        hist, _ = np.histogram(values, bins=BINS, density=False)
+        hists += hist
+
+    return hists / hists.sum()
 
 
 def kl_divergence(ref, sample, metric):

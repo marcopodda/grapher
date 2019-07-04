@@ -17,7 +17,7 @@ def _get_hist(graphs, func):
             values = values / values.sum()
         hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
         hists.append(hist)
-    return hists
+    return np.array(hists).sum(axis=0)
 
 
 def kl_divergence(ref, sample, metric):

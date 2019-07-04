@@ -11,7 +11,7 @@ EPS = 1e-8
 def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     degree_hists = []
     for G in graphs:
-        degrees = np.array(nx.degree(G).values())
+        degrees = np.array(dict(nx.degree(G)).values())
         hist, _ = np.histogram(degrees, bins=bins, range=range, density=False)
         degree_hists.append(hist)
     return degree_hists
@@ -20,7 +20,7 @@ def get_dd_hists(graphs, bins=BINS, range=(0.0, 1.0)):
 def get_cc_hists(graphs, bins=BINS, range=(0.0, 1.0)):
     cc_hists = []
     for G in graphs:
-        coefs = list(nx.clustering(G).values())
+        coefs = np.array(dict(nx.clustering(G)).values())
         hist, _ = np.histogram(coefs, bins=bins, range=range, density=False)
         cc_hists.append(hist)
     return cc_hists

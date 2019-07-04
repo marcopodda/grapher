@@ -22,7 +22,7 @@ def pad_and_add(v1, v2):
     newvec = np.zeros((maxdim,))
     newvec[:len(v1)] = v1
     newvec[:len(v2)] = v2
-    return newvec.tolist()
+    return newvec
 
 
 class Metric:
@@ -39,15 +39,15 @@ class Metric:
     def update(self, test_data, samples):
         score_func = self.get_score_func()
         score, count_data, count_samples = score_func(test_data, samples)
-        self.scores.append(score)
+        self.scores.append(float(score))
         self.count_data = pad_and_add(self.count_data, count_data)
         self.count_samples = pad_and_add(self.count_samples, count_samples)
 
-    def finalize(self):
+    def finalize(self, num_trials):
         self.mean = float(np.mean(self.scores))
         self.std = float(np.std(self.scores))
-        self.count_data = [float(x) for x in np.mean(self.count_data, axis=0)]
-        self.count_samples = [float(x) for x in np.mean(self.count_samples, axis=0)]
+        self.count_data = [float(x) for x in self.count_data / num_trials]
+        self.count_samples = [float(x) for x in self.count_samples / num_trials]
 
     def asdict(self):
         return self.__dict__
@@ -164,9 +164,9 @@ class EvaluatorBase:
             result.update_metric('degree', test_data, samples)
             result.update_metric('clustering', test_data, samples)
             # result.update_metric('graphlet', test_data, samples)
-        result.finalize_metric('degree')
-        result.finalize_metric('clustering')
-        # result.finalize_metric('graphlet')
+        result.finalize_metric('degree', self.num_trials)
+        result.finalize_metric('clustering', self.num_trials)
+        # result.finalize_metric('graphlet', self.num_trials)
 
 class Evaluator(EvaluatorBase):
     root = Path("RUNS")

@@ -90,8 +90,7 @@ class Experiment(BaseExperiment):
         train_data = dataset.get_data('train')
         while len(samples) < num_samples:
             sample = trainer.sample(num_samples=num_samples)
-            sample = filter_unique_and_novel(train_data, [clean_graph(e) for e in samples], fast=True)
-            samples.extend(sample)
+            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
 
         return GraphList(samples[:num_samples])
 
@@ -162,8 +161,7 @@ class GRUExperiment(BaseExperiment):
         while len(samples) < num_samples:
             sample = trainer.sample(num_samples=num_samples)
             sample = [[i2e[i] for i in sample] for sample in samples]
-            sample = filter_unique_and_novel(train_data, [clean_graph(e) for e in samples], fast=True)
-            samples.extend(sample)
+            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
 
         return GraphList(samples[:num_samples])
 
@@ -200,8 +198,7 @@ class GraphRNNExperiment(BaseExperiment):
         train_data = dataset.get_data('train')
         while len(samples) < num_samples:
             sample = sample_graphrnn(config, rnn, output, num_samples=num_samples)
-            sample = filter_unique_and_novel(train_data, [clean_graph(e) for e in samples], fast=False)
-            samples.extend(sample)
+            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=False)
 
         return GraphList(samples[:num_samples])
 
@@ -239,8 +236,7 @@ class BaselineExperiment(BaseExperiment):
             nodes = [G.number_of_nodes() for G in dataset.get_data('test')]
             nodes = np.random.choice(nodes, num_samples)
             sample = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
-            sample = filter_unique_and_novel(train_data, [clean_graph(e) for e in samples], fast=False)
-            samples.extend(sample)
+            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=False)
 
         return GraphList(samples[:num_samples])
 

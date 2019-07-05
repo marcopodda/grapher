@@ -4,9 +4,8 @@ from .serializer import load_yaml
 from .constants import MODEL_NAMES, DATASET_NAMES
 
 root = Path('RUNS')
-MODEL_NAMES = list(MODEL_NAMES)
-MODEL_NAMES.remove("GRAPHER")
-MODEL_NAMES = ["GRAPHRNN", "BA"]
+MODEL_NAMES = ["GRAPHRNN", "BA", "ER", "GRU"]
+# DATASET_NAMES = ["ENZYMES", "PROTEINS_full", "community"]
 
 def load_result(model_name, dataset_name):
     path = root / model_name / dataset_name

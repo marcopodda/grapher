@@ -195,13 +195,15 @@ class EvaluatorBase:
         train_data = dataset.get_data('train')
         for num_samples in self.num_samples:
             time_elapsed, samples = self._sample_or_get_samples(result, exp, num_samples)
-            result.update(f'novelty{num_samples}', evaluation.novelty(train_data, samples))
+            novelty, _ = evaluation.novelty(train_data, samples)
+            result.update(f'novelty{num_samples}', novelty)
             result.update_time(num_samples, time_elapsed)
 
     def evaluate_uniqueness(self, result, exp, dataset):
         for num_samples in self.num_samples:
             time_elapsed, samples = self._sample_or_get_samples(result, exp, num_samples)
-            result.update(f'uniqueness{num_samples}', evaluation.uniqueness(samples))
+            uniqueness, _ = evaluation.uniqueness(samples)
+            result.update(f'uniqueness{num_samples}', uniqueness)
             result.update_time(num_samples, time_elapsed)
 
     def evaluate_kl(self, result, exp, dataset, metric):

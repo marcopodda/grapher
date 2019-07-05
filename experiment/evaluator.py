@@ -11,7 +11,7 @@ from .experiment import load_experiment
 
 from utils import evaluation
 from utils.constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES
-from utils.serializer import save_yaml
+from utils.serializer import save_yaml, load_yaml
 
 
 def pad_and_add(v1, v2):
@@ -26,12 +26,26 @@ def pad_and_add(v1, v2):
 
 
 class Metric:
+    @classmethod
+    def load(cls, datadict):
+        metric = cls()
+        metric.scores = datadict['scores']
+        metric.mean = datadict['mean']
+        metric.std = datadict['std']
+        metric.data_hist = datadict['data_hist']
+        metric.samples_hist = datadict['samples_hist']
+        return metric
+
     def __init__(self):
         self.scores = []
         self.mean = None
         self.std = None
         self.data_hist = None
         self.samples_hist = None
+
+    @property
+    def is_empty(self):
+        return self.scores == []
 
     def get_score_func(self):
         raise NotImplementedError
@@ -65,6 +79,21 @@ class GraphletCount(Metric):
 
 
 class Result:
+    @classmethod
+    def load(cls, model_name, dataset_name, path):
+        resultdict = load_yaml(path)
+        r = cls(model_name, dataset_name)
+        r.degree = DegreeDistribution.load(resultdict['degree'])
+        r.clustering = ClusteringCoefficient.load(resultdict['clustering'])
+        r.graphlet = GraphletCount.load(resultdict['graphlet'])
+        r.novelty1000 = resultdict['novelty1000']
+        r.novelty10000 = resultdict['novelty10000']
+        r.uniqueness1000 = resultdict['uniqueness1000']
+        r.uniqueness10000 = resultdict['uniqueness10000']
+        r.time1000 = resultdict['time1000']
+        r.time10000 = resultdict['time10000']
+        return r
+
     def __init__(self, model_name, dataset_name):
         self.model_name = model_name
         self.dataset_name = dataset_name
@@ -77,6 +106,14 @@ class Result:
         self.uniqueness10000 = None
         self.time1000 = None
         self.time10000 = None
+
+    @property
+    def uniqueness_not_calculated(self):
+        return self.uniqueness1000 is None and self.uniqueness10000 is None
+
+    @property
+    def novelty_not_calculated(self):
+        return self.novelty1000 is None and self.novelty10000 is None
 
     def asdict(self):
         data = self.__dict__
@@ -113,13 +150,28 @@ class EvaluatorBase:
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
             print(dataset_name)
-            result = Result(self.model_name, dataset_name)
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
 
-            self.evaluate_novelty(result, exp, dataset)
-            self.evaluate_uniqueness(result, exp, dataset)
-            self.evaluate_samples(result, exp, dataset)
+            if not (exp.root / "results" / dataset_name).exists():
+                result = Result(self.model_name, dataset_name)
+            else:
+                result = load_yaml(exp.root / "results" / dataset_name)
+
+            if result.novelty_not_calculated:
+                self.evaluate_novelty(result, exp, dataset)
+
+            if result.uniqueness_not_calculated:
+                self.evaluate_uniqueness(result, exp, dataset)
+
+            if result.degree.is_empty:
+                self.evaluate_kl(result, exp, dataset, 'degree')
+
+            if result.clustering.is_empty:
+                self.evaluate_kl(result, exp, dataset, 'clustering')
+
+            # if result.graphlet.is_empty:
+            #     self.evaluate_kl(result, exp, dataset, 'graphlet')
 
             result.save(exp.root / "results")
 
@@ -136,6 +188,7 @@ class EvaluatorBase:
             samples = exp.sample(num_samples=num_samples)
             time_elapsed = time.time() - start
             torch.save(samples, exp.root / "samples" /filename)
+
         return time_elapsed, torch.load(exp.root / "samples" /filename)
 
     def evaluate_novelty(self, result, exp, dataset):
@@ -151,16 +204,13 @@ class EvaluatorBase:
             result.update(f'uniqueness{num_samples}', evaluation.uniqueness(samples))
             result.update_time(num_samples, time_elapsed)
 
-    def evaluate_samples(self, result, exp, dataset):
+    def evaluate_kl(self, result, exp, dataset, metric):
         test_data = dataset.get_data('test')
         for trial in range(self.num_trials):
             _, samples = self._sample_or_get_samples(result, exp, len(test_data), trial)
-            result.update_metric('degree', test_data, samples)
-            result.update_metric('clustering', test_data, samples)
-            # result.update_metric('graphlet', test_data, samples)
-        result.finalize_metric('degree', self.num_trials)
-        result.finalize_metric('clustering', self.num_trials)
-        # result.finalize_metric('graphlet', self.num_trials)
+            result.update_metric(metric, test_data, samples)
+        result.finalize_metric(metric, self.num_trials)
+
 
 class Evaluator(EvaluatorBase):
     root = Path("RUNS")

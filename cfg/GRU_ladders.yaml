@@ -1,2 +1,2 @@
 device: gpu
-max_epochs: 400
+max_epochs: 600

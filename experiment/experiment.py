@@ -226,7 +226,7 @@ class BaselineExperiment(BaseExperiment):
         nodes = [G.number_of_nodes() for G in dataset.get_data('test')]
         nodes = np.random.choice(nodes, num_samples)
         samples = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
-        return samples
+        return GraphList([clean_graph(e) for e in samples])
 
     def sample_novel_and_unique(self, num_samples):
         config = BaselineConfig.from_file(self.root / "config" / f"config.yaml")

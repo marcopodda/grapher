@@ -233,9 +233,9 @@ class EvaluatorBase:
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         unique = "unique" in metric_name
-        test_data = dataset.get_data('test')
 
-        if not (dataset == "ladders" and unique):
+        if not (result.dataset_name == "ladders" and unique):
+            test_data = dataset.get_data('test')
             for trial in range(self.num_trials):
                 samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial, unique)
                 result.update_metric(metric_name, test_data, samples)

@@ -241,7 +241,6 @@ class BaselineExperiment(BaseExperiment):
             sample = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
             sample = filter_unique_and_novel(train_data, [clean_graph(e) for e in samples], fast=False)
             samples.extend(sample)
-            print(len(samples))
 
         return GraphList(samples[:num_samples])
 

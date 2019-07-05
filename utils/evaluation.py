@@ -74,13 +74,12 @@ def empty_graph():
 
 
 def uniqueness(sample, fast):
-    res = []
     for i, G in enumerate(sample):
-        non_empty = [G for G in res if not is_empty(G)]
+        non_empty = [G for G in sample if not is_empty(G)]
         if is_duplicate(G, non_empty, fast):
-            res[i] = empty_graph()
+            sample[i] = empty_graph()
 
-    unique = [G for G in res if not is_empty(G)]
+    unique = [G for G in sample if not is_empty(G)]
     return len(unique) / len(sample), unique
 
 

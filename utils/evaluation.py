@@ -44,10 +44,12 @@ def clean_graph(G_or_edges):
 
 
 def is_duplicate(G, Gs, fast):
-    edges = sorted(G.edges())
-
     for g in Gs:
-        test = (edges == sorted(g.edges())) if fast else nx.is_isomorphic(G, g)
+        if fast:
+            test = sorted(G.edges()) == sorted(g.edges())
+        else:
+            test = nx.is_isomorphic(G, g)
+
         if test is True:
             return True
 

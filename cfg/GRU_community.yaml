@@ -1,2 +1,3 @@
 device: gpu
-min_num_nodes: 16
+max_epochs: 400
+

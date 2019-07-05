@@ -1,6 +1,6 @@
 device: gpu
 order: bfs-fixed
-dropout: 0
+dropout: 0.5
 embed_dim: 64
 hidden_dim: 256
-max_epochs: 300
+max_epochs: 600

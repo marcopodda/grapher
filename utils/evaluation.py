@@ -43,21 +43,21 @@ def clean_graph(G_or_edges):
     return G # max(nx.connected_component_subgraphs(G), key=len)
 
 
-def is_duplicate(G, Gs):
+def is_duplicate(G, Gs, fast):
     edges = sorted(G.edges())
 
     for g in Gs:
-        if edges == sorted(g.edges()):
-        # if nx.is_isomorphic(G, g):
+        test = (edges == sorted(g.edges())) if fast else nx.is_isomorphic(G, g)
+        if test is True:
             return True
 
     return False
 
 
-def novelty(ref, sample):
+def novelty(ref, sample, fast):
     res = []
     for G in ref:
-        if not is_duplicate(G, sample):
+        if not is_duplicate(G, sample, fast):
             res.append(G)
 
     return len(res) / len(ref), res
@@ -71,18 +71,18 @@ def empty_graph():
     return nx.Graph()
 
 
-def uniqueness(sample):
+def uniqueness(sample, fast):
     res = []
-    for i, G in enumerate(res):
+    for i, G in enumerate(sample):
         non_empty = [G for G in res if not is_empty(G)]
-        if is_duplicate(G, non_empty):
+        if is_duplicate(G, non_empty, fast):
             res[i] = empty_graph()
 
     unique = [G for G in res if not is_empty(G)]
     return len(unique) / len(sample), unique
 
 
-def filter_unique_and_novel(ref, sample):
-    _, novel = novelty(ref, sample)
-    _, unique = uniqueness(novel)
+def filter_unique_and_novel(ref, sample, fast):
+    _, novel = novelty(ref, sample, fast)
+    _, unique = uniqueness(novel, fast)
     return unique

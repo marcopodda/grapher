@@ -86,6 +86,9 @@ class Result:
         r.degree = DegreeDistribution.load(resultdict['degree'])
         r.clustering = ClusteringCoefficient.load(resultdict['clustering'])
         r.graphlet = GraphletCount.load(resultdict['graphlet'])
+        r.degree_unique = DegreeDistribution.load(resultdict['degree_unique'])
+        r.clustering_unique = ClusteringCoefficient.load(resultdict['clustering_unique'])
+        r.graphlet_unique = GraphletCount.load(resultdict['graphlet_unique'])
         r.novelty1000 = resultdict['novelty1000']
         r.novelty10000 = resultdict['novelty10000']
         r.uniqueness1000 = resultdict['uniqueness1000']
@@ -100,6 +103,9 @@ class Result:
         self.degree = DegreeDistribution()
         self.clustering = ClusteringCoefficient()
         self.graphlet = GraphletCount()
+        self.degree_unique = DegreeDistribution()
+        self.clustering_unique = ClusteringCoefficient()
+        self.graphlet_unique = GraphletCount()
         self.novelty1000 = None
         self.novelty10000 = None
         self.uniqueness1000 = None
@@ -120,6 +126,9 @@ class Result:
         data['degree'] = self.degree.asdict()
         data['clustering'] = self.clustering.asdict()
         data['graphlet'] = self.graphlet.asdict()
+        data['degree_unique'] = self.degree_unique.asdict()
+        data['clustering_unique'] = self.clustering_unique.asdict()
+        data['graphlet_unique'] = self.graphlet_unique.asdict()
         return data
 
     def save(self, path):
@@ -144,8 +153,9 @@ class Result:
 class EvaluatorBase:
     def __init__(self, model_name):
         self.model_name = model_name
-        self.num_samples = [1000, 10000]
-        self.num_trials = 10
+        self.num_samples = [10, 10] # [1000, 10000]
+        self.num_trials = 3
+        self.fast = model_name in ["GRAPHER", "GRU"]
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
@@ -167,22 +177,37 @@ class EvaluatorBase:
 
             if result.degree.is_empty:
                 self.evaluate_kl(result, exp, dataset, 'degree')
+                self.evaluate_kl(result, exp, dataset, 'degree_unique')
 
             if result.clustering.is_empty:
                 self.evaluate_kl(result, exp, dataset, 'clustering')
+                self.evaluate_kl(result, exp, dataset, 'clustering_unique')
 
             # if result.graphlet.is_empty:
             #     self.evaluate_kl(result, exp, dataset, 'graphlet')
+            #     self.evaluate_kl(result, exp, dataset, 'graphlet_unique')
 
             result.save(exp.root / "results")
 
-    def _sample_or_get_samples(self, result, exp, num_samples, trial=None):
-        if trial is not None:
-            filename = f"samples_{num_samples}_{trial}.pt"
-        else:
-            filename = f"samples_{num_samples}.pt"
+    def _sample_or_get_samples_kl(self, result, exp, num_samples, trial, unique):
+        name = f"samples_{num_samples}_{trial}"
+        if unique:
+            name += "_unique"
+        filename = f"{name}.pt"
 
+        if not (exp.root / "samples" /filename).exists():
+            if unique:
+                samples = exp.sample_novel_and_unique(num_samples=num_samples)
+            else:
+                samples = exp.sample(num_samples=num_samples)
+            torch.save(samples, exp.root / "samples" /filename)
+
+        return torch.load(exp.root / "samples" / filename)
+
+    def _sample_or_get_samples_metric(self, result, exp, num_samples, trial=None):
         time_elapsed = None
+        filename = f"samples_{num_samples}.pt"
+
         if not (exp.root / "samples" /filename).exists():
             start = time.time()
             samples = exp.sample(num_samples=num_samples)
@@ -194,24 +219,25 @@ class EvaluatorBase:
     def evaluate_novelty(self, result, exp, dataset):
         train_data = dataset.get_data('train')
         for num_samples in self.num_samples:
-            time_elapsed, samples = self._sample_or_get_samples(result, exp, num_samples)
-            novelty, _ = evaluation.novelty(train_data, samples)
+            time_elapsed, samples = self._sample_or_get_samples_metric(result, exp, num_samples)
+            novelty, _ = evaluation.novelty(train_data, samples, self.fast)
             result.update(f'novelty{num_samples}', novelty)
             result.update_time(num_samples, time_elapsed)
 
     def evaluate_uniqueness(self, result, exp, dataset):
         for num_samples in self.num_samples:
-            time_elapsed, samples = self._sample_or_get_samples(result, exp, num_samples)
-            uniqueness, _ = evaluation.uniqueness(samples)
+            time_elapsed, samples = self._sample_or_get_samples_metric(result, exp, num_samples)
+            uniqueness, _ = evaluation.uniqueness(samples, self.fast)
             result.update(f'uniqueness{num_samples}', uniqueness)
             result.update_time(num_samples, time_elapsed)
 
-    def evaluate_kl(self, result, exp, dataset, metric):
+    def evaluate_kl(self, result, exp, dataset, metric_name):
+        unique = "unique" in metric_name
         test_data = dataset.get_data('test')
         for trial in range(self.num_trials):
-            _, samples = self._sample_or_get_samples(result, exp, len(test_data), trial)
-            result.update_metric(metric, test_data, samples)
-        result.finalize_metric(metric, self.num_trials)
+            samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial, unique)
+            result.update_metric(metric_name, test_data, samples)
+        result.finalize_metric(metric_name, self.num_trials)
 
 
 class Evaluator(EvaluatorBase):

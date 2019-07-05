@@ -177,13 +177,12 @@ class EvaluatorBase:
             result.save(exp.root / "results")
 
     def _sample_or_get_samples(self, result, exp, num_samples, trial=None):
-        time_elapsed = None
-
         if trial is not None:
             filename = f"samples_{num_samples}_{trial}.pt"
         else:
             filename = f"samples_{num_samples}.pt"
 
+        time_elapsed = None
         if not (exp.root / "samples" /filename).exists():
             start = time.time()
             samples = exp.sample(num_samples=num_samples)

@@ -57,29 +57,21 @@ def is_duplicate(G, Gs, fast):
 
 
 def novelty(ref, sample, fast):
-    res = []
+    novel = []
     for G in ref:
         if not is_duplicate(G, sample, fast):
-            res.append(G)
+            novel.append(G)
 
-    return len(res) / len(ref), res
-
-
-def is_empty(G):
-    return list(G.nodes()) == []
-
-
-def empty_graph():
-    return nx.Graph()
+    return len(novel) / len(ref), novel
 
 
 def uniqueness(sample, fast):
+    unique = []
     for i, G in enumerate(sample):
-        non_empty = [G for G in sample if not is_empty(G)]
-        if is_duplicate(G, non_empty, fast):
-            sample[i] = empty_graph()
+        new_sample = sample[:i] + sample[i+1:]
+        if not is_duplicate(G, new_sample, fast):
+            unique.append(G)
 
-    unique = [G for G in sample if not is_empty(G)]
     return len(unique) / len(sample), unique
 
 

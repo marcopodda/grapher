@@ -153,10 +153,11 @@ class EvaluatorBase:
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
 
-            if not (exp.root / "results" / dataset_name).exists():
+            path = exp.root / "results" / f"{dataset_name}.yaml"
+            if not path.exists():
                 result = Result(self.model_name, dataset_name)
             else:
-                result = load_yaml(exp.root / "results" / dataset_name)
+                result = Result.load(self.model_name, dataset_name, path)
 
             if result.novelty_not_calculated:
                 self.evaluate_novelty(result, exp, dataset)

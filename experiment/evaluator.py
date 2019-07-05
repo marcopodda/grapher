@@ -82,20 +82,16 @@ class Result:
     @classmethod
     def load(cls, model_name, dataset_name, path):
         resultdict = load_yaml(path)
-        r = cls(model_name, dataset_name)
-        r.degree = DegreeDistribution.load(resultdict['degree'])
-        r.clustering = ClusteringCoefficient.load(resultdict['clustering'])
-        r.graphlet = GraphletCount.load(resultdict['graphlet'])
-        r.degree_unique = DegreeDistribution.load(resultdict['degree_unique'])
-        r.clustering_unique = ClusteringCoefficient.load(resultdict['clustering_unique'])
-        r.graphlet_unique = GraphletCount.load(resultdict['graphlet_unique'])
-        r.novelty1000 = resultdict['novelty1000']
-        r.novelty10000 = resultdict['novelty10000']
-        r.uniqueness1000 = resultdict['uniqueness1000']
-        r.uniqueness10000 = resultdict['uniqueness10000']
-        r.time1000 = resultdict['time1000']
-        r.time10000 = resultdict['time10000']
-        return r
+        result = cls(model_name, dataset_name)
+        result.degree = DegreeDistribution.load(resultdict.pop('degree'))
+        result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
+        result.graphlet = GraphletCount.load(resultdict.pop('graphlet'))
+        result.degree_unique = DegreeDistribution.load(resultdict.pop('degree_unique'))
+        result.clustering_unique = ClusteringCoefficient.load(resultdict.pop('clustering_unique'))
+        result.graphlet_unique = GraphletCount.load(resultdict.pop('graphlet_unique'))
+        for key in resultdict:
+            setattr(result, key, resultdict[key])
+        return result
 
     def __init__(self, model_name, dataset_name):
         self.model_name = model_name
@@ -106,20 +102,16 @@ class Result:
         self.degree_unique = DegreeDistribution()
         self.clustering_unique = ClusteringCoefficient()
         self.graphlet_unique = GraphletCount()
-        self.novelty1000 = None
-        self.novelty10000 = None
-        self.uniqueness1000 = None
-        self.uniqueness10000 = None
-        self.time1000 = None
-        self.time10000 = None
 
     @property
     def uniqueness_not_calculated(self):
-        return self.uniqueness1000 is None and self.uniqueness10000 is None
+        names = [k for k in self.__dict__ if "uniqueness" in k]
+        return names != []
 
     @property
     def novelty_not_calculated(self):
-        return self.novelty1000 is None and self.novelty10000 is None
+        names = [k for k in self.__dict__ if "novelty" in k]
+        return names != []
 
     def asdict(self):
         data = self.__dict__
@@ -195,7 +187,7 @@ class EvaluatorBase:
             name += "_unique"
         filename = f"{name}.pt"
 
-        if not (exp.root / "samples" /filename).exists():
+        if not (exp.root / "samples" / filename).exists():
             if unique:
                 samples = exp.sample_novel_and_unique(num_samples=num_samples)
             else:

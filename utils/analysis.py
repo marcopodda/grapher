@@ -1,11 +1,15 @@
+import time
 from pathlib import Path
 
 from .serializer import load_yaml
 from .constants import MODEL_NAMES, DATASET_NAMES
 
 root = Path('RUNS')
-MODEL_NAMES = ["GRAPHRNN", "GRU", "BA", "ER"]
+MODEL_NAMES = ["BA", "ER"]
 # DATASET_NAMES = ["ENZYMES", "PROTEINS_full", "community"]
+
+def to_hms(secs):
+    return time.strftime('%H:%M:%S', time.gmtime(secs))
 
 def load_result(model_name, dataset_name):
     path = root / model_name / dataset_name
@@ -20,11 +24,19 @@ def process_kld(result, metric):
 
 
 def process_metric(result, model_name, dataset_name, metric_name):
-    metric1000 = result[f'{metric_name}1000']
-    metric10000 = result[f'{metric_name}10000']
+    names = sorted([name for name in result if metric_name in name])
+    metric1 = result[names[0]]
+    metric2 = result[names[1]]
+    if metric_name == 'time':
+        metric1 = to_hms(metric1)
+        metric2 = to_hms(metric2)
+        return f"{model_name:20} - {dataset_name:20} - " + \
+           f"{names[0].capitalize()} samples: {metric1} - " + \
+           f"{names[1].capitalize()} samples: {metric2}"
+
     return f"{model_name:20} - {dataset_name:20} - " + \
-           f"{metric_name.capitalize()}@1000 samples: {float(metric1000):.6f} - " + \
-           f"{metric_name.capitalize()}@10000 samples: {float(metric10000):.6f}"
+           f"{names[0].capitalize()} samples: {float(metric1):.6f} - " + \
+           f"{names[1].capitalize()} samples: {float(metric2):.6f}"
 
 
 def klds_by_dataset(dataset_name, metric_name):

@@ -91,14 +91,8 @@ class Trainer:
                 self.save(best=True)
 
             self.best_losses.append(self.best_loss)
-            if self.best_loss < 0.13:
+            if self.best_loss < 0.18:
                 break
-            # if order is not None and order != "bfs":
-            #     if len(self.best_losses) > 20:
-            #         best_losses = self.best_losses[-20:]
-            #         if max(best_losses) - min(best_losses) < 1e-3:
-            #             print("Early stopping")
-            #             break
 
             self.log_epoch()
 

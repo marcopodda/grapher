@@ -79,7 +79,7 @@ class GRUTrainer:
                 self.save(best=True)
 
             self.best_losses.append(self.best_loss)
-            if self.best_loss < 0.15:
+            if self.best_loss < 0.18:
                 break
 
             self.log_epoch()

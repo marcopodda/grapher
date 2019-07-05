@@ -189,7 +189,7 @@ class EvaluatorBase:
             time_elapsed = time.time() - start
             torch.save(samples, exp.root / "samples" /filename)
 
-        return time_elapsed, torch.load(exp.root / "samples" /filename)
+        return time_elapsed, torch.load(exp.root / "samples" / filename)
 
     def evaluate_novelty(self, result, exp, dataset):
         train_data = dataset.get_data('train')

@@ -1,5 +1,5 @@
 MODEL_NAMES = ("GRAPHER", "GRAPHRNN", "GRU", "ER", "BA")
-DATASET_NAMES = ("community", "ENZYMES", "PROTEINS_full", "community", "ladders")
+DATASET_NAMES = ("community", "ENZYMES", "PROTEINS_full", "ego", "ladders")
 METRIC_NAMES = ("degree", "clustering", "graphlet")
 ORDER_NAMES = ("bfs-fixed", "random", "smiles")
 

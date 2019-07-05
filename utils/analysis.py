@@ -4,7 +4,7 @@ from .serializer import load_yaml
 from .constants import MODEL_NAMES, DATASET_NAMES
 
 root = Path('RUNS')
-MODEL_NAMES = ["GRAPHRNN", "BA", "ER", "GRU"]
+MODEL_NAMES = ["GRAPHRNN", "GRU", "BA", "ER"]
 # DATASET_NAMES = ["ENZYMES", "PROTEINS_full", "community"]
 
 def load_result(model_name, dataset_name):

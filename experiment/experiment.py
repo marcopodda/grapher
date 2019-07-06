@@ -160,7 +160,7 @@ class GRUExperiment(BaseExperiment):
         train_data = dataset.get_data('train')
         while len(samples) < num_samples:
             sample = trainer.sample(num_samples=num_samples)
-            sample = [[i2e[i] for i in sample] for sample in samples]
+            sample = [[i2e[i] for i in s] for s in sample]
             samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
 
         return GraphList(samples[:num_samples])

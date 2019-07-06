@@ -5,7 +5,7 @@ from .serializer import load_yaml
 from .constants import MODEL_NAMES, DATASET_NAMES
 
 root = Path('RUNS')
-MODEL_NAMES = ["BA", "ER"]
+MODEL_NAMES = ["GRAPHRNN", "GRAPHER", "BA", "ER"]
 # DATASET_NAMES = ["ENZYMES", "PROTEINS_full", "community"]
 
 def to_hms(secs):
@@ -24,6 +24,7 @@ def process_kld(result, metric):
 
 
 def process_metric(result, model_name, dataset_name, metric_name):
+    print(model_name, dataset_name)
     names = sorted([name for name in result if metric_name in name])
     metric1 = result[names[0]]
     metric2 = result[names[1]]

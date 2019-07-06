@@ -161,10 +161,10 @@ class EvaluatorBase:
             else:
                 result = Result.load(self.model_name, dataset_name, path)
 
-            if result.novelty_not_calculated:
+            if not hasattr(result, 'novelty1000'):
                 self.evaluate_novelty(result, exp, dataset)
 
-            if result.uniqueness_not_calculated:
+            if not hasattr(result, 'uniqueness1000'):
                 self.evaluate_uniqueness(result, exp, dataset)
 
             if result.degree.is_empty:

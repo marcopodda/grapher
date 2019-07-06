@@ -147,7 +147,7 @@ class GRUExperiment(BaseExperiment):
         trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
         samples = trainer.sample(num_samples=num_samples)
         samples = [[i2e[i] for i in sample] for sample in samples]
-        return GraphList(samples)
+        return GraphList([clean_graph(e) for e in samples])
 
     def sample_novel_and_unique(self, num_samples):
         config = GRUConfig.from_file(self.root / "config" / f"config.yaml")

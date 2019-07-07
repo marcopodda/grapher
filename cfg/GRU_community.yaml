@@ -1,3 +1,2 @@
 device: gpu
-max_epochs: 400
-stop_loss: 1.0
+max_epochs: 1000

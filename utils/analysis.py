@@ -20,22 +20,24 @@ def load_result(model_name, dataset_name):
 def process_kld(result, metric):
     score = result[metric]["mean"]
     score_std = result[metric]["std"]
-    return f"{score:.6f} +/- {score_std:.4f}"
+    return f"{score:.6f}\pm{score_std:.4f}"
 
 
 def process_metric(result, model_name, dataset_name, metric_name):
     names = sorted([name for name in result if metric_name in name])
-    print(names)
+
     metric1 = result[names[0]]
-    # metric2 = result[names[1]]["mean"]
+    metric2 = result[names[1]]
     # print(metric1, metric2)
     if metric_name == 'time':
         metric1 = to_hms(metric1)
         return f"{model_name:20} - {dataset_name:20} - " + \
-           f"{names[0].capitalize()} samples: {metric1}"
+           f"{names[0].capitalize()} samples: {metric1} " + \
+           f"{names[1].capitalize()} samples: {metric2}"
 
     return f"{model_name:20} - {dataset_name:20} - " + \
-           f"{names[0].capitalize()} samples: {float(metric1):.6f}"
+           f"{names[0].capitalize()} samples: {float(metric1):.6f} " + \
+           f"{names[1].capitalize()} samples: {float(metric2):.6f}"
 
 
 def klds_by_dataset(dataset_name, metric_name):

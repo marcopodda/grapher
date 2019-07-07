@@ -86,9 +86,6 @@ class Result:
         result.degree = DegreeDistribution.load(resultdict.pop('degree'))
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.graphlet = GraphletCount.load(resultdict.pop('graphlet'))
-        result.degree_unique = DegreeDistribution.load(resultdict.pop('degree_unique'))
-        result.clustering_unique = ClusteringCoefficient.load(resultdict.pop('clustering_unique'))
-        result.graphlet_unique = GraphletCount.load(resultdict.pop('graphlet_unique'))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result
@@ -113,9 +110,6 @@ class Result:
         data['degree'] = self.degree.asdict()
         data['clustering'] = self.clustering.asdict()
         data['graphlet'] = self.graphlet.asdict()
-        data['degree_unique'] = self.degree_unique.asdict()
-        data['clustering_unique'] = self.clustering_unique.asdict()
-        data['graphlet_unique'] = self.graphlet_unique.asdict()
         return data
 
     def save(self, path):

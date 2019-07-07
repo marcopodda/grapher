@@ -46,6 +46,8 @@ def clean_graph(G_or_edges):
 def is_duplicate(G, Gs, fast):
     for g in Gs:
         if fast:
+            mapping = {n: i for (i, n) in enumerate(g.nodes(), 3)}
+            g = nx.relabel_nodes(g, mapping)
             test = sorted(G.edges()) == sorted(g.edges())
         else:
             test = nx.is_isomorphic(G, g)

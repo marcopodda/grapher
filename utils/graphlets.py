@@ -1,24 +1,28 @@
 import networkx as nx
 import itertools
+from joblib import Parallel, delayed
 
 
-graphlets = {
+GRAPHLETS = {
     'g1': nx.star_graph(3),
-    'g2': nx.connected_caveman_graph(1, 4),
+    'g2': nx.erdos_renyi_graph(4, 1.0),
     'g3': nx.cycle_graph(4)
 }
 
 
-def all_matching_subgraphs(G, target):
-    for sub_nodes in itertools.combinations(G.nodes(), len(target.nodes())):
-        subg = G.subgraph(sub_nodes)
-        if nx.is_connected(subg) and nx.is_isomorphic(subg, target):
-            yield subg
+def process_graph(G, nodes, graphlet):
+    subg = G.subgraph(nodes)
+    if nx.is_connected(subg) and nx.is_isomorphic(subg, graphlet):
+        return True
+    return False
 
 
 def graphlet_count(G):
-    count = {'g1': 0, 'g2': 0, 'g3': 0}
-    for name, graphlet in graphlets.items():
-        for subg in all_matching_subgraphs(G, graphlet):
-            count[name] += 1
-    return count
+    counts = {}
+    for name, graphlet in GRAPHLETS.items():
+        num_nodes = graphlet.number_of_nodes()
+        combs = itertools.combinations(G.nodes(), num_nodes)
+        results = Parallel(n_jobs=-1)(
+            delayed(process_graph)(G, nodes, graphlet) for nodes in combs)
+        counts[name] = sum(results)
+    return counts

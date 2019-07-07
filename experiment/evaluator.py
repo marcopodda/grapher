@@ -134,8 +134,8 @@ class Result:
 class EvaluatorBase:
     def __init__(self, model_name):
         self.model_name = model_name
-        self.num_samples = [1000, 5000]
-        self.num_trials = 10
+        self.num_samples = [10, 10] # [1000, 5000]
+        self.num_trials = 3
         self.fast = model_name in ["GRAPHER", "GRU"]
 
     def evaluate(self):

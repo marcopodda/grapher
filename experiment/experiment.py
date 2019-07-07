@@ -9,7 +9,7 @@ from baselines.simple import run_baseline, sample as sample_baseline
 from baselines.graphrnn.run import run_graphrnn, load_model
 from baselines.graphrnn.train import sample as sample_graphrnn
 from baselines.gru.trainer import GRUTrainer
-from baselines.gru.data import GRUDataset, GRUDataCollator, build_vocab
+from baselines.gru.data import GRUDataset, GRUDataCollator
 from config.config import Config, BaselineConfig, GraphRNNConfig, GRUConfig
 
 from dataset import get_dataset_class
@@ -126,41 +126,33 @@ class GRUExperiment(BaseExperiment):
         config = GRUConfig.from_file(Path("cfg") / f"GRU_{self.dataset}.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         train_data = dataset.get_data('train')
-        e2i, i2e = build_vocab(dataset.data.graphlist)
-        input_dim = output_dim = len(e2i)
 
         loader = torch.utils.data.DataLoader(
-            GRUDataset(config, e2i, train_data),
+            GRUDataset(config, train_data),
             batch_size=config.batch_size,
             shuffle=config.shuffle,
             collate_fn=GRUDataCollator(config))
 
-        trainer = GRUTrainer(config, self.root, input_dim, output_dim, i2e)
+        trainer = GRUTrainer(config, self.root, dataset.input_dim, dataset.output_dim)
         trainer.fit(loader)
         config.save(self.root / "config")
 
     def sample(self, num_samples):
         config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
-        e2i, i2e = build_vocab(dataset.data.graphlist)
-        input_dim = output_dim = len(e2i)
-        trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
+        trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
         samples = trainer.sample(num_samples=num_samples)
-        samples = [[i2e[i] for i in sample] for sample in samples]
         return GraphList([clean_graph(e) for e in samples])
 
     def sample_novel_and_unique(self, num_samples):
         config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
-        e2i, i2e = build_vocab(dataset.data.graphlist)
-        input_dim = output_dim = len(e2i)
-        trainer = GRUTrainer.load(config, self.root, input_dim, output_dim, i2e, best=True)
+        trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
 
         samples = []
         train_data = dataset.get_data('train')
         while len(samples) < num_samples:
             sample = trainer.sample(num_samples=num_samples)
-            sample = [[i2e[i] for i in s] for s in sample]
             samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
 
         return GraphList(samples[:num_samples])

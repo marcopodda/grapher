@@ -1,8 +1,39 @@
+import networkx as nx
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
 
-from utils.constants import EOS, SOS
+from utils.constants import EOS, SOS, PAD
+
+
+def decode_adj(output):
+    tril = []
+    for i in range(1, len(output)+1):
+        t = output[:i]
+        if len(tril) > 0 and len(t) < len(tril[-1]):
+            break
+        tril.append(t.tolist())
+        output = output[len(t):]
+    n = len(tril[-1]) + 1
+    A = np.zeros((n, n))
+    A[np.tril_indices(n, k=-1)] = [x for sub in tril for x in sub]
+    return A + A.T
+    # max_prev_node = adj_output.shape[1]
+    # adj = np.zeros((adj_output.shape[1], adj_output.shape[1]))
+    # for i in range(adj_output.shape[1]):
+    #     input_start = max(0, i - max_prev_node + 1)
+    #     input_end = i + 1
+    #     output_start = max_prev_node + max(0, i - max_prev_node + 1) - (i + 1)
+    #     output_end = max_prev_node
+    #     adj[i, input_start:input_end] = adj_output[i, ::-1][
+    #         output_start:output_end]  # reverse order
+    # adj_full = np.zeros((adj_output.shape[1] + 1, adj_output.shape[1] + 1))
+    # n = adj_full.shape[0]
+    # adj_full[1:n, 0:n - 1] = np.tril(adj, 0)
+    # adj_full = adj_full + adj_full.T
+
+    # return adj_full
 
 
 class Model(nn.Module):
@@ -53,15 +84,19 @@ class Model(nn.Module):
                 hs.append(h)
                 step += 1
 
-        return sample, hs
+        return np.array(sample), hs
 
     def sample(self, num_samples=1000):
         samples = []
 
         while len(samples) < num_samples:
-
             seq, hs = self._sample()
-            samples.append(seq)
+            try:
+                adj = decode_adj(seq - 3)
+                G = nx.from_numpy_array(adj)
+                samples.append(list(G.edges()))
+            except:
+                continue
 
         return samples
 
@@ -72,5 +107,5 @@ class Loss(nn.Module):
         self.output_dim = output_dim
         self.ce = nn.CrossEntropyLoss()
 
-    def forward(self, x, targets):
-        return self.ce(x.view(-1, self.output_dim), targets.view(-1))
+    def forward(self, outputs, targets):
+        return self.ce(outputs.view(-1, self.output_dim), targets.view(-1))

@@ -2,4 +2,4 @@ device: gpu
 order: bfs-fixed
 max_epochs: 1000
 dropout: 0.35
-stop_loss: 0.5
+stop_loss: 0.1

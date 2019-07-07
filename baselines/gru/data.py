@@ -1,47 +1,34 @@
 import torch
+import numpy as np
+import networkx as nx
 from torch import nn
 from torch.utils.data import Dataset
 from utils.data import to_sorted_tensor, reverse_argsort, pad_left, pad_right
 from utils.constants import SOS, EOS
 
 
-def build_vocab(graphlist):
-    e2i, i2e = {(0, 0): 0, (1, 1): 1, (2, 2): 2}, {0: (0, 0), 1: (1, 1), 2: (2, 2)}
-    count = 3  # start from 3 because of special symbols
-    for G in graphlist:
-        edges = list(G.edges())
-        for e in edges:
-            if e not in e2i:
-                e2i[e] = count
-                i2e[count] = e
-                count += 1
-    return e2i, i2e
-
-
 class GRUDataset(Dataset):
-    def __init__(self, config, e2i, graphlist):
+    def __init__(self, config, graphlist):
         super().__init__()
         self.config = config
-        self.e2i = e2i
-        self.graphlist = graphlist
+        self.graphlist = list(graphlist._graphs)
 
     def __len__(self):
         return len(self.graphlist)
 
     def __getitem__(self, index):
-        edges = list(self.graphlist[index].edges())
-        seq = [self.e2i[e] for e in edges]
-        return seq
+        G = self.graphlist[index]
+        adj = nx.to_numpy_array(G)
+        adj_vector = adj[np.tril_indices(adj.shape[0], k=-1)]
+        return (adj_vector + 3).flatten().tolist()
 
     @property
     def input_dim(self):
-        # +3 because we are also counting pad, sos and eos tokens
-        return self.graphlist.max_nodes + 3
+        return 5
 
     @property
     def output_dim(self):
-        # +3 because we are also counting pad, sos and eos tokens
-        return self.graphlist.max_nodes + 3
+        return 5
 
 
 class GRUDataCollator:
@@ -56,7 +43,6 @@ class GRUDataCollator:
         # calculate descending order
         lengths = [len(x) for x in inputs]
         order = reverse_argsort(lengths)
-
         # sort in descending order
         inputs = to_sorted_tensor(inputs, order)
         outputs = to_sorted_tensor(outputs, order)

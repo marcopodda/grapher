@@ -8,13 +8,13 @@ from utils.training import get_device, get_scheduler, get_optimizer
 
 class GRUTrainer:
     @classmethod
-    def load(cls, config, exp_root, input_dim, output_dim, i2e, best=False):
+    def load(cls, config, exp_root, input_dim, output_dim, best=False):
         filename = "best.pt" if best else "last.pt"
         path = exp_root / "ckpt" / filename
         device = get_device(config)
         ckpt = torch.load(path, map_location=device)
 
-        trainer = cls(config, exp_root, input_dim, output_dim, i2e)
+        trainer = cls(config, exp_root, input_dim, output_dim)
         trainer.model.load_state_dict(ckpt["model"])
         trainer.optimizer.load_state_dict(ckpt["optimizer"])
         trainer.scheduler.load_state_dict(ckpt["scheduler"])
@@ -25,7 +25,7 @@ class GRUTrainer:
         trainer.best_losses = ckpt['best_losses']
         return trainer
 
-    def __init__(self, config, exp_root, input_dim, output_dim, i2e):
+    def __init__(self, config, exp_root, input_dim, output_dim):
         self.exp_root = exp_root
         self.config = config
         self.model = Model(config, input_dim, output_dim)
@@ -33,7 +33,6 @@ class GRUTrainer:
         self.optimizer = get_optimizer(config, self.model)
         self.scheduler = get_scheduler(config, self.optimizer)
         self.device = get_device(config)
-        self.i2e = i2e
 
         self.losses = []
         self.current_epoch = 0

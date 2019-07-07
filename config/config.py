@@ -19,6 +19,7 @@ class Config(BaseConfigWithSerializer):
             temperature1=0.75,
             temperature2=0.75,
             max_epochs=2000,
+            stop_loss=0.4,
             scheduler_class="StepLR",
             scheduler_params={"step_size": 200, "gamma": 0.5},
             optimizer_class="Adam",

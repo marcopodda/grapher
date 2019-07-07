@@ -4,3 +4,4 @@ dropout: 0.75
 embed_dim: 64
 hidden_dim: 256
 max_epochs: 1000
+stop_loss: 0.16

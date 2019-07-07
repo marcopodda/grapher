@@ -19,10 +19,11 @@ def pad_and_add(v1, v2):
         return v2
 
     maxdim = max(len(v1), len(v2))
-    newvec = np.zeros((maxdim,))
-    newvec[:len(v1)] = v1
-    newvec[:len(v2)] = v2
-    return newvec
+    new_v1 = np.zeros((maxdim,))
+    new_v2 = np.zeros((maxdim,))
+    new_v1[:len(v1)] = v1
+    new_v2[:len(v2)] = v2
+    return new_v1 + new_v2
 
 
 class Metric:

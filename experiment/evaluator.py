@@ -99,19 +99,14 @@ class Result:
         self.degree = DegreeDistribution()
         self.clustering = ClusteringCoefficient()
         self.graphlet = GraphletCount()
-        self.degree_unique = DegreeDistribution()
-        self.clustering_unique = ClusteringCoefficient()
-        self.graphlet_unique = GraphletCount()
 
     @property
     def uniqueness_not_calculated(self):
-        names = [k for k in self.__dict__ if "uniqueness" in k]
-        return names != []
+        return not hasattr(self, 'uniqueness1000')
 
     @property
     def novelty_not_calculated(self):
-        names = [k for k in self.__dict__ if "novelty" in k]
-        return names != []
+        return not hasattr(self, 'novelty1000')
 
     def asdict(self):
         data = self.__dict__
@@ -161,37 +156,28 @@ class EvaluatorBase:
             else:
                 result = Result.load(self.model_name, dataset_name, path)
 
-            if not hasattr(result, 'novelty1000'):
+            if result.uniqueness_not_calculated:
                 self.evaluate_novelty(result, exp, dataset)
 
-            if not hasattr(result, 'uniqueness1000'):
+            if result.novelty_not_calculated:
                 self.evaluate_uniqueness(result, exp, dataset)
 
             if result.degree.is_empty:
                 self.evaluate_kl(result, exp, dataset, 'degree')
-                self.evaluate_kl(result, exp, dataset, 'degree_unique')
 
             if result.clustering.is_empty:
                 self.evaluate_kl(result, exp, dataset, 'clustering')
-                self.evaluate_kl(result, exp, dataset, 'clustering_unique')
 
             # if result.graphlet.is_empty:
             #     self.evaluate_kl(result, exp, dataset, 'graphlet')
-            #     self.evaluate_kl(result, exp, dataset, 'graphlet_unique')
 
             result.save(exp.root / "results")
 
-    def _sample_or_get_samples_kl(self, result, exp, num_samples, trial, unique):
-        name = f"samples_{num_samples}_{trial}"
-        if unique:
-            name += "_unique"
-        filename = f"{name}.pt"
+    def _sample_or_get_samples_kl(self, result, exp, num_samples, trial):
+        filename = f"samples_{num_samples}_{trial}.pt"
 
         if not (exp.root / "samples" / filename).exists():
-            if unique:
-                samples = exp.sample_novel_and_unique(num_samples=num_samples)
-            else:
-                samples = exp.sample(num_samples=num_samples)
+            samples = exp.sample(num_samples=num_samples)
             torch.save(samples, exp.root / "samples" /filename)
 
         return torch.load(exp.root / "samples" / filename)
@@ -224,14 +210,11 @@ class EvaluatorBase:
             result.update_time(num_samples, time_elapsed)
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
-        unique = "unique" in metric_name
-
-        if not (result.dataset_name == "ladders" and unique):
-            test_data = dataset.get_data('test')
-            for trial in range(self.num_trials):
-                samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial, unique)
-                result.update_metric(metric_name, test_data, samples)
-            result.finalize_metric(metric_name, self.num_trials)
+        test_data = dataset.get_data('test')
+        for trial in range(self.num_trials):
+            samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
+            result.update_metric(metric_name, test_data, samples)
+        result.finalize_metric(metric_name, self.num_trials)
 
 
 class Evaluator(EvaluatorBase):

@@ -42,6 +42,7 @@ class GRUConfig(BaseConfigWithSerializer):
             num_layers=2,
             max_epochs=2000,
             dropout=0.15,
+            stop_loss=0.5,
             temperature=0.8,
             scheduler_class="StepLR",
             scheduler_params={"step_size": 100, "gamma": 0.5},

@@ -147,7 +147,7 @@ class EvaluatorBase:
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
-            if model_name == "smiles" and dataset_name not in ["PROTEINS_full", "ENZYMES"]:
+            if self.model_name == "smiles" and dataset_name not in ["PROTEINS_full", "ENZYMES"]:
                 continue
             print(dataset_name)
             exp = load_experiment(self.root, self.model_name, dataset_name)

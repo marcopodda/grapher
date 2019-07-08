@@ -63,7 +63,7 @@ def community_graph_generator(config, num_graphs=1000, num_communities=2, max_ed
     graphs, count = [], 0
 
     while count < num_graphs:
-        min_num_nodes, max_num_nodes = config.min_num_nodes, config.max_num_nodes
+        min_num_nodes, max_num_nodes = 16, config.max_num_nodes
         n_nodes_communities = [randint(min_num_nodes // num_communities, max_num_nodes //
                                        num_communities) for _ in range(num_communities)]
         cumsum_nodes = [sum(n_nodes_communities[:i]) for i in range(len(n_nodes_communities))]

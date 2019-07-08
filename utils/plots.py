@@ -49,8 +49,20 @@ def plot_stat(results, stat_name, model_name, dataset_name):
 
 
 def plot_training_on_ordering(dataset_name):
+    path = Path("RUNS") / "GRAPHER"
+    try:
+        exp_path = list((path / dataset_name).glob("*"))[0]
+    except IndexError:
+        return
+    config = Config.from_file(exp_path/"config"/"config.yaml")
+    dataset_class = get_dataset_class(dataset_name)
+    dataset = dataset_class(config, exp_path, dataset_name)
+    trainer = Trainer.load(config, exp_path, dataset.input_dim, dataset.output_dim, best=True)
+    loss = np.array(trainer.losses1) + np.array(trainer.losses2)
+    plt.plot(loss, label="Default")
+
     path = Path("RUNS") / "ORDER"
-    for order in ["smiles", "random", "bfs"]:
+    for order in ["smiles", "bfs-random", "random"]:
         try:
             exp_path = list((path / order / dataset_name).glob("*"))[0]
         except IndexError:
@@ -61,6 +73,8 @@ def plot_training_on_ordering(dataset_name):
         trainer = Trainer.load(config, exp_path, dataset.input_dim, dataset.output_dim, best=True)
         loss = np.array(trainer.losses1) + np.array(trainer.losses2)
         plt.plot(loss, label=order)
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
     plt.legend()
     plt.show()
 

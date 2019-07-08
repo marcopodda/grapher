@@ -139,6 +139,12 @@ class EvaluatorBase:
         self.num_trials = 10
         self.fast = model_name == "GRAPHER"
 
+    def novelty_not_calculated(self, result):
+        return result.novelty_not_calculated
+
+    def uniqueness_not_calculated(self, result):
+        return result.uniqueness_not_calculated
+
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
             print(dataset_name)
@@ -151,10 +157,10 @@ class EvaluatorBase:
             else:
                 result = Result.load(self.model_name, dataset_name, path)
 
-            if result.novelty_not_calculated:
+            if self.novelty_not_calculated(result):
                 self.evaluate_novelty(result, exp, dataset)
 
-            if result.uniqueness_not_calculated:
+            if self.uniqueness_not_calculated(result):
                 self.evaluate_uniqueness(result, exp, dataset)
 
             if result.degree.is_empty:
@@ -218,3 +224,9 @@ class Evaluator(EvaluatorBase):
 
 class OrderEvaluator(EvaluatorBase):
     root = Path("RUNS") / "ORDER"
+
+    def novelty_not_calculated(self, result):
+        return False
+
+    def uniqueness_not_calculated(self, result):
+        return False

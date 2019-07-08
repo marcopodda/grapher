@@ -100,7 +100,7 @@ def bfs_order(G, start_id):
 def encode_graph(G, order):
     G = max(nx.connected_component_subgraphs(G), key=len)
 
-    if order == "bfs":
+    if order == "bfs-random":
         start_node = np.random.choice(list(G.nodes()))
         seq = bfs_order(G, start_id=start_node)
     elif order == "bfs-fixed":
@@ -120,7 +120,7 @@ def encode_graph(G, order):
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
-    if order in ["bfs", "bfs-fixed"]:
+    if order in ["bfs-random", "bfs-fixed"]:
         edges = sorted(edges)
 
     return list(zip(*edges))

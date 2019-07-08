@@ -17,6 +17,7 @@ def _get_hist(graphs, func, rng):
 
     return hists / hists.sum()
 
+
 def average_graphlet_count(graphlist):
     counts = []
     for G in graphlist:
@@ -43,10 +44,17 @@ def kl_divergence(ref, sample, metric):
     if metric == "graphlet":
         ref_hist = average_graphlet_count(ref)
         sample_hist = average_graphlet_count(sample)
+        minlen = min(len(ref_hist), len(sample_hist))
+        ref_hist = ref_hist[:minlen]
+        sample_hist = sample_hist[:minlen]
     else:
         ref_hist = _get_hist(ref, metric_fun, rng)
         sample_hist = _get_hist(sample, metric_fun, rng)
-    return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
+    try:
+        return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
+    except:
+        print(len(ref_hist), len(sample_hist))
+        raise
 
 
 def clean_graph(G_or_edges):

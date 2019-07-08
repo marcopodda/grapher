@@ -45,8 +45,8 @@ class Metric:
         self.samples_hist = None
 
     @property
-    def is_empty(self):
-        return self.scores == []
+    def is_computed(self):
+        return self.scores != []
 
     def get_score_func(self):
         raise NotImplementedError
@@ -165,14 +165,14 @@ class EvaluatorBase:
             if self.uniqueness_not_calculated(result):
                 self.evaluate_uniqueness(result, exp, dataset)
 
-            if result.degree.is_empty:
+            if not result.degree.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'degree')
 
-            if result.clustering.is_empty:
+            if not result.clustering.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'clustering')
 
-            # if result.graphlet.is_empty:
-            #     self.evaluate_kl(result, exp, dataset, 'graphlet')
+            if not result.graphlet.is_computed:
+                self.evaluate_kl(result, exp, dataset, 'graphlet')
 
             result.save(exp.root / "results")
 
@@ -214,7 +214,8 @@ class EvaluatorBase:
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')
-        for trial in range(self.num_trials):
+        num_trials = 5 if metric_name == "graphlet" else self.num_trials
+        for trial in range(num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
             result.update_metric(metric_name, test_data, samples)
         result.finalize_metric(metric_name, self.num_trials)

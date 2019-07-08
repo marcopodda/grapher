@@ -17,8 +17,17 @@ def _get_hist(graphs, func, rng):
 
     return hists / hists.sum()
 
+def average_graphlet_count(graphlist):
+    counts = []
+    for G in graphlist:
+        values = np.array(list(dict(graphlet_count(G)).values()))
+        counts.append(values.sum(axis=0) )
+    counts = np.array(counts)
+    return counts / counts.sum()
+
 
 def kl_divergence(ref, sample, metric):
+    print(metric)
     if isinstance(ref[0], tuple) or isinstance(ref[0], list):
         ref = [clean_graph(e) for e in ref]
 
@@ -31,16 +40,19 @@ def kl_divergence(ref, sample, metric):
         'degree': (nx.degree, (0.0, 100.0)),
         'graphlet': (graphlet_count, (0.0, 1000.0)),
     }[metric]
-
-    ref_hist = _get_hist(ref, metric_fun, rng)
-    sample_hist = _get_hist(sample, metric_fun, rng)
+    if metric == "graphlet":
+        ref_hist = average_graphlet_count(ref)
+        sample_hist = average_graphlet_count(sample)
+    else:
+        ref_hist = _get_hist(ref, metric_fun, rng)
+        sample_hist = _get_hist(sample, metric_fun, rng)
     return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
 
 
 def clean_graph(G_or_edges):
     if isinstance(G_or_edges, list) or isinstance(G_or_edges, tuple):
         G = nx.Graph(G_or_edges)
-    return G # max(nx.connected_component_subgraphs(G), key=len)
+    return G
 
 
 def is_duplicate(G, Gs, fast):
@@ -73,8 +85,6 @@ def novelty(ref, sample, fast):
 def uniqueness(sample, fast):
     unique = []
     for i, G in enumerate(sample):
-        if i in [181, 309]:
-            continue
         if not is_duplicate(G, sample[i+1:], fast):
             unique.append(G)
 

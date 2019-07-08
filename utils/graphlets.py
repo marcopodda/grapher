@@ -12,7 +12,7 @@ GRAPHLETS = {
 
 def process_graph(G, nodes, graphlet):
     subg = G.subgraph(nodes)
-    if nx.is_connected(subg) and nx.is_isomorphic(subg, graphlet):
+    if nx.is_connected(subg) and nx.faster_could_be_isomorphic(subg, graphlet):
         return True
     return False
 

@@ -73,6 +73,8 @@ def novelty(ref, sample, fast):
 def uniqueness(sample, fast):
     unique = []
     for i, G in enumerate(sample):
+        if i in [181, 309]:
+            continue
         if not is_duplicate(G, sample[i+1:], fast):
             unique.append(G)
 

@@ -38,10 +38,12 @@ def main():
     elif args["evaluate"]:
         if args['--order']:
             ev_class = OrderEvaluator
-        else:
-            ev_class = Evaluator
+            for order in ORDER_NAMES:
+                ev = OrderEvaluator(order)
+                ev.evaluate()
+            return
         if args['--model']:
-            ev = ev_class(args['MODEL'])
+            ev = Evaluator(args['MODEL'])
             ev.evaluate()
         else:
             for model in MODEL_NAMES:

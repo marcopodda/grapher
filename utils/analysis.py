@@ -31,6 +31,7 @@ def process_metric(result, model_name, dataset_name, metric_name):
 
     if metric_name == 'time':
         metric1 = to_hms(metric1)
+        metric2 = to_hms(metric2)
         return f"{model_name:20} - {dataset_name:20} - " + \
            f"{names[0].capitalize()} samples: {metric1} " + \
            f"{names[1].capitalize()} samples: {metric2}"

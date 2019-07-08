@@ -225,6 +225,10 @@ class Evaluator(EvaluatorBase):
 class OrderEvaluator(EvaluatorBase):
     root = Path("RUNS") / "ORDER"
 
+    def __init__(self, model_name):
+        super().__init__(model_name)
+        self.fast = True
+
     def novelty_not_calculated(self, result):
         return False
 

@@ -28,7 +28,7 @@ def process_metric(result, model_name, dataset_name, metric_name):
 
     metric1 = result[names[0]]
     metric2 = result[names[1]]
-    # print(metric1, metric2)
+
     if metric_name == 'time':
         metric1 = to_hms(metric1)
         return f"{model_name:20} - {dataset_name:20} - " + \

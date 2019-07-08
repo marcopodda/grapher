@@ -28,6 +28,8 @@ def maybe_makedir(path):
 
 
 class BaseExperiment:
+    _root = RUNS_DIR
+
     @classmethod
     def load(cls, root):
         assert root is not None
@@ -41,7 +43,7 @@ class BaseExperiment:
         if root is None:
             now = datetime.now().isoformat()
             self.name = f"{self.dataset}_{now}"
-            self.root = RUNS_DIR / f"{self.model_name}" / f"{self.dataset}" / f"{now}"
+            self.root = self._root / f"{self.model_name}" / f"{self.dataset}" / f"{now}"
         else:
             self.root = Path(root)
             self.name = "_".join(self.root.parts[-2:])
@@ -96,7 +98,7 @@ class Experiment(BaseExperiment):
 
 
 class OrderExperiment(Experiment):
-    model_name = "ORDER"
+    _root = RUNS_DIR / "ORDER"
 
     @classmethod
     def load(cls, root):
@@ -106,12 +108,13 @@ class OrderExperiment(Experiment):
         return cls(order_type, dataset, root=root)
 
     def __init__(self, order_type, dataset, root=None):
+        self.model_name = order_type
         super().__init__(dataset, root=root)
-        self.order_type = order_type
+
 
     def train(self):
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
-        config.update(order=self.order_type)
+        config.update(order=self.model_name)
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
         loader = dataset.get_loader('train')

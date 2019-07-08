@@ -64,6 +64,9 @@ def novelty(ref, sample, fast):
         if not is_duplicate(G, ref, fast):
             novel.append(G)
 
+    if len(novel) == 0:
+        return 0.0, []
+
     return len(novel) / len(sample), novel
 
 
@@ -72,6 +75,9 @@ def uniqueness(sample, fast):
     for i, G in enumerate(sample):
         if not is_duplicate(G, sample[i+1:], fast):
             unique.append(G)
+
+    if len(unique) == 0:
+        return 0.0, []
 
     return len(unique) / len(sample), unique
 

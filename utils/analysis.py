@@ -5,8 +5,9 @@ from .serializer import load_yaml
 from .constants import MODEL_NAMES, DATASET_NAMES
 
 root = Path('RUNS')
-MODEL_NAMES = ["GRAPHRNN", "GRAPHER", "GRU", "BA", "ER"]
-# DATASET_NAMES = ["ENZYMES", "PROTEINS_full", "community"]
+MODEL_NAMES = ["ER", "BA", "GRU", "GRAPHRNN", "GRAPHER"]
+DATASET_NAMES = list(DATASET_NAMES)
+DATASET_NAMES.remove("community")
 
 def to_hms(secs):
     return time.strftime('%H:%M:%S', time.gmtime(secs))
@@ -71,7 +72,10 @@ def metric_by_model(model_name, metric_name):
 def metric_by_dataset(dataset_name, metric_name):
     metrics = []
     for model_name in MODEL_NAMES:
-        result = load_result(model_name, dataset_name)
-        metric = process_metric(result, model_name, dataset_name, metric_name)
-        metrics.append(metric)
+        try:
+            result = load_result(model_name, dataset_name)
+            metric = process_metric(result, model_name, dataset_name, metric_name)
+            metrics.append(metric)
+        except:
+            continue
     return metrics

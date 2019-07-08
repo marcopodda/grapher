@@ -60,7 +60,7 @@ def is_duplicate(G, Gs, fast):
 
 def novelty(ref, sample, fast):
     novel = []
-    for G in sample:
+    for i, G in enumerate(sample):
         if not is_duplicate(G, ref, fast):
             novel.append(G)
 

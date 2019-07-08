@@ -42,9 +42,11 @@ def loss(x, n, G_real, generator):
     if generator == 'ER':
         G_pred = nx.fast_gnp_random_graph(n, x)
 
-    G_real_hist = np.array(nx.degree_histogram(G_real))
+    G_real_hist, _ = np.histogram(
+        np.array(list(nx.clustering(G_real).values())), bins=50, range=(0.0, 1.0), density=False)
     G_real_hist = G_real_hist / np.sum(G_real_hist)
-    G_pred_hist = np.array(nx.degree_histogram(G_pred))
+    G_pred_hist, _ = np.histogram(
+        np.array(list(nx.clustering(G_pred).values())), bins=50, range=(0.0, 1.0), density=False)
     G_pred_hist = G_pred_hist / np.sum(G_pred_hist)
 
     loss = emd_distance(G_real_hist, G_pred_hist)

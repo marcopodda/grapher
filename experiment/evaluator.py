@@ -86,7 +86,7 @@ class Result:
         result = cls(model_name, dataset_name)
         result.degree = DegreeDistribution.load(resultdict.pop('degree'))
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
-        result.orbit = OrbitCount.load(resultdict.pop('orbit'))
+        result.orbit = OrbitCount.load(resultdict.pop('orbit', resultdict.pop('graphlet')))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result

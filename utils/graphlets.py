@@ -54,8 +54,8 @@ def count_cliques(G):
 def average_graphlet_count(graphlist):
     print(len(graphlist))
     counts = Parallel(n_jobs=-1, verbose=1)(delayed(graphlet_count)(G) for G in graphlist)
-    counts = np.array(counts).sum(axis=1)
-    return counts / counts.sum()
+    # counts = np.array(counts).sum(axis=1)
+    return np.array(counts) # / counts.sum()
 
 
 def graphlet_count(G):
@@ -68,4 +68,5 @@ def graphlet_count(G):
     #         delayed(process_graph)(G, nodes, graphlet) for nodes in combs)
     #     counts[name] += sum(results)
     nodes = G.number_of_nodes()
-    return [count_3star(G)/nodes, count_4star(G)/nodes, count_cliques(G)/nodes]
+    return count_3star(G)/nodes
+    # return [count_3star(G)/nodes, count_4star(G)/nodes, count_cliques(G)/nodes]

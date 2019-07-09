@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from scipy.stats import entropy
 
-from .graphlets import graphlet_count
+from .graphlets import graphlet_count, average_graphlet_count
 
 BINS = 100
 
@@ -18,15 +18,15 @@ def _get_hist(graphs, func, rng):
     return hists / hists.sum()
 
 
-def average_graphlet_count(graphlist):
-    print(len(graphlist))
-    counts = []
-    for i, G in graphlist:
-        print(i)
-        values = np.array(list(dict(graphlet_count(G)).values()))
-        counts.append(values.sum(axis=0))
-    counts = np.array(counts)
-    return counts / counts.sum()
+# def average_graphlet_count(graphlist):
+#     print(len(graphlist))
+#     counts = []
+#     for i, G in graphlist:
+#         print(i)
+#         values = np.array(list(dict(graphlet_count(G)).values()))
+#         counts.append(values.sum(axis=0))
+#     counts = np.array(counts)
+#     return counts / counts.sum()
 
 
 def kl_divergence(ref, sample, metric):

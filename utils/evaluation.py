@@ -30,7 +30,7 @@ def kl_divergence(ref, sample, metric):
     metric_fun, rng = {
         'clustering': (nx.clustering, (0.0, 1.0)),
         'degree': (nx.degree, (0.0, 100.0)),
-        'graphlet': (graphlet_count, (0.0, 1000.0)),
+        'graphlet': (graphlet_count, (0.0, 1.0)),
     }[metric]
 
     if metric == "graphlet":

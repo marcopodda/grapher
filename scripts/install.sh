@@ -13,3 +13,6 @@ conda install pytorch -c pytorch -y
 
 # install packages
 conda install numpy scipy pandas scikit-learn networkx docopt pyyaml matplotlib requests seaborn pyemd -y
+
+# compile ORCA
+g++ -O2 -std=c++11 -o utils/orca/orca.exe utils/orca/orca.cpp

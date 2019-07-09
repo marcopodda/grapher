@@ -101,13 +101,15 @@ def sample(nodelist, parameters, generator):
 
     for nodes in nodelist:
         if nodes not in parameters.keys():
-            nodes = min(parameters.keys(), key=lambda k: abs(k - nodes))
+            nodes = np.random.choice(parameters.keys(), 1)
+
         if generator == 'BA':
             n = int(parameters[nodes][0])
             m = int(np.rint(parameters[nodes][1]))
             graph = nx.barabasi_albert_graph(n, m)
             while graph.number_of_edges() == 0:
                 graph = nx.barabasi_albert_graph(n, m)
+
         if generator == 'ER':
             n = int(parameters[nodes][0])
             p = parameters[nodes][1]

@@ -22,7 +22,8 @@ def load_result(model_name, dataset_name, order):
 def process_kld(result, metric):
     score = result[metric]["mean"]
     score_std = result[metric]["std"]
-    return f"{score:.6f}\pm{score_std:.4f}"
+    score = "{:.6f} +/- {:.4f}".format(score, score_std)
+    return score
 
 
 def process_metric(result, model_name, dataset_name, metric_name):
@@ -50,15 +51,22 @@ def klds_by_dataset(dataset_name, metric_name, order=False):
         try:
             result = load_result(model_name, dataset_name, order)
             kld = process_kld(result, metric_name)
-            klds.append(f"{model_name:20}: {kld}")
+            klds.append(kld)
         except:
-            continue
+            if model_name == "smiles":
+                klds.append("--")
+            else:
+                klds.append("0")
     if order is True:
-        model_name = "GRAPHER"
-        result = load_result(model_name, dataset_name, False)
-        kld = process_kld(result, metric_name)
-        klds.append(f"{model_name:20}: {kld}")
-    return klds
+        try:
+            model_name = "GRAPHER"
+            result = load_result(model_name, dataset_name, False)
+            kld = process_kld(result, metric_name)
+            klds.append(kld)
+        except:
+            klds.append("0")
+
+    return " & ".join(klds)
 
 
 def klds_by_model(model_name, metric_name, order=False):
@@ -67,11 +75,11 @@ def klds_by_model(model_name, metric_name, order=False):
         try:
             result = load_result(model_name, dataset_name, order)
             kld = process_kld(result, metric_name)
-            klds.append(f"{dataset_name:20}: {kld}")
+            klds.append(kld)
         except:
-            continue
+            klds.append("0")
 
-    return klds
+    return r" & ".join(klds)
 
 
 def metric_by_model(model_name, metric_name, order=False):
@@ -82,8 +90,9 @@ def metric_by_model(model_name, metric_name, order=False):
             metric = process_metric(result, model_name, dataset_name, metric_name)
             metrics.append(metric)
         except:
-            continue
-    return metrics
+            metrics.append("0")
+
+    return " & ".join(metrics)
 
 
 def metric_by_dataset(dataset_name, metric_name, order=False):
@@ -95,5 +104,8 @@ def metric_by_dataset(dataset_name, metric_name, order=False):
             metric = process_metric(result, model_name, dataset_name, metric_name)
             metrics.append(metric)
         except:
-            continue
-    return metrics
+            metrics.append("0")
+
+    string = " & ".join(metrics)
+    string.replace(r"\\", r"\\")
+    return string

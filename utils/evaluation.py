@@ -19,10 +19,11 @@ def _get_hist(graphs, func, rng):
 
 
 def average_graphlet_count(graphlist):
+    print(len(graphlist))
     counts = []
     for G in graphlist:
         values = np.array(list(dict(graphlet_count(G)).values()))
-        counts.append(values.sum(axis=0) )
+        counts.append(values.sum(axis=0))
     counts = np.array(counts)
     return counts / counts.sum()
 
@@ -41,17 +42,15 @@ def kl_divergence(ref, sample, metric):
         'degree': (nx.degree, (0.0, 100.0)),
         'graphlet': (graphlet_count, (0.0, 1000.0)),
     }[metric]
+
     if metric == "graphlet":
         ref_hist = average_graphlet_count(ref)
         sample_hist = average_graphlet_count(sample)
     else:
         ref_hist = _get_hist(ref, metric_fun, rng)
         sample_hist = _get_hist(sample, metric_fun, rng)
-    try:
-        return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
-    except:
-        print(len(ref_hist), len(sample_hist))
-        raise
+
+    return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
 
 
 def clean_graph(G_or_edges):

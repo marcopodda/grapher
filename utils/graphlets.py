@@ -31,7 +31,7 @@ def graphlet_count(G):
         num_nodes = graphlet.number_of_nodes()
         neighbors = (itertools.combinations([n] + list(G.neighbors(n)), num_nodes) for n in G.nodes())
         combs = itertools.chain.from_iterable(neighbors)
-        results = Parallel(n_jobs=-1)(
+        results = Parallel(n_jobs=1)(
             delayed(process_graph)(G, nodes, graphlet) for nodes in combs)
         counts[name] += sum(results)
     return counts

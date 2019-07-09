@@ -6,6 +6,7 @@ RUNS/**
 **/.vscode
 *.env
 *.out
+*.in
 run_*.sh
 *.log
 *.png

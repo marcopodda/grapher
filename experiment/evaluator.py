@@ -75,8 +75,8 @@ class ClusteringCoefficient(Metric):
     name = "clustering"
 
 
-class GraphletCount(Metric):
-    name = "graphlet"
+class OrbitCount(Metric):
+    name = "orbit"
 
 
 class Result:
@@ -86,7 +86,7 @@ class Result:
         result = cls(model_name, dataset_name)
         result.degree = DegreeDistribution.load(resultdict.pop('degree'))
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
-        result.graphlet = GraphletCount.load(resultdict.pop('graphlet'))
+        result.orbit = OrbitCount.load(resultdict.pop('orbit'))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result
@@ -96,7 +96,7 @@ class Result:
         self.dataset_name = dataset_name
         self.degree = DegreeDistribution()
         self.clustering = ClusteringCoefficient()
-        self.graphlet = GraphletCount()
+        self.orbit = OrbitCount()
 
     @property
     def uniqueness_not_calculated(self):
@@ -110,7 +110,7 @@ class Result:
         data = self.__dict__
         data['degree'] = self.degree.asdict()
         data['clustering'] = self.clustering.asdict()
-        data['graphlet'] = self.graphlet.asdict()
+        data['orbit'] = self.orbit.asdict()
         return data
 
     def save(self, path):
@@ -131,6 +131,26 @@ class Result:
         metric = getattr(self, name)
         metric.finalize(num_trials)
 
+    def clean_orbit(self):
+        self.orbit.scores = []
+        self.orbit.data_hist = None
+        self.orbit.samples_hist = None
+        self.orbit.mean = None
+        self.orbit.std = None
+
+    def clean_degree(self):
+        self.degree.scores = []
+        self.degree.data_hist = None
+        self.degree.samples_hist = None
+        self.degree.mean = None
+        self.degree.std = None
+
+    def clean_clustering(self):
+        self.clustering.scores = []
+        self.clustering.data_hist = None
+        self.clustering.samples_hist = None
+        self.clustering.mean = None
+        self.clustering.std = None
 
 class EvaluatorBase:
     def __init__(self, model_name):
@@ -165,13 +185,16 @@ class EvaluatorBase:
             if self.uniqueness_not_calculated(result):
                 self.evaluate_uniqueness(result, exp, dataset)
 
-            if not result.degree.is_computed:
-                self.evaluate_kl(result, exp, dataset, 'degree')
+            # if not result.degree.is_computed:
+            result.clean_degree()
+            self.evaluate_kl(result, exp, dataset, 'degree')
 
-            if not result.clustering.is_computed:
-                self.evaluate_kl(result, exp, dataset, 'clustering')
+            # if not result.clustering.is_computed:
+            result.clean_clustering()
+            self.evaluate_kl(result, exp, dataset, 'clustering')
 
-            self.evaluate_kl(result, exp, dataset, 'graphlet')
+            result.clean_orbit()
+            self.evaluate_kl(result, exp, dataset, 'orbit')
 
             result.save(exp.root / "results")
 
@@ -213,8 +236,8 @@ class EvaluatorBase:
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')
-        num_trials = 5 if metric_name == "graphlet" else self.num_trials
-        for trial in range(num_trials):
+
+        for trial in range(self.num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
             result.update_metric(metric_name, test_data, samples)
         result.finalize_metric(metric_name, self.num_trials)

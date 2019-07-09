@@ -1,21 +1,74 @@
 import numpy as np
 import networkx as nx
+import subprocess as sp
 from scipy.stats import entropy
 
-from .graphlets import graphlet_count, average_graphlet_count
 
 BINS = 100
+EPS =  + 1e-9
 
 
-def _get_hist(graphs, func, rng):
-    hists = np.zeros((BINS,))
+def degree_histogram(graphs):
+    counts = []
 
     for G in graphs:
-        values = np.array(list(dict(func(G)).values()))
-        hist, _ = np.histogram(values, bins=BINS, range=rng, density=False)
-        hists += hist
+        degrees = dict(nx.degree(G))
+        counts.extend(list(degrees.values()))
 
-    return hists / hists.sum()
+    return np.array(counts)
+
+
+def graph_to_file(G, filename):
+    G.remove_edges_from(G.selfloop_edges())
+    G = nx.convert_node_labels_to_integers(G, first_label=0)
+    with open(filename, "w") as f:
+        print(f"{G.number_of_nodes()} {G.number_of_edges()}", file=f)
+        for e1, e2 in G.edges():
+            print(f"{e1} {e2}", file=f)
+
+
+def clustering_histogram(graphs):
+    coefs = []
+
+    for G in graphs:
+        clustering_coefs = dict(nx.clustering(G))
+        coefs.extend(list(clustering_coefs.values()))
+
+    return np.array(coefs)
+
+
+def orbit_count_histogram(graphs):
+    counts = []
+
+    for G in graphs:
+        graph_to_file(G, "./utils/orca/graph.in")
+        sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
+
+        with open("./utils/orca/graph.out", "r") as f:
+            count = []
+            for line in f.readlines():
+                line = line.rstrip("\n")
+                line = [int(x) for x in line.split(" ")]
+                count.append(sum(line))
+        counts.extend(count)
+
+    return np.array(counts)
+
+
+def normalize_counts(ref_counts, sample_counts, bins):
+    min_value = max(ref_counts.min(), sample_counts.min())
+    max_value = max(ref_counts.max(), sample_counts.max())
+
+    if max_value == 0:
+        return np.zeros((bins,)), np.zeros((bins,))
+
+    ref_counts = (ref_counts - min_value) / (max_value - min_value)
+    ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+
+    sample_counts = (sample_counts - min_value) / (max_value - min_value)
+    sample_hist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
+
+    return ref_hist, sample_hist
 
 
 def kl_divergence(ref, sample, metric):
@@ -26,30 +79,26 @@ def kl_divergence(ref, sample, metric):
     if isinstance(sample[0], tuple) or isinstance(sample[0], list):
         sample = [clean_graph(e) for e in sample]
 
-    eps =  + 1e-9
-    metric_fun, rng = {
-        'clustering': (nx.clustering, (0.0, 1.0)),
-        'degree': (nx.degree, (0.0, 100.0)),
-        'graphlet': (graphlet_count, (0.0, 1.0)),
-    }[metric]
+    if metric == 'degree':
+        ref_counts= degree_histogram(ref)
+        sample_counts= degree_histogram(sample)
 
-    if metric == "graphlet":
-        ref_agc = average_graphlet_count(ref)
-        ref_hist, _ = np.histogram(ref_agc, bins=BINS, range=(0.0, max(ref_agc)), density=False)
-        # ref_hist = ref_hist / ref_hist.sum()
-        sample_agc = average_graphlet_count(sample)
-        sample_hist, _ = np.histogram(sample_agc, bins=BINS, range=(0.0, max(ref_agc)), density=False)
-        # sample_hist = sample_hist / sample_hist.sum()
-    else:
-        ref_hist = _get_hist(ref, metric_fun, rng)
-        sample_hist = _get_hist(sample, metric_fun, rng)
-    print(len(ref_hist), len(sample_hist))
-    return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
+    elif metric == 'clustering':
+        ref_counts= clustering_histogram(ref)
+        sample_counts= clustering_histogram(sample)
+
+    elif metric == 'orbit':
+        ref_counts= orbit_count_histogram(ref)
+        sample_counts= orbit_count_histogram(sample)
+
+    ref_hist, sample_hist = normalize_counts(ref_counts, sample_counts, BINS)
+    return entropy(ref_hist + EPS, sample_hist + EPS), ref_hist, sample_hist
 
 
 def clean_graph(G_or_edges):
     if isinstance(G_or_edges, list) or isinstance(G_or_edges, tuple):
         G = nx.Graph(G_or_edges)
+    G.remove_edges_from(G.selfloop_edges())
     return G
 
 

@@ -25,13 +25,31 @@ def process_graph(G, nodes, graphlet):
     return False
 
 
+def _count_star(G, num_nodes):
+    neighbors = (itertools.combinations([n] + list(G.neighbors(n)), num_nodes) for n in G.nodes())
+    combs = itertools.chain.from_iterable(neighbors)
+    return len(combs)
+
+
+def count_3star(G):
+    return _count_star(G, 3)
+
+
+def count_4star(G):
+    return _count_star(G, 4)
+
+
+def count_4clique(G):
+    return len(nx.algorithms.community.k_clique_communities(G, 4))
+
+
 def graphlet_count(G):
-    counts = {'g1': 0, 'g2': 0, 'g3': 0}
-    for name, graphlet in GRAPHLETS.items():
-        num_nodes = graphlet.number_of_nodes()
-        neighbors = (itertools.combinations([n] + list(G.neighbors(n)), num_nodes) for n in G.nodes())
-        combs = itertools.chain.from_iterable(neighbors)
-        results = Parallel(n_jobs=-1)(
-            delayed(process_graph)(G, nodes, graphlet) for nodes in combs)
-        counts[name] += sum(results)
+    counts = {'g1': count_3star(G), 'g2': count_4star(G), 'g3': count_4clique(G)}
+    # for name, graphlet in GRAPHLETS.items():
+    #     num_nodes = graphlet.number_of_nodes() - 1
+    #     neighbors = (itertools.combinations([n] + list(G.neighbors(n)), num_nodes) for n in G.nodes())
+    #     combs = itertools.chain.from_iterable(neighbors)
+    #     results = Parallel(n_jobs=-1)(
+    #         delayed(process_graph)(G, nodes, graphlet) for nodes in combs)
+    #     counts[name] += sum(results)
     return counts

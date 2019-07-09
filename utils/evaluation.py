@@ -21,7 +21,8 @@ def _get_hist(graphs, func, rng):
 def average_graphlet_count(graphlist):
     print(len(graphlist))
     counts = []
-    for G in graphlist:
+    for i, G in graphlist:
+        print(i)
         values = np.array(list(dict(graphlet_count(G)).values()))
         counts.append(values.sum(axis=0))
     counts = np.array(counts)

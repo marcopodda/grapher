@@ -18,17 +18,6 @@ def _get_hist(graphs, func, rng):
     return hists / hists.sum()
 
 
-# def average_graphlet_count(graphlist):
-#     print(len(graphlist))
-#     counts = []
-#     for i, G in graphlist:
-#         print(i)
-#         values = np.array(list(dict(graphlet_count(G)).values()))
-#         counts.append(values.sum(axis=0))
-#     counts = np.array(counts)
-#     return counts / counts.sum()
-
-
 def kl_divergence(ref, sample, metric):
     print(metric)
     if isinstance(ref[0], tuple) or isinstance(ref[0], list):
@@ -67,7 +56,7 @@ def is_duplicate(G, Gs, fast):
             g = nx.relabel_nodes(g, mapping)
             test = sorted(G.edges()) == sorted(g.edges())
         else:
-            test = nx.is_isomorphic(G, g)
+            test = nx.faster_could_be_isomorphic(G, g)
 
         if test is True:
             return True

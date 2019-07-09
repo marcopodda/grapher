@@ -99,7 +99,7 @@ def train_optimizationbased(graphlist, generator):
 def sample(nodelist, parameters, generator):
     samples = []
 
-    for nodes in nodelist:
+    for i, nodes in enumerate(nodelist):
         if nodes not in parameters.keys():
             nodes = np.random.choice(parameters.keys(), 1)
 
@@ -115,7 +115,9 @@ def sample(nodelist, parameters, generator):
             p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
             while graph.number_of_edges() == 0:
-                graph = nx.fast_gnp_random_graph(n, m)
+                print("stuck")
+                graph = nx.fast_gnp_random_graph(n, p)
+            print("stuck no more")
 
         samples.append(list(graph.edges()))
 

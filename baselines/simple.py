@@ -106,13 +106,16 @@ def sample(nodelist, parameters, generator):
             n = int(parameters[nodes][0])
             m = int(np.rint(parameters[nodes][1]))
             graph = nx.barabasi_albert_graph(n, m)
+            while graph.number_of_edges() == 0:
+                graph = nx.barabasi_albert_graph(n, m)
         if generator == 'ER':
             n = int(parameters[nodes][0])
             p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
+            while graph.number_of_edges() == 0:
+                graph = nx.fast_gnp_random_graph(n, m)
 
-        if graph.number_of_edges() > 0:
-            samples.append(list(graph.edges()))
+        samples.append(list(graph.edges()))
 
     return samples
 

@@ -56,7 +56,7 @@ def is_duplicate(G, Gs, fast):
             g = nx.relabel_nodes(g, mapping)
             test = sorted(G.edges()) == sorted(g.edges())
         else:
-            test = nx.faster_could_be_isomorphic(G, g)
+            test = nx.is_isomorphic(G, g)
 
         if test is True:
             return True

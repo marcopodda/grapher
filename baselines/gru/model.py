@@ -94,7 +94,8 @@ class Model(nn.Module):
             try:
                 adj = decode_adj(seq - 3)
                 G = nx.from_numpy_array(adj)
-                samples.append(list(G.edges()))
+                if G.number_of_nodes() > 0:
+                    samples.append(list(G.edges()))
             except:
                 continue
 

@@ -171,8 +171,7 @@ class EvaluatorBase:
             if not result.clustering.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'clustering')
 
-            if not result.graphlet.is_computed:
-                self.evaluate_kl(result, exp, dataset, 'graphlet')
+            self.evaluate_kl(result, exp, dataset, 'graphlet')
 
             result.save(exp.root / "results")
 

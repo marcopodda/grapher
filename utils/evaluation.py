@@ -34,8 +34,12 @@ def kl_divergence(ref, sample, metric):
     }[metric]
 
     if metric == "graphlet":
-        ref_hist = average_graphlet_count(ref)
-        sample_hist = average_graphlet_count(sample)
+        ref_agc = average_graphlet_count(ref)
+        ref_hist, _ = np.histogram(ref_agc, bins=BINS, range=rng, density=False)
+        ref_hist = ref_hist / ref_hist.sum()
+        sample_agc = average_graphlet_count(sample)
+        sample_hist, _ = np.histogram(sample_agc, bins=BINS, range=rng, density=False)
+        sample_hist = sample_hist / sample_hist.sum()
     else:
         ref_hist = _get_hist(ref, metric_fun, rng)
         sample_hist = _get_hist(sample, metric_fun, rng)

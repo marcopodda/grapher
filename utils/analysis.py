@@ -2,18 +2,19 @@ import time
 from pathlib import Path
 
 from .serializer import load_yaml
-from .constants import MODEL_NAMES, DATASET_NAMES
+from .constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES
 
 root = Path('RUNS')
+order_root = Path('RUNS') / "ORDER"
 MODEL_NAMES = ["ER", "BA", "GRU", "GRAPHRNN", "GRAPHER"]
 DATASET_NAMES = list(DATASET_NAMES)
-DATASET_NAMES.remove("community")
 
 def to_hms(secs):
     return time.strftime('%H:%M:%S', time.gmtime(secs))
 
-def load_result(model_name, dataset_name):
-    path = root / model_name / dataset_name
+def load_result(model_name, dataset_name, order):
+    path = root if order is False else order_root
+    path = path / model_name / dataset_name
     result_path = list(path.glob("*"))[-1] / "results" / f"{dataset_name}.yaml"
     return load_yaml(result_path)
 
@@ -42,38 +43,55 @@ def process_metric(result, model_name, dataset_name, metric_name):
            f"{names[1].capitalize()} samples: {float(metric2):.6f}"
 
 
-def klds_by_dataset(dataset_name, metric_name):
+def klds_by_dataset(dataset_name, metric_name, order=False):
     klds = []
-    for model_name in MODEL_NAMES:
-        result = load_result(model_name, dataset_name)
+    names = MODEL_NAMES if order is False else ORDER_NAMES
+    for model_name in names:
+        try:
+            result = load_result(model_name, dataset_name, order)
+            kld = process_kld(result, metric_name)
+            klds.append(f"{model_name:20}: {kld}")
+        except:
+            continue
+    if order is True:
+        model_name = "GRAPHER"
+        result = load_result(model_name, dataset_name, False)
         kld = process_kld(result, metric_name)
         klds.append(f"{model_name:20}: {kld}")
     return klds
 
 
-def klds_by_model(model_name, metric_name):
+def klds_by_model(model_name, metric_name, order=False):
     klds = []
     for dataset_name in DATASET_NAMES:
-        result = load_result(model_name, dataset_name)
-        kld = process_kld(result, metric_name)
-        klds.append(f"{dataset_name:20}: {kld}")
+        try:
+            result = load_result(model_name, dataset_name, order)
+            kld = process_kld(result, metric_name)
+            klds.append(f"{dataset_name:20}: {kld}")
+        except:
+            continue
+
     return klds
 
 
-def metric_by_model(model_name, metric_name):
+def metric_by_model(model_name, metric_name, order=False):
     metrics = []
     for dataset_name in DATASET_NAMES:
-        result = load_result(model_name, dataset_name)
-        metric = process_metric(result, model_name, dataset_name, metric_name)
-        metrics.append(metric)
+        try:
+            result = load_result(model_name, dataset_name, order)
+            metric = process_metric(result, model_name, dataset_name, metric_name)
+            metrics.append(metric)
+        except:
+            continue
     return metrics
 
 
-def metric_by_dataset(dataset_name, metric_name):
+def metric_by_dataset(dataset_name, metric_name, order=False):
     metrics = []
-    for model_name in MODEL_NAMES:
+    names = MODEL_NAMES if order is False else ORDER_NAMES
+    for model_name in names:
         try:
-            result = load_result(model_name, dataset_name)
+            result = load_result(model_name, dataset_name, order=order)
             metric = process_metric(result, model_name, dataset_name, metric_name)
             metrics.append(metric)
         except:

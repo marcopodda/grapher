@@ -185,16 +185,14 @@ class EvaluatorBase:
             if self.uniqueness_not_calculated(result):
                 self.evaluate_uniqueness(result, exp, dataset)
 
-            # if not result.degree.is_computed:
-            result.clean_degree()
-            self.evaluate_kl(result, exp, dataset, 'degree')
+            if not result.degree.is_computed:
+                self.evaluate_kl(result, exp, dataset, 'degree')
 
-            # if not result.clustering.is_computed:
-            result.clean_clustering()
-            self.evaluate_kl(result, exp, dataset, 'clustering')
+            if not result.clustering.is_computed:
+                self.evaluate_kl(result, exp, dataset, 'clustering')
 
-            result.clean_orbit()
-            self.evaluate_kl(result, exp, dataset, 'orbit')
+            if not result.orbit.is_computed:
+                self.evaluate_kl(result, exp, dataset, 'orbit')
 
             result.save(exp.root / "results")
 

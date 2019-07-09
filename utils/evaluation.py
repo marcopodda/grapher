@@ -50,7 +50,7 @@ def kl_divergence(ref, sample, metric):
     else:
         ref_hist = _get_hist(ref, metric_fun, rng)
         sample_hist = _get_hist(sample, metric_fun, rng)
-
+    print(len(ref_hist), len(sample_hist))
     return entropy(ref_hist + eps, sample_hist + eps), ref_hist, sample_hist
 
 

@@ -53,7 +53,7 @@ def count_cliques(G):
 
 def average_graphlet_count(graphlist):
     print(len(graphlist))
-    counts = Parallel(n_jobs=-1)(delayed(graphlet_count)(G) for G in graphlist)
+    counts = Parallel(n_jobs=-1, verbose=1)(delayed(graphlet_count)(G) for G in graphlist)
     counts = np.array(counts).sum(axis=1)
     return counts / counts.sum()
 

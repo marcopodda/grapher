@@ -81,6 +81,22 @@ class GraphList:
         return GraphList(graphs)
 
 
+def dfs_order(G, start_id):
+    dictionary = dict(nx.dfs_successors(G, start_id))
+    start = [start_id]
+    output = [start_id]
+    while len(start) > 0:
+        next = []
+        while len(start) > 0:
+            current = start.pop(0)
+            neighbor = dictionary.get(current)
+            if neighbor is not None:
+                next = next + neighbor
+        output = output + next
+        start = next
+    return output
+
+
 def bfs_order(G, start_id):
     dictionary = dict(nx.bfs_successors(G, start_id))
     start = [start_id]
@@ -106,6 +122,12 @@ def encode_graph(G, order):
     elif order == "bfs-fixed":
         start_node = min(list(G.nodes()))
         seq = bfs_order(G, start_id=start_node)
+    elif order == "dfs-random":
+        start_node = np.random.choice(list(G.nodes()))
+        seq = dfs_order(G, start_id=start_node)
+    elif order == "dfs-fixed":
+        start_node = min(list(G.nodes()))
+        seq = dfs_order(G, start_id=start_node)
     elif order == "random":
         seq = list(G.nodes())
         np.random.shuffle(seq)
@@ -120,7 +142,7 @@ def encode_graph(G, order):
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
-    if order in ["bfs-random", "bfs-fixed"]:
+    if order in ["bfs-random", "bfs-fixed", "dfs-random", "dfs-fixed"]:
         edges = sorted(edges)
 
     return list(zip(*edges))

@@ -3,6 +3,8 @@ import networkx as nx
 import subprocess as sp
 from scipy.stats import entropy
 
+from utils.misc import graph_to_file
+
 
 BINS = 100
 EPS =  + 1e-9
@@ -16,15 +18,6 @@ def degree_histogram(graphs):
         counts.extend(list(degrees.values()))
 
     return np.array(counts)
-
-
-def graph_to_file(G, filename):
-    G.remove_edges_from(G.selfloop_edges())
-    G = nx.convert_node_labels_to_integers(G, first_label=0)
-    with open(filename, "w") as f:
-        print(f"{G.number_of_nodes()} {G.number_of_edges()}", file=f)
-        for e1, e2 in G.edges():
-            print(f"{e1} {e2}", file=f)
 
 
 def clustering_histogram(graphs):
@@ -73,11 +66,8 @@ def normalize_counts(ref_counts, sample_counts, bins):
 
 def kl_divergence(ref, sample, metric):
     print(metric)
-    if isinstance(ref[0], tuple) or isinstance(ref[0], list):
-        ref = [clean_graph(e) for e in ref]
-
-    if isinstance(sample[0], tuple) or isinstance(sample[0], list):
-        sample = [clean_graph(e) for e in sample]
+    ref = [clean_graph(G_or_edges) for G_or_edges in ref]
+    sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
     if metric == 'degree':
         ref_counts= degree_histogram(ref)
@@ -119,6 +109,9 @@ def is_duplicate(G, Gs, fast):
 
 def novelty(ref, sample, fast):
     novel = []
+    ref = [clean_graph(G_or_edges) for G_or_edges in ref]
+    sample = [clean_graph(G_or_edges) for G_or_edges in sample]
+
     for i, G in enumerate(sample):
         if not is_duplicate(G, ref, fast):
             novel.append(G)
@@ -131,6 +124,9 @@ def novelty(ref, sample, fast):
 
 def uniqueness(sample, fast):
     unique = []
+    ref = [clean_graph(G_or_edges) for G_or_edges in ref]
+    sample = [clean_graph(G_or_edges) for G_or_edges in sample]
+
     for i, G in enumerate(sample):
         if not is_duplicate(G, sample[i+1:], fast):
             unique.append(G)
@@ -139,9 +135,3 @@ def uniqueness(sample, fast):
         return 0.0, []
 
     return len(unique) / len(sample), unique
-
-
-def filter_unique_and_novel(ref, sample, fast):
-    _, novel = novelty(ref, sample, fast)
-    _, unique = uniqueness(novel, fast)
-    return unique

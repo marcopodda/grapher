@@ -15,6 +15,7 @@ def emd_distance(x, y, distance_scaling=1.0):
     # convert histogram values x and y to float, and make them equal len
     x = x.astype(np.float)
     y = y.astype(np.float)
+
     if len(x) < len(y):
         x = np.hstack((x, [0.0] * (support_size - len(x))))
     elif len(y) < len(x):

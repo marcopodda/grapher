@@ -92,3 +92,19 @@ class GraphRNNConfig(BaseConfigWithSerializer):
             lr_rate=0.3,
             device="gpu"
         )
+
+
+def get_config_class(model_name):
+    if model_name == "GRAPHER":
+        return Config
+
+    if model_name == "GRAPHRNN":
+        return GraphRNNConfig
+
+    if model_name == "GRU":
+        return GRUConfig
+
+    if model_name in ["ER", "BA"]:
+        return BaselineConfig
+
+    return Config

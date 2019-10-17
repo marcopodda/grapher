@@ -16,15 +16,10 @@ from dataset import get_dataset_class
 from dataset.graph import GraphList
 from learner.trainer import Trainer
 from utils.training import get_device
+from utils.constants import RUNS_DIR
 from utils.evaluation import filter_unique_and_novel, clean_graph
+from utils.misc import last_in_folder, maybe_makedir
 
-
-RUNS_DIR = Path('RUNS')
-
-
-def maybe_makedir(path):
-    if not path.exists():
-        os.makedirs(path)
 
 
 class BaseExperiment:
@@ -61,9 +56,6 @@ class BaseExperiment:
     def sample(self, num_samples):
         raise NotImplementedError
 
-    def sample_novel_and_unique(self, num_samples):
-        raise NotImplementedError
-
 
 class Experiment(BaseExperiment):
     model_name = "GRAPHER"
@@ -83,19 +75,6 @@ class Experiment(BaseExperiment):
         samples = trainer.sample(num_samples=num_samples)
         return GraphList([clean_graph(e) for e in samples])
 
-    def sample_novel_and_unique(self, num_samples):
-        config = Config.from_file(self.root / "config" / f"config.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-
-        samples = []
-        train_data = dataset.get_data('train')
-        while len(samples) < num_samples:
-            sample = trainer.sample(num_samples=num_samples)
-            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
-
-        return GraphList(samples[:num_samples])
-
 
 class OrderExperiment(Experiment):
     _root = RUNS_DIR / "ORDER"
@@ -110,7 +89,6 @@ class OrderExperiment(Experiment):
     def __init__(self, order_type, dataset, root=None):
         self.model_name = order_type
         super().__init__(dataset, root=root)
-
 
     def train(self):
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
@@ -147,19 +125,6 @@ class GRUExperiment(BaseExperiment):
         samples = trainer.sample(num_samples=num_samples)
         return GraphList([clean_graph(e) for e in samples])
 
-    def sample_novel_and_unique(self, num_samples):
-        config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-
-        samples = []
-        train_data = dataset.get_data('train')
-        while len(samples) < num_samples:
-            sample = trainer.sample(num_samples=num_samples)
-            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=True)
-
-        return GraphList(samples[:num_samples])
-
 
 class GraphRNNExperiment(BaseExperiment):
     model_name = "GRAPHRNN"
@@ -179,23 +144,6 @@ class GraphRNNExperiment(BaseExperiment):
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)
         samples = sample_graphrnn(config, rnn, output, num_samples=num_samples)
         return GraphList([clean_graph(e) for e in samples])
-
-    def sample_novel_and_unique(self, num_samples):
-        config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
-        device = get_device(config)
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
-        output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
-        rnn, output = load_model(config, rnn_state_dict, output_state_dict)
-        samples = sample_graphrnn(config, rnn, output, num_samples=num_samples)
-
-        samples = []
-        train_data = dataset.get_data('train')
-        while len(samples) < num_samples:
-            sample = sample_graphrnn(config, rnn, output, num_samples=num_samples)
-            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=False)
-
-        return GraphList(samples[:num_samples])
 
 
 class BaselineExperiment(BaseExperiment):
@@ -219,21 +167,6 @@ class BaselineExperiment(BaseExperiment):
         nodes = np.random.choice(nodes, num_samples)
         samples = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
         return GraphList([clean_graph(e) for e in samples])
-
-    def sample_novel_and_unique(self, num_samples):
-        config = BaselineConfig.from_file(self.root / "config" / f"config.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        parameters = torch.load(self.root / "ckpt" / f"parameters.pt")
-
-        samples = []
-        train_data = dataset.get_data('train')
-        while len(samples) < num_samples:
-            nodes = [G.number_of_nodes() for G in dataset.get_data('test')]
-            nodes = np.random.choice(nodes, num_samples)
-            sample = sample_baseline(nodes, parameters=parameters, generator=self.model_name)
-            samples = filter_unique_and_novel(train_data, samples + [clean_graph(e) for e in sample], fast=False)
-
-        return GraphList(samples[:num_samples])
 
 
 class ERExperiment(BaselineExperiment):
@@ -265,8 +198,7 @@ def get_exp_class(model_name):
 
 def load_experiment(root, model_name, dataset_name):
     rundir = root / model_name / dataset_name
-    expdir = sorted(rundir.glob("*"))
-    assert len(expdir) > 0
+    expdir = last_in_folder(rundir)
     exp_class = get_exp_class(model_name)
-    exp = exp_class.load(expdir[-1])
+    exp = exp_class.load(expdir)
     return exp

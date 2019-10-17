@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import networkx as nx
+import matplotlib
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -8,74 +9,68 @@ from pathlib import Path
 from learner.trainer import Trainer
 from config.config import Config
 from dataset import get_dataset_class
-from .constants import ORDER_NAMES, MODEL_NAMES, DATASET_NAMES
+
+from experiment import load_experiment
+from .constants import *
 from .serializer import load_yaml
+from .misc import load_result, last_in_folder
 
 sns.set('paper')
-sns.set_style('whitegrid')
-
-
-HUMANIZE_DATASET = {
-    "community": "Community",
-    "PROTEINS_full": "Protein",
-    "ladders": "Ladders",
-    "ENZYMES": "Enzymes",
-    "ego": "Ego"
-}
-
-HUMANIZE_ORDER = {
-    "random": "Random",
-    "bfs-random": "BF Random",
-    "smiles": "SMILES",
-}
-
-HUMANIZE_METRIC = {
-    "degree": "Average Degree Distribution",
-    "clustering": "Average Clustering Coefficient",
-    "orbit": "Average Orbit Count"
-}
+sns.set_style("whitegrid", {'axes.grid' : False})
 
 
 root = Path('RUNS')
 order_root = Path('RUNS') / "ORDER"
 
 
-def _to_hist_data(v):
-    data = []
-    for x in v:
-        data.extend([v.index(x)] * int(np.round(x)))
-    return data
 
+def _plot_stat(metric_name, model_name, dataset_name, order=False, ax=None):
+    def to_histogram(v):
+        data = []
+        for x in v:
+            data.extend([v.index(x)] * int(np.round(x)))
+        return data
 
-def _double_plot(ref, pred, metric_name, model_name, dataset_name):
-    data1 = _to_hist_data(pred)
-    data2 = _to_hist_data(ref)
-    sns.distplot(data1, hist=False, label="Generated")
-    ax = sns.distplot(data2, hist=False, label="Real")
-    ax.set_title(HUMANIZE_METRIC[metric_name])
-    if metric_name == "degree":
-        ax.set_ylabel(HUMANIZE_DATASET[dataset_name])
-    ax.legend()
-    fig = plt.gcf()
-    fig.savefig(f"{model_name}_{dataset_name}_{metric_name}.svg")
-
-
-def load_result(model_name, dataset_name, order):
-    path = root if order is False else order_root
-    path = path / model_name / dataset_name
-    result_path = list(path.glob("*"))[-1] / "results" / f"{dataset_name}.yaml"
-    return load_yaml(result_path)
-
-
-def plot_stat(metric_name, model_name, dataset_name, order=False):
     result = load_result(model_name, dataset_name, order=order)[metric_name]
-    ref = result['data_hist']
-    pred = result['samples_hist']
-    _double_plot(ref, pred, metric_name, model_name, dataset_name)
+    ref_histo = to_histogram(result['data_hist'])
+    samples_histo = to_histogram(result['samples_hist'])
+    sns.distplot(ref_histo, hist=False, label="Real", ax=ax)
+    sns.distplot(samples_histo, hist=False, label="Generated", ax=ax)
 
 
-def plot_training_on_ordering(dataset_name):
-    path = Path("RUNS") / "GRAPHER"
+
+def plot_real_vs_samples_distributions(model_name="GRAPHER", dataset_names=["community", "ENZYMES"]):
+    if not isinstance(dataset_names, list):
+        dataset_names = list(dataset_names)
+
+    nrows, ncols = len(QUALITATIVE_METRIC_NAMES), len(dataset_names),
+    legend = None
+    fig, axs = plt.subplots(nrows, ncols)
+
+    for row, metric_name in enumerate(QUALITATIVE_METRIC_NAMES):
+        for col, dataset_name in enumerate(dataset_names):
+            ax = axs[row][col]
+            ax.set_xticks([])
+            ax.set_yticks([])
+            if ax.get_legend():
+                ax.get_legend().remove()
+            _plot_stat(metric_name, model_name, dataset_name, order=False, ax=ax)
+
+    for col in range(ncols):
+        name = HUMANIZE_DATASET[dataset_names[col]]
+        axs[0][col].set_title(name)
+
+    for row in range(nrows):
+        name = HUMANIZE_METRIC[QUALITATIVE_METRIC_NAMES[row]]
+        name = "\n".join(name.split(" "))
+        axs[row][0].set_ylabel(name)
+
+    fig.set_size_inches(9, 9)
+    plt.show()
+
+
+def plot_loss_with_different_orderings(dataset_name):
+    path = RUNS_DIR / "GRAPHER"
     try:
         exp_path = list((path / dataset_name).glob("*"))[0]
     except IndexError:
@@ -85,27 +80,26 @@ def plot_training_on_ordering(dataset_name):
     dataset = dataset_class(config, exp_path, dataset_name)
     trainer = Trainer.load(config, exp_path, dataset.input_dim, dataset.output_dim, best=True)
     loss = np.array(trainer.losses1) + np.array(trainer.losses2)
+
     plt.plot(loss, label="Default")
 
-    path = Path("RUNS") / "ORDER"
     for order in reversed(ORDER_NAMES):
-        try:
-            exp_path = list((path / order / dataset_name).glob("*"))[0]
-        except IndexError:
-            continue
+        experiment = load_experiment(ORDER_DIR, order, dataset_name)
         config = Config.from_file(exp_path/"config"/"config.yaml")
         dataset_class = get_dataset_class(dataset_name)
         dataset = dataset_class(config, exp_path, dataset_name)
         trainer = Trainer.load(config, exp_path, dataset.input_dim, dataset.output_dim, best=True)
         loss = np.array(trainer.losses1) + np.array(trainer.losses2)
         plt.plot(loss, label=HUMANIZE_ORDER[order])
+
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
+    # plt.grid('off')
     plt.legend()
     plt.show()
 
 
-def plot_generated_graph(model_name, dataset_name, layout="spring"):
+def plot_real_vs_generated_graphs(model_name, dataset_name, layout="spring"):
     path = Path("RUNS") / model_name / dataset_name
 
     try:

@@ -7,6 +7,7 @@ source activate grapher
 # install cuda
 # (uncomment below if this is your CUDA version, otherwise change 9.0 with your CUDA version)
 # conda install cudatoolkit==9.0 -c anaconda -y
+conda install pip
 
 # install pytorch
 conda install pytorch -c pytorch -y

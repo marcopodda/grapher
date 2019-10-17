@@ -88,6 +88,8 @@ def kl_divergence(ref, sample, metric):
 def clean_graph(G_or_edges):
     if isinstance(G_or_edges, list) or isinstance(G_or_edges, tuple):
         G = nx.Graph(G_or_edges)
+    else:
+        G = G_or_edges
     G.remove_edges_from(G.selfloop_edges())
     return G
 

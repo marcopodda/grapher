@@ -17,7 +17,7 @@ from dataset.graph import GraphList
 from learner.trainer import Trainer
 from utils.training import get_device
 from utils.constants import RUNS_DIR
-from utils.evaluation import filter_unique_and_novel, clean_graph
+from utils.evaluation import clean_graph
 from utils.misc import last_in_folder, maybe_makedir
 
 

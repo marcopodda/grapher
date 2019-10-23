@@ -13,10 +13,7 @@ conda install pip -y
 conda install pytorch -c pytorch -y
 
 # install packages
-conda install numpy scipy pandas scikit-learn networkx docopt pyyaml matplotlib requests seaborn pyemd -y
+conda install numpy scipy pandas scikit-learn networkx docopt pyyaml matplotlib requests seaborn pyemd ipython -y
 
 # compile ORCA
 g++ -O2 -std=c++11 -o utils/orca/orca.exe utils/orca/orca.cpp
-
-# install other packages
-pip install docopt python-louvain

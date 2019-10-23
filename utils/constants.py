@@ -13,7 +13,7 @@ EOS = 2
 
 ROOT = Path(".")
 RUNS_DIR = ROOT / "RUNS"
-ORDER_DIR = ROOT / "ORDER"
+ORDER_DIR = RUNS_DIR / "ORDER"
 DATA_DIR = ROOT / "DATA"
 
 
@@ -29,6 +29,8 @@ HUMANIZE_DATASET = {
 HUMANIZE_ORDER = {
     "random": "Random",
     "bfs-random": "BF Random",
+    "dfs-random": "DF Random",
+    "dfs-fixed": "DF",
     "smiles": "SMILES",
 }
 

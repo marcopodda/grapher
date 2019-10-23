@@ -43,9 +43,9 @@ def to_latex_row(values, stds=None):
     print(' & '.join(text))
 
 
-def to_latex_table(values_all, stds_all=None):
+def to_latex_table(all_values, stds_all=None):
     if stds_all is None:
-        stds_all = [None] * len(values_all)
+        stds_all = [None] * len(all_values)
 
-    for values, stds, in zip(values_all, stds_all):
+    for values, stds, in zip(all_values, stds_all):
         to_latex_row(values, stds)

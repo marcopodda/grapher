@@ -17,10 +17,13 @@ def metric_by_dataset(dataset_name, metric_name, order=False):
     scores, stds = [], []
     model_names = MODEL_NAMES if order is False else ORDER_NAMES
     for model_name in model_names:
-        result = load_result(model_name, dataset_name, order=order)
-        score, std = process_result(result, metric_name)
-        scores.append(score)
-        stds.append(std)
+        try:
+            result = load_result(model_name, dataset_name, order=order)
+            score, std = process_result(result, metric_name)
+            scores.append(score)
+            stds.append(std)
+        except:
+            continue
 
     return scores, stds
 
@@ -29,13 +32,15 @@ def metrics_by_dataset(dataset_name, quantitative=False, order=False):
     if quantitative:
         metric_names = QUANTITATIVE_METRIC_NAMES
     else:
-        metric_names = QUANTITATIVE_METRIC_NAMES
+        metric_names = QUALITATIVE_METRIC_NAMES
 
     scores_all, stds_all = [], []
     for metric_name in metric_names:
+        
         scores, stds = metric_by_dataset(dataset_name, metric_name, order=order)
-        scores_all.append(scores)
-        stds_all.append(stds)
+        if scores != []:
+            scores_all.append(scores)
+            stds_all.append(stds)
     return scores_all, stds_all
 
 

@@ -1,0 +1,7 @@
+device: gpu
+order: bfs-fixed
+max_epochs: 1000
+dropout: 0.35
+stop_loss: 0.13
+temperature1: 0.5
+temperature2: 1.0

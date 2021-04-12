@@ -1,0 +1,10 @@
+device: gpu
+order: bfs-fixed
+dropout: 0.35
+embed_dim: 64
+hidden_dim: 256
+max_epochs: 3000
+stop_loss: 0.16
+temperature1: 0.5
+temperature2: 0.75
+

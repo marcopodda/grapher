@@ -1,0 +1,14 @@
+**/__pycache__
+DATA/**
+RUNS/**
+*.py[ocd]
+*.png
+**/.vscode
+*.env
+*.out
+*.in
+run_*.sh
+*.log
+*.png
+*.svg
+*.exe

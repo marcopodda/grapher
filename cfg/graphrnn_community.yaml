@@ -1,0 +1,2 @@
+epochs: 2000
+min_num_nodes: 16

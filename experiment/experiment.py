@@ -29,9 +29,9 @@ class BaseExperiment:
     def load(cls, root):
         assert root is not None
         dataset = Path(root).parts[-2]
-        return cls(dataset, root=root, exists_ok=True)
+        return cls(dataset, root=root, exist_ok=True)
 
-    def __init__(self, dataset, root=None, exists_ok=False):
+    def __init__(self, dataset, root=None, exist_ok=False):
         self.dataset = dataset
         self.dataset_class = get_dataset_class(dataset)
 
@@ -42,12 +42,12 @@ class BaseExperiment:
             self.root = Path(root)
             self.name = "_".join(self.root.parts[-2:])
 
-        self.root.mkdir(parents=True, exists_ok=exists_ok)
-        (self.root / "ckpt").mkdir(exists_ok=exists_ok)
-        (self.root / "data").mkdir(exists_ok=exists_ok)
-        (self.root / "config").mkdir(exists_ok=exists_ok)
-        (self.root / "samples").mkdir(exists_ok=exists_ok)
-        (self.root / "results").mkdir(exists_ok=exists_ok)
+        self.root.mkdir(parents=True, exist_ok=exist_ok)
+        (self.root / "ckpt").mkdir(exist_ok=exist_ok)
+        (self.root / "data").mkdir(exist_ok=exist_ok)
+        (self.root / "config").mkdir(exist_ok=exist_ok)
+        (self.root / "samples").mkdir(exist_ok=exist_ok)
+        (self.root / "results").mkdir(exist_ok=exist_ok)
 
     def train(self):
         raise NotImplementedError

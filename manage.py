@@ -28,8 +28,11 @@ def main():
                 for dataset in DATASET_NAMES:
                     if order == "smiles" and dataset not in ["ENZYMES", "PROTEINS_full"]:
                         continue
-                    exp = exp_class(order, dataset)
-                    exp.train()
+                    try:
+                        exp = exp_class(order, dataset)
+                        exp.train()
+                    except FileExistsError:
+                        continue
         else:
             exp_class = get_exp_class(args['<model>'])
             for dataset in DATASET_NAMES:

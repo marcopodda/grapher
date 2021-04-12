@@ -123,7 +123,7 @@ class TUData(DatasetManager):
                 c = 1
                 for line in f:
                     node_label = int(line[:-1])
-                    Gs[node2graph[c]-1].node[c]['label'] = node_label
+                    Gs[node2graph[c]-1].nodes[c]['label'] = node_label
                     c += 1
 
         graphlist = GraphList(Gs)

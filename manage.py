@@ -34,8 +34,11 @@ def main():
             exp_class = get_exp_class(args['<model>'])
             for dataset in DATASET_NAMES:
                 print(f"training dataset {dataset}")
-                exp = exp_class(dataset)
-                exp.train()
+                try:
+                    exp = exp_class(dataset)
+                    exp.train()
+                except FileExistsError:
+                    continue
     elif args["evaluate"]:
         if args['--order']:
             ev_class = OrderEvaluator

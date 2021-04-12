@@ -4,8 +4,10 @@ import requests
 import zipfile
 from pathlib import Path
 import operator
+import numpy as np
 
 import networkx as nx
+from nltk.tree import ParentedTree
 import torch
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
@@ -136,6 +138,53 @@ class TUData(DatasetManager):
         return graphlist
 
 
+class Trees(DatasetManager):
+    def _fetch_data(self):
+        pass
+
+    def _make_splits(self):
+        splits = {'train': list(range(600)), 'test': list(range(600, 780))}
+        save_yaml(splits, self.raw_dir / 'splits.yaml')
+
+    def _read_data(self):
+        def set_index(tree):
+            tree.set_label(str(id(tree)))
+
+            for st in tree:
+                set_index(st)
+
+
+        def build_graph(G, tree):
+            for st in tree:
+                build_graph(G, st)
+
+            if tree.parent():
+                G.add_edge(tree.label(), tree.parent().label())
+
+        graphs = []
+        with open(self.raw_dir / "tr.txt", "r") as f:
+            for line in f.readlines():
+                tree_string = line.rstrip("\n")
+                tree = ParentedTree.fromstring(tree_string, brackets="{}")
+                set_index(tree)
+
+                G = nx.Graph()
+                build_graph(G, tree)
+                graphs.append(G)
+
+        with open(self.raw_dir / "test.txt", "r") as f:
+            for line in f.readlines():
+                tree_string = line.rstrip("\n")
+                tree = ParentedTree.fromstring(tree_string, brackets="{}")
+                set_index(tree)
+
+                G = nx.Graph()
+                build_graph(G, tree)
+                graphs.append(G)
+
+        return GraphList(graphs)
+
+
 class SyntheticData(DatasetManager):
 
     def __init__(self, config, exp_root, name):
@@ -204,6 +253,9 @@ class Ladders(SyntheticData):
 def get_dataset_class(name):
     if name.lower() == 'community':
         return Community
+
+    if name.lower() == 'trees':
+        return Trees
 
     if name.lower() == 'ego':
         return Ego

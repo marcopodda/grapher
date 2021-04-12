@@ -29,26 +29,25 @@ class BaseExperiment:
     def load(cls, root):
         assert root is not None
         dataset = Path(root).parts[-2]
-        return cls(dataset, root=root)
+        return cls(dataset, root=root, exists_ok=True)
 
-    def __init__(self, dataset, root=None):
+    def __init__(self, dataset, root=None, exists_ok=False):
         self.dataset = dataset
         self.dataset_class = get_dataset_class(dataset)
 
         if root is None:
-            now = datetime.now().isoformat()
-            self.name = f"{self.dataset}_{now}"
-            self.root = self._root / f"{self.model_name}" / f"{self.dataset}" / f"{now}"
+            self.name = f"{self.dataset}"
+            self.root = self._root / f"{self.model_name}" / f"{self.dataset}"
         else:
             self.root = Path(root)
             self.name = "_".join(self.root.parts[-2:])
 
-        maybe_makedir(self.root)
-        maybe_makedir(self.root / "ckpt")
-        maybe_makedir(self.root / "data")
-        maybe_makedir(self.root / "config")
-        maybe_makedir(self.root / "samples")
-        maybe_makedir(self.root / "results")
+        self.root.mkdir(parents=True, exists_ok=exists_ok)
+        (self.root / "ckpt").mkdir(exists_ok=exists_ok)
+        (self.root / "data").mkdir(exists_ok=exists_ok)
+        (self.root / "config").mkdir(exists_ok=exists_ok)
+        (self.root / "samples").mkdir(exists_ok=exists_ok)
+        (self.root / "results").mkdir(exists_ok=exists_ok)
 
     def train(self):
         raise NotImplementedError

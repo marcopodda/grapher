@@ -5,6 +5,7 @@ import pyemd
 from scipy.linalg import toeplitz
 
 from dataset.graph import GraphList
+from joblib import Parallel, delayed
 
 
 def emd_distance(x, y, distance_scaling=1.0):
@@ -63,9 +64,11 @@ def loss(x, n, G_real, generator):
 def optimizer_brute(x_min, x_max, x_step, n, G_real, generator):
     loss_all = []
     x_list = np.arange(x_min, x_max, x_step)
-    for x_test in x_list:
-        if x_test < n:
-            loss_all.append(loss(x_test, n, G_real, generator))
+    P = Parallel(n_jobs=40, verbose=1)
+    loss_all = P(delayed(loss)(x_test, n, G_real, generator) for x_test in x_list if x_test < n)
+    # for x_test in x_list:
+    #     if x_test < n:
+    #         loss_all.append(loss(x_test, n, G_real, generator))
     x_optim = x_list[np.argmin(np.array(loss_all))]
     return x_optim
 

@@ -79,6 +79,10 @@ class OrbitCount(Metric):
     name = "orbit"
 
 
+class BetweennessCentrality(Metric):
+    name = "betweenness"
+
+
 class Result:
     @classmethod
     def load(cls, model_name, dataset_name, path):
@@ -87,6 +91,7 @@ class Result:
         result.degree = DegreeDistribution.load(resultdict.pop('degree'))
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.orbit = OrbitCount.load(resultdict.pop('orbit'))
+        result.betweenness = OrbitCount.load(resultdict.pop('betweenness'))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result
@@ -97,6 +102,7 @@ class Result:
         self.degree = DegreeDistribution()
         self.clustering = ClusteringCoefficient()
         self.orbit = OrbitCount()
+        self.betweenness = BetweennessCentrality()
 
     @property
     def uniqueness_not_calculated(self):
@@ -106,11 +112,16 @@ class Result:
     def novelty_not_calculated(self):
         return not hasattr(self, 'novelty1000')
 
+    @property
+    def npsdk_not_calculated(self):
+        return not hasattr(self, 'npsdk')
+
     def asdict(self):
         data = self.__dict__
         data['degree'] = self.degree.asdict()
         data['clustering'] = self.clustering.asdict()
         data['orbit'] = self.orbit.asdict()
+        data['betweenness'] = self.betweenness.asdict()
         return data
 
     def save(self, path):
@@ -152,6 +163,14 @@ class Result:
         self.clustering.mean = None
         self.clustering.std = None
 
+    def clean_betweenness(self):
+        self.betweenness.scores = []
+        self.betweenness.data_hist = None
+        self.betweenness.samples_hist = None
+        self.betweenness.mean = None
+        self.betweenness.std = None
+
+
 class EvaluatorBase:
     def __init__(self, model_name):
         self.model_name = model_name
@@ -164,6 +183,9 @@ class EvaluatorBase:
 
     def uniqueness_not_calculated(self, result):
         return result.uniqueness_not_calculated
+
+    def npsdk_not_calculated(self, result):
+        return result.npsdk_not_calculated
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
@@ -193,6 +215,12 @@ class EvaluatorBase:
 
             if not result.orbit.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'orbit')
+
+            if not result.betweenness.is_computed:
+                self.evaluate_kl(result, exp, dataset, 'betweenness')
+
+            if self.npsdk_not_calculated(result):
+                self.evaluate_npsdk(result, exp, dataset)
 
             result.save(exp.root / "results")
 
@@ -231,6 +259,14 @@ class EvaluatorBase:
             uniqueness, _ = evaluation.uniqueness(samples, self.fast)
             result.update(f'uniqueness{num_samples}', uniqueness)
             result.update_time(num_samples, time_elapsed)
+
+    def evaluate_npsdk(self, result, exp, dataset):
+        test_data = dataset.get_data('test')
+        for trial in range(self.num_trials):
+            samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
+            npsdk_score = evaluation.nspdk(samples, test_data)
+            result.update("npsdk", npsdk_score)
+        result.finalize_metric("npsdk", self.num_trials)
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')

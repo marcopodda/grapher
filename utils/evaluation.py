@@ -4,6 +4,7 @@ import subprocess as sp
 from scipy.stats import entropy
 
 from utils.misc import graph_to_file
+from utils import mmd
 
 
 BINS = 100
@@ -30,6 +31,16 @@ def clustering_histogram(graphs):
     return np.array(coefs)
 
 
+def betweenness_histogram(graphs):
+    counts = []
+
+    for G in graphs:
+        bcs = dict(nx.betweenness_centrality(G))
+        counts.extend(list(bcs.values()))
+
+    return np.array(counts)
+
+
 def orbit_count_histogram(graphs):
     counts = []
 
@@ -46,6 +57,12 @@ def orbit_count_histogram(graphs):
         counts.extend(count)
 
     return np.array(counts)
+
+
+def nspdk(ref, sample):
+    sample = [G for G in sample if not G.number_of_nodes() == 0]
+    mmd_dist = mmd.compute_mmd(ref, sample, metric='nspdk', is_hist=False, n_jobs=-1)
+    return mmd_dist
 
 
 def normalize_counts(ref_counts, sample_counts, bins):
@@ -70,16 +87,20 @@ def kl_divergence(ref, sample, metric):
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
     if metric == 'degree':
-        ref_counts= degree_histogram(ref)
-        sample_counts= degree_histogram(sample)
+        ref_counts = degree_histogram(ref)
+        sample_counts = degree_histogram(sample)
 
     elif metric == 'clustering':
-        ref_counts= clustering_histogram(ref)
-        sample_counts= clustering_histogram(sample)
+        ref_counts = clustering_histogram(ref)
+        sample_counts = clustering_histogram(sample)
 
     elif metric == 'orbit':
-        ref_counts= orbit_count_histogram(ref)
-        sample_counts= orbit_count_histogram(sample)
+        ref_counts = orbit_count_histogram(ref)
+        sample_counts = orbit_count_histogram(sample)
+
+    elif metric == 'betweenness':
+        ref_counts = betweenness_histogram(ref)
+        sample_counts = betweenness_histogram(sample)
 
     ref_hist, sample_hist = normalize_counts(ref_counts, sample_counts, BINS)
     return entropy(ref_hist + EPS, sample_hist + EPS), ref_hist, sample_hist
@@ -126,7 +147,6 @@ def novelty(ref, sample, fast):
 
 def uniqueness(sample, fast):
     unique = []
-    ref = [clean_graph(G_or_edges) for G_or_edges in ref]
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
     for i, G in enumerate(sample):

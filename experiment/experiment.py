@@ -197,8 +197,6 @@ def get_exp_class(model_name):
 
 def load_experiment(root, model_name, dataset_name):
     expdir = root / model_name / dataset_name
-    print(expdir)
-    # expdir = last_in_folder(rundir)
     exp_class = get_exp_class(model_name)
     exp = exp_class.load(expdir)
     return exp

@@ -119,9 +119,7 @@ def sample(nodelist, parameters, generator):
             p = parameters[nodes][1]
             graph = nx.fast_gnp_random_graph(n, p)
             while graph.number_of_edges() == 0:
-                print("stuck")
                 graph = nx.fast_gnp_random_graph(n, p)
-            print("stuck no more")
 
         samples.append(list(graph.edges()))
 

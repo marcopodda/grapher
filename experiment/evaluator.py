@@ -194,6 +194,7 @@ class EvaluatorBase:
             print(dataset_name)
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
+            print(exp.root)
 
             path = exp.root / "results" / f"{dataset_name}.yaml"
             if not path.exists():

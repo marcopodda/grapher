@@ -265,6 +265,8 @@ class EvaluatorBase:
         for i, G in enumerate(test_data):
             for n in G.nodes():
                 nx.set_node_attributes(test_data[i], nx.degree(G), "label")
+            print(G.nodes(data=True))
+            assert False
 
         for trial in range(self.num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)

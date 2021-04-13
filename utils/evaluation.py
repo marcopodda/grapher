@@ -82,7 +82,6 @@ def normalize_counts(ref_counts, sample_counts, bins):
 
 
 def kl_divergence(ref, sample, metric):
-    print(metric)
     ref = [clean_graph(G_or_edges) for G_or_edges in ref]
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 

@@ -273,7 +273,7 @@ class EvaluatorBase:
                     samples[i].nodes[n]["label"] = G.degree(n)
             nspdk_score = evaluation.nspdk(samples, test_data)
             result.update("nspdk", nspdk_score)
-        result.finalize_metric("nspdk", self.num_trials)
+        # result.finalize_metric("nspdk", self.num_trials)
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')

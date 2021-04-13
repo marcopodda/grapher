@@ -263,7 +263,7 @@ class GRU_plain(nn.Module):
         else:
             input = input_raw
         if pack:
-            input = pack_padded_sequence(input, lengths=input_len.cpu(), batch_first=True)
+            input = pack_padded_sequence(input, lengths=input_len, batch_first=True)
         output_raw, self.hidden = self.rnn(input, self.hidden)
         if pack:
             output_raw = pad_packed_sequence(output_raw, batch_first=True)[0]

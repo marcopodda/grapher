@@ -264,7 +264,7 @@ class EvaluatorBase:
         test_data = dataset.get_data('test')
         for i, G in enumerate(test_data):
             for n in G.nodes():
-                nx.set_node_attributes(test_data[i], nx.degree(G), "label")
+                nx.set_node_attributes(test_data[i], list(nx.degree(G)), "label")
             print(G.nodes(data=True))
             assert False
 
@@ -272,7 +272,7 @@ class EvaluatorBase:
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
             for i, G in enumerate(samples):
                 for n in G.nodes():
-                    nx.set_node_attributes(samples[i], nx.degree(G), "label")
+                    nx.set_node_attributes(samples[i], list(nx.degree(G)), "label")
             nspdk_score = evaluation.nspdk(samples, test_data)
             result.update("nspdk", nspdk_score)
         result.finalize_metric("nspdk", self.num_trials)

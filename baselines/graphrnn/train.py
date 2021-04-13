@@ -55,7 +55,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         # input, output for output rnn module
         # a smart use of pytorch builtin function:
         # pack variable--b1_l1,b2_l1,...,b1_l2,b2_l2,...
-        y_reshape = pack_padded_sequence(y, lengths=y_len.cpu(), batch_first=True).data
+        y_reshape = pack_padded_sequence(y, lengths=y_len, batch_first=True).data
         # reverse y_reshape, so that their lengths are sorted, add dimension
         idx = [i for i in range(y_reshape.size(0) - 1, -1, -1)]
         idx = torch.LongTensor(idx).to(device)
@@ -82,7 +82,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
 
         # if using ground truth to train
         h = rnn(x, pack=True, input_len=y_len)
-        h = pack_padded_sequence(h, lengths=y_len.cpu(), batch_first=True).data  # get packed hidden vector
+        h = pack_padded_sequence(h, lengths=y_len, batch_first=True).data  # get packed hidden vector
         # reverse h
         idx = [i for i in range(h.size(0) - 1, -1, -1)]
         idx = Variable(torch.LongTensor(idx)).to(device)

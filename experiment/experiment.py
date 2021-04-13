@@ -28,7 +28,7 @@ class BaseExperiment:
     @classmethod
     def load(cls, root):
         assert root is not None
-        dataset = Path(root).parts[-2]
+        dataset = Path(root).parts[-1]
         return cls(dataset, root=root, exist_ok=True)
 
     def __init__(self, dataset, root=None, exist_ok=False):

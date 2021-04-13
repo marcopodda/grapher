@@ -108,7 +108,7 @@ def sample(nodelist, parameters, generator):
             try:
                 nodes = np.random.choice(parameters.keys(), 1)
             except:
-                nodes = parameters[0]
+                nodes = list(parameters.keys())[0]
 
         if generator == 'BA':
             n = int(parameters[nodes][0])

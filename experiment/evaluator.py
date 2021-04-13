@@ -262,15 +262,15 @@ class EvaluatorBase:
 
     def evaluate_nspdk(self, result, exp, dataset):
         test_data = dataset.get_data('test')
-        for G in test_data:
-            for i, n in enumerate(G.nodes()):
-                G.nodes[i]["label"] = G.degree(n)
+        for i, G in enumerate(test_data):
+            for n in G.nodes():
+                test_data[i].nodes[n]["label"] = G.degree(n)
 
         for trial in range(self.num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
-            for G in samples:
-                for i, n in enumerate(G.nodes()):
-                    G.nodes[i]["label"] = G.degree(n)
+            for i, G in enumerate(samples):
+                for n in G.nodes():
+                    samples[i].nodes[n]["label"] = G.degree(n)
             nspdk_score = evaluation.nspdk(samples, test_data)
             result.update("nspdk", nspdk_score)
         result.finalize_metric("nspdk", self.num_trials)

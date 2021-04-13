@@ -265,6 +265,7 @@ class EvaluatorBase:
         for i, G in enumerate(test_data):
             for n in G.nodes():
                 test_data[i].nodes[n] = {"label": G.degree(n)}
+            print(G.nodes(data=True))
 
         for trial in range(self.num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)

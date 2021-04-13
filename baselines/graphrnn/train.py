@@ -95,9 +95,9 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
         y_pred = output(output_x, pack=True, input_len=output_y_len)
         y_pred = torch.sigmoid(y_pred)
         # clean
-        y_pred = pack_padded_sequence(y_pred, lengths=output_y_len.cpu(), batch_first=True)
+        y_pred = pack_padded_sequence(y_pred, lengths=output_y_len, batch_first=True)
         y_pred = pad_packed_sequence(y_pred, batch_first=True)[0]
-        output_y = pack_padded_sequence(output_y, lengths=output_y_len.cpu(), batch_first=True)
+        output_y = pack_padded_sequence(output_y, lengths=output_y_len, batch_first=True)
         output_y = pad_packed_sequence(output_y, batch_first=True)[0]
         # use cross entropy loss
         loss = binary_cross_entropy_weight(y_pred, output_y)

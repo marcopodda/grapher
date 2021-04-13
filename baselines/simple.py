@@ -105,7 +105,10 @@ def sample(nodelist, parameters, generator):
 
     for i, nodes in enumerate(nodelist):
         if nodes not in parameters.keys():
-            nodes = np.random.choice(parameters.keys(), 1)
+            try:
+                nodes = np.random.choice(parameters.keys(), 1)
+            except:
+                nodes = parameters[0]
 
         if generator == 'BA':
             n = int(parameters[nodes][0])

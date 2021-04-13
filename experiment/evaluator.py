@@ -113,8 +113,8 @@ class Result:
         return not hasattr(self, 'novelty1000')
 
     @property
-    def npsdk_not_calculated(self):
-        return not hasattr(self, 'npsdk')
+    def nspdk_not_calculated(self):
+        return not hasattr(self, 'nspdk')
 
     def asdict(self):
         data = self.__dict__
@@ -184,8 +184,8 @@ class EvaluatorBase:
     def uniqueness_not_calculated(self, result):
         return result.uniqueness_not_calculated
 
-    def npsdk_not_calculated(self, result):
-        return result.npsdk_not_calculated
+    def nspdk_not_calculated(self, result):
+        return result.nspdk_not_calculated
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:
@@ -219,8 +219,8 @@ class EvaluatorBase:
             if not result.betweenness.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'betweenness')
 
-            if self.npsdk_not_calculated(result):
-                self.evaluate_npsdk(result, exp, dataset)
+            if self.nspdk_not_calculated(result):
+                self.evaluate_nspdk(result, exp, dataset)
 
             result.save(exp.root / "results")
 
@@ -260,13 +260,20 @@ class EvaluatorBase:
             result.update(f'uniqueness{num_samples}', uniqueness)
             result.update_time(num_samples, time_elapsed)
 
-    def evaluate_npsdk(self, result, exp, dataset):
+    def evaluate_nspdk(self, result, exp, dataset):
         test_data = dataset.get_data('test')
+        for G in test_data:
+            for n in G.nodes():
+                G.nodes[n]["label"] = G.degree(n)
+
         for trial in range(self.num_trials):
             samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
-            npsdk_score = evaluation.nspdk(samples, test_data)
-            result.update("npsdk", npsdk_score)
-        result.finalize_metric("npsdk", self.num_trials)
+            for G in samples:
+                for n in G.nodes():
+                    G.nodes[n]["label"] = G.degree(n)
+            nspdk_score = evaluation.nspdk(samples, test_data)
+            result.update("nspdk", nspdk_score)
+        result.finalize_metric("nspdk", self.num_trials)
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')

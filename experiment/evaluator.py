@@ -218,8 +218,8 @@ class EvaluatorBase:
         if not (exp.root / "samples" / filename).exists():
             samples = exp.sample(num_samples=num_samples)
             torch.save(samples, exp.root / "samples" /filename)
-
-        return torch.load(exp.root / "samples" / filename)
+        samples = torch.load(exp.root / "samples" / filename)
+        return [G for G in samples if G.number_of_nodes() > 0]
 
     def _sample_or_get_samples_metric(self, result, exp, num_samples, trial=None):
         time_elapsed = None
@@ -231,7 +231,8 @@ class EvaluatorBase:
             time_elapsed = time.time() - start
             torch.save(samples, exp.root / "samples" /filename)
 
-        return time_elapsed, torch.load(exp.root / "samples" / filename)
+        samples = torch.load(exp.root / "samples" / filename)
+        return time_elapsed, [G for G in samples if G.number_of_nodes() > 0]
 
     def evaluate_novelty(self, result, exp, dataset):
         train_data = dataset.get_data('train')

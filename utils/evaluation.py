@@ -93,17 +93,16 @@ def orca(graph):
 def orbit_worker(graph):
     try:
         orbit_counts = orca(graph)
-    except:
-        return None
-
-    orbit_counts_graph = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
-    return orbit_counts_graph
+        orbit_counts_graph = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
+        return orbit_counts_graph
+    except Exception as e:
+        print(e)
+        return 0
 
 
 def orbit_count_histogram(graphs):
     P = Parallel(n_jobs=-1)
     counts = P(delayed(orbit_worker)(G) for G in graphs)
-    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
@@ -158,6 +157,7 @@ def clean_graph(G_or_edges):
         G = nx.Graph(G_or_edges)
     else:
         G = G_or_edges
+
     G.remove_edges_from(nx.selfloop_edges(G))
     return G
 

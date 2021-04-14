@@ -32,7 +32,7 @@ def last_in_folder(path):
 def load_result(model_name, dataset_name, order):
     path = RUNS_DIR if order is False else ORDER_DIR
     path = path / model_name / dataset_name
-    result_path = last_in_folder(path) / "results" / f"{dataset_name}.yaml"
+    result_path = path / "results" / f"{dataset_name}.yaml"
     return load_yaml(result_path)
 
 

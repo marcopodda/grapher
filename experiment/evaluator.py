@@ -112,10 +112,6 @@ class Result:
     def novelty_not_calculated(self):
         return not hasattr(self, 'novelty1000')
 
-    @property
-    def nspdk_not_calculated(self):
-        return not hasattr(self, 'nspdk')
-
     def asdict(self):
         data = self.__dict__
         data['degree'] = self.degree.asdict()
@@ -194,7 +190,6 @@ class EvaluatorBase:
             print(dataset_name)
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
-            print(exp.root)
 
             path = exp.root / "results" / f"{dataset_name}.yaml"
             if not path.exists():
@@ -219,9 +214,6 @@ class EvaluatorBase:
 
             if not result.betweenness.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'betweenness')
-
-            if self.nspdk_not_calculated(result):
-                self.evaluate_nspdk(result, exp, dataset)
 
             result.save(exp.root / "results")
 
@@ -260,21 +252,6 @@ class EvaluatorBase:
             uniqueness, _ = evaluation.uniqueness(samples, self.fast)
             result.update(f'uniqueness{num_samples}', uniqueness)
             result.update_time(num_samples, time_elapsed)
-
-    def evaluate_nspdk(self, result, exp, dataset):
-        test_data = dataset.get_data('test')
-        for i, G in enumerate(test_data):
-            for n in G.nodes():
-                test_data[i].nodes[n]["label"] = G.degree(n)
-
-        for trial in range(self.num_trials):
-            samples = self._sample_or_get_samples_kl(result, exp, len(test_data), trial)
-            for i, G in enumerate(samples):
-                for n in G.nodes():
-                    samples[i].nodes[n]["label"] = G.degree(n)
-            nspdk_score = evaluation.nspdk(samples, test_data)
-            result.update("nspdk", float(nspdk_score))
-        # result.finalize_metric("nspdk", self.num_trials)
 
     def evaluate_kl(self, result, exp, dataset, metric_name):
         test_data = dataset.get_data('test')

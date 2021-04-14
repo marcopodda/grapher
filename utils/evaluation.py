@@ -74,7 +74,7 @@ def orca(graph):
         f.write(str(u) + ' ' + str(v) + '\n')
     f.close()
 
-    output = sp.check_output(['./utils/orca/orca.exe', 'node', '4', tmp_fname, 'std'])
+    output = sp.check_output(['./utils/orca/orca', 'node', '4', tmp_fname, 'std'])
     output = output.decode('utf8').strip()
 
     idx = output.find(COUNT_START_STR) + len(COUNT_START_STR)

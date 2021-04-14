@@ -20,8 +20,8 @@ def metric_by_dataset(dataset_name, metric_name, order=False):
         try:
             result = load_result(model_name, dataset_name, order=order)
             score, std = process_result(result, metric_name)
-            scores.append(score)
-            stds.append(std)
+            scores.append({f"{dataset_name}-{metric_name}-mean": score})
+            stds.append({f"{dataset_name}-{metric_name}-std": std})
         except:
             continue
 
@@ -36,7 +36,7 @@ def metrics_by_dataset(dataset_name, quantitative=False, order=False):
 
     scores_all, stds_all = [], []
     for metric_name in metric_names:
-        
+
         scores, stds = metric_by_dataset(dataset_name, metric_name, order=order)
         if scores != []:
             scores_all.append(scores)

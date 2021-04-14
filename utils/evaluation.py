@@ -1,9 +1,11 @@
+import os
 import numpy as np
 import itertools
 import networkx as nx
 import subprocess as sp
 from scipy.stats import entropy
 from joblib import Parallel, delayed
+import tempfile
 
 from utils.misc import graph_to_file
 from utils import mmd
@@ -13,58 +15,94 @@ BINS = 100
 EPS =  + 1e-9
 
 
-def degree_helper(G):
+def degree_worker(G):
     degrees = dict(nx.degree(G))
     return list(degrees.values())
 
 
 def degree_histogram(graphs):
     P = Parallel(n_jobs=-1)
-    counts = P(delayed(degree_helper)(G) for G in graphs)
+    counts = P(delayed(degree_worker)(G) for G in graphs)
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
-def clustering_helper(G):
+def clustering_worker(G):
     clustering_coefs = dict(nx.clustering(G))
     return list(clustering_coefs.values())
 
 
 def clustering_histogram(graphs):
     P = Parallel(n_jobs=-1)
-    counts = P(delayed(clustering_helper)(G) for G in graphs)
+    counts = P(delayed(clustering_worker)(G) for G in graphs)
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
-def betweenness_helper(G):
+def betweenness_worker(G):
     bcs = dict(nx.betweenness_centrality(G))
     return list(bcs.values())
 
 
 def betweenness_histogram(graphs):
     P = Parallel(n_jobs=-1)
-    counts = P(delayed(betweenness_helper)(G) for G in graphs)
+    counts = P(delayed(betweenness_worker)(G) for G in graphs)
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
-def orbit_helper(G):
-    graph_to_file(G, "./utils/orca/graph.in")
-    sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
+def edge_list_reindexed(G):
+    idx = 0
+    id2idx = dict()
+    for u in G.nodes():
+        id2idx[str(u)] = idx
+        idx += 1
 
-    with open("./utils/orca/graph.out", "r") as f:
-        count = []
-        for line in f.readlines():
-            line = line.rstrip("\n")
-            line = [int(x) for x in line.split(" ")]
-            count.append(sum(line))
-    return count
+    edges = []
+    for (u, v) in G.edges():
+        edges.append((id2idx[str(u)], id2idx[str(v)]))
+    return edges
+
+
+def orca(graph):
+    COUNT_START_STR = 'orbit counts: \n'
+    tmp_fname = tempfile.NamedTemporaryFile().name
+
+    f = open(tmp_fname, 'w')
+    f.write(str(graph.number_of_nodes()) + ' ' + str(graph.number_of_edges()) + '\n')
+    for (u, v) in edge_list_reindexed(graph):
+        f.write(str(u) + ' ' + str(v) + '\n')
+    f.close()
+
+    output = sp.check_output(['./utils/orca/orca.exe', 'node', '4', tmp_fname, 'std'])
+    output = output.decode('utf8').strip()
+
+    idx = output.find(COUNT_START_STR) + len(COUNT_START_STR)
+    output = output[idx:]
+    node_orbit_counts = np.array([list(map(int, node_cnts.strip().split(' ')))
+                                  for node_cnts in output.strip('\n').split('\n')])
+
+    try:
+        os.remove(tmp_fname)
+    except OSError:
+        pass
+
+    return node_orbit_counts
+
+
+def orbit_worker(graph):
+    try:
+        orbit_counts = orca(graph)
+    except:
+        return None
+
+    orbit_counts_graph = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
+    return orbit_counts_graph
 
 
 def orbit_count_histogram(graphs):
     P = Parallel(n_jobs=-1)
-    counts = P(delayed(orbit_helper)(G) for G in graphs)
+    counts = P(delayed(orbit_worker)(G) for G in graphs)
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 

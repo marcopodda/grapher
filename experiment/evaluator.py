@@ -4,13 +4,11 @@ import numpy as np
 import networkx as nx
 from pathlib import Path
 
-from config import get_config_class
-from dataset import get_dataset_class, load_dataset
-from dataset.graph import GraphList
+from dataset import load_dataset
 from .experiment import load_experiment
 
 from utils import evaluation
-from utils.constants import MODEL_NAMES, DATASET_NAMES, ORDER_NAMES
+from utils.constants import DATASET_NAMES
 from utils.serializer import save_yaml, load_yaml
 
 
@@ -179,9 +177,6 @@ class EvaluatorBase:
 
     def uniqueness_not_calculated(self, result):
         return result.uniqueness_not_calculated
-
-    def nspdk_not_calculated(self, result):
-        return result.nspdk_not_calculated
 
     def evaluate(self):
         for dataset_name in DATASET_NAMES:

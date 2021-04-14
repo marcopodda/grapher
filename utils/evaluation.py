@@ -1,7 +1,9 @@
 import numpy as np
+import itertools
 import networkx as nx
 import subprocess as sp
 from scipy.stats import entropy
+from joblib import Parallel, delayed
 
 from utils.misc import graph_to_file
 from utils import mmd
@@ -11,51 +13,59 @@ BINS = 100
 EPS =  + 1e-9
 
 
+def degree_helper(G):
+    degrees = dict(nx.degree(G))
+    return list(degrees.values())
+
+
 def degree_histogram(graphs):
-    counts = []
-
-    for G in graphs:
-        degrees = dict(nx.degree(G))
-        counts.extend(list(degrees.values()))
-
+    P = Parallel(n_jobs=-1)
+    counts = P(delayed(degree_helper)(G) for G in graphs)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
+
+
+def clustering_helper(G):
+    clustering_coefs = dict(nx.clustering(G))
+    return list(clustering_coefs.values())
 
 
 def clustering_histogram(graphs):
-    coefs = []
-
-    for G in graphs:
-        clustering_coefs = dict(nx.clustering(G))
-        coefs.extend(list(clustering_coefs.values()))
-
-    return np.array(coefs)
-
-
-def betweenness_histogram(graphs):
-    counts = []
-
-    for G in graphs:
-        bcs = dict(nx.betweenness_centrality(G))
-        counts.extend(list(bcs.values()))
-
+    P = Parallel(n_jobs=-1)
+    counts = P(delayed(clustering_helper)(G) for G in graphs)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
+def betweenness_helper(G):
+    bcs = dict(nx.betweenness_centrality(G))
+    return list(bcs.values())
+
+
+def betweenness_histogram(graphs):
+    P = Parallel(n_jobs=-1)
+    counts = P(delayed(betweenness_helper)(G) for G in graphs)
+    counts = list(itertools.chain.from_iterable(counts))
+    return np.array(counts)
+
+
+def orbit_helper(G):
+    graph_to_file(G, "./utils/orca/graph.in")
+    sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
+
+    with open("./utils/orca/graph.out", "r") as f:
+        count = []
+        for line in f.readlines():
+            line = line.rstrip("\n")
+            line = [int(x) for x in line.split(" ")]
+            count.append(sum(line))
+    return count
+
+
 def orbit_count_histogram(graphs):
-    counts = []
-
-    for G in graphs:
-        graph_to_file(G, "./utils/orca/graph.in")
-        sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
-
-        with open("./utils/orca/graph.out", "r") as f:
-            count = []
-            for line in f.readlines():
-                line = line.rstrip("\n")
-                line = [int(x) for x in line.split(" ")]
-                count.append(sum(line))
-        counts.extend(count)
-
+    P = Parallel(n_jobs=-1)
+    counts = P(delayed(orbit_helper)(G) for G in graphs)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
@@ -121,7 +131,7 @@ def is_duplicate(G, Gs, fast):
             g = nx.relabel_nodes(g, mapping)
             test = sorted(G.edges()) == sorted(g.edges())
         else:
-            test = nx.is_isomorphic(G, g)
+            test = nx.faster_could_be_isomorphic(G, g)
 
         if test is True:
             return True

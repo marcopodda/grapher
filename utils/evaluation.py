@@ -96,7 +96,6 @@ def orbit_worker(graph):
         orbit_counts_graph = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
         return orbit_counts_graph
     except Exception as e:
-        print(e)
         return 0
 
 

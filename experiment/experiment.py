@@ -80,9 +80,8 @@ class OrderExperiment(Experiment):
 
     @classmethod
     def load(cls, root):
-        assert root is not None
-        dataset = Path(root).parts[-2]
-        order_type = Path(root).parts[-3]
+        dataset = Path(root).parts[-1]
+        order_type = Path(root).parts[-2]
         return cls(order_type, dataset, root=root, exist_ok=True)
 
     def __init__(self, order_type, dataset, root=None, exist_ok=False):

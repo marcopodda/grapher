@@ -198,7 +198,7 @@ def sample(config, rnn, output, num_samples):
             rnn,
             output,
             device,
-            test_batch_size=1)
+            test_batch_size=256)
 
         samples.append(edges)
 

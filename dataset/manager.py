@@ -184,6 +184,9 @@ class Trees(DatasetManager):
 
         return GraphList(graphs)
 
+    def _fetch_data(self):
+        pass
+
 
 class SyntheticData(DatasetManager):
 

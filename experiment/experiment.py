@@ -83,11 +83,11 @@ class OrderExperiment(Experiment):
         assert root is not None
         dataset = Path(root).parts[-2]
         order_type = Path(root).parts[-3]
-        return cls(order_type, dataset, root=root)
+        return cls(order_type, dataset, root=root, exist_ok=True)
 
-    def __init__(self, order_type, dataset, root=None):
+    def __init__(self, order_type, dataset, root=None, exist_ok=False):
         self.model_name = order_type
-        super().__init__(dataset, root=root)
+        super().__init__(dataset, root=root, exist_ok=exist_ok)
 
     def train(self):
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")

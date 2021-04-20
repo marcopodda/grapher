@@ -2,8 +2,8 @@ from pathlib import Path
 
 
 MODEL_NAMES = ("ER", "BA", "GRU", "GRAPHRNN", "GRAPHER")
-DATASET_NAMES = ("ladders", "community", "ego", "trees", "ENZYMES", "PROTEINS_full")
-QUALITATIVE_METRIC_NAMES = ("degree", "clustering", "orbit", "nspdk")
+DATASET_NAMES = ("trees",) # ("ladders", "community", "ego", "trees", "ENZYMES", "PROTEINS_full")
+QUALITATIVE_METRIC_NAMES = ("degree", "clustering", "orbit", "betweenness")
 QUANTITATIVE_METRIC_NAMES = ("novelty1000", "novelty5000", "uniqueness1000", "uniqueness5000")
 ORDER_NAMES = ("random", "bfs-random", "dfs-random", "dfs-fixed", "smiles")
 

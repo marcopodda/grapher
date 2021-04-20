@@ -114,6 +114,7 @@ def train_rnn_epoch(epoch, config, rnn, output, data_loader, optimizer_rnn,
 
 
 def test_rnn_epoch(config, rnn, output, device, test_batch_size=16):
+    print("-------------", device)
     rnn.hidden = rnn.init_hidden(test_batch_size)
     rnn.eval()
     output.eval()
@@ -157,7 +158,6 @@ def test_rnn_epoch(config, rnn, output, device, test_batch_size=16):
 # train function for RNN
 def train(config, exp_root, dataloader, rnn, output):
     device = get_device(config)
-    print(device)
     # check if load existing model
     epoch = 1
 

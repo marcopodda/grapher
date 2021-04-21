@@ -85,17 +85,15 @@ def collate_experiments():
 def collate_order_experiments():
     all_data = []
 
-    for order in ORDERS[1:]:
+    for order in ORDERS:
         for dataset in ["trees"]:
             if order == "smiles" and dataset not in ["PROTEINS_full", "ENZYMES"]:
                 continue
 
-            result = load_result(ORDER_DIR, order, dataset)
-
-            if 'nspdk' not in result:
-                m, s, v = calculate_nspdk(ORDER_DIR, order, dataset)
-                result.update(nspdk={"mean": m, "std": s, "scores": v})
-                save_yaml(result, ORDER_DIR / order/ dataset / "results" / f"{dataset}.yaml")
+            if order == "bfs-fixed":
+                result = load_result(RUNS_DIR, "GRAPHER", dataset)
+            else:
+                result = load_result(ORDER_DIR, order, dataset)
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]

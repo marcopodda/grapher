@@ -85,4 +85,4 @@ def calculate_nspdk(model, dataset):
     samples = load_qual_samples(model, dataset)
     ref = load_test_set(model, dataset)
     values = [nspdk(ref, sample) for sample in samples]
-    return mean(values), stdev(values)
+    return mean(values), stdev(values), values

@@ -95,7 +95,7 @@ def collate_order_experiments():
             if 'nspdk' not in result:
                 ref = load_test_set(ORDER_DIR, order, dataset)
                 samples = load_qual_samples(ORDER_DIR, order, dataset)
-                m, s, v = nspdk(ref, samples)
+                m, s, v = calculate_nspdk(ref, samples)
                 result.update(nspdk={"mean": m, "std": s, "scores": v})
                 save_yaml(result, ORDER_DIR / order/ dataset / "results" / f"{dataset}.yaml")
 

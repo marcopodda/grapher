@@ -65,8 +65,7 @@ def collate_experiments():
             if not 'nspdk' in result:
                 m, s, v = calculate_nspdk(model, dataset)
                 result['nspdk'] = {"mean": m, "std": s, "scores": v}
-                save_yaml(RUNS_DIR / model / dataset / "results" / f"{dataset}.yaml")
-                result = load_result(model, dataset)
+                save_yaml(result, RUNS_DIR / model / dataset / "results" / f"{dataset}.yaml")
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]

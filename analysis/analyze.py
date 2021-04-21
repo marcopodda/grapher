@@ -55,9 +55,9 @@ def load_test_set(root, model, dataset):
     return graphs
 
 
-def calculate_nspdk(model, dataset):
-    samples = load_qual_samples(model, dataset)
-    ref = load_test_set(model, dataset)
+def calculate_nspdk(root, model, dataset):
+    samples = load_qual_samples(root, model, dataset)
+    ref = load_test_set(root, model, dataset)
     values = [float(nspdk(ref, sample)) for sample in samples]
     return float(mean(values)), float(stdev(values)), values
 

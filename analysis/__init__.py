@@ -83,8 +83,8 @@ def collate_experiments():
 def calculate_nspdk(model, dataset):
     samples = load_qual_samples(model, dataset)
     ref = load_test_set(model, dataset)
-    values = [nspdk(ref, sample) for sample in samples]
-    return mean(values), stdev(values), values
+    values = [float(nspdk(ref, sample)) for sample in samples]
+    return float(mean(values)), float(stdev(values)), values
 
 
 if __name__ == "__main__":

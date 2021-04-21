@@ -105,7 +105,3 @@ def collate_order_experiments():
                 all_data.append(row)
 
     return pd.DataFrame(all_data)
-
-
-if __name__ == "__main__":
-    collate_experiments()

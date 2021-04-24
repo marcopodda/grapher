@@ -94,7 +94,7 @@ class Result:
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.orbit = OrbitCount.load(resultdict.pop('orbit'))
         result.betweenness = OrbitCount.load(resultdict.pop('betweenness'))
-        result.nspdk = NSPDK() # .load(resultdict.pop('nspdk', None))
+        result.nspdk = NSPDK.load(resultdict.pop('nspdk'))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result
@@ -205,7 +205,6 @@ class EvaluatorBase:
                 result = Result(self.model_name, dataset_name)
             else:
                 result = Result.load(self.model_name, dataset_name, path)
-                result.nspdk = NSPDK()
 
             if self.novelty_not_calculated(result):
                 self.evaluate_novelty(result, exp, dataset)
@@ -225,7 +224,8 @@ class EvaluatorBase:
             if not result.betweenness.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'betweenness')
 
-            self.evaluate_kl(result, exp, dataset, "nspdk")
+            if not result.nspdk.is_computed:
+                self.evaluate_kl(result, exp, dataset, "nspdk")
 
             result.save(exp.root / "results")
 

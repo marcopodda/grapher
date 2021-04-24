@@ -89,6 +89,7 @@ class OrderExperiment(Experiment):
         super().__init__(dataset, root=root, exist_ok=exist_ok)
 
     def train(self):
+        print(f"Training on {self.dataset}")
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
         config.update(order=self.model_name)
         dataset = self.dataset_class(config, self.root, name=self.dataset)

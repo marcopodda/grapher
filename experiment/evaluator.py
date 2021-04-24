@@ -81,6 +81,10 @@ class BetweennessCentrality(Metric):
     name = "betweenness"
 
 
+class NSPDK(Metric):
+    name = "nspdk"
+
+
 class Result:
     @classmethod
     def load(cls, model_name, dataset_name, path):
@@ -90,6 +94,7 @@ class Result:
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.orbit = OrbitCount.load(resultdict.pop('orbit'))
         result.betweenness = OrbitCount.load(resultdict.pop('betweenness'))
+        result.nspdk = NSPDK.load(resultdict.pop('nspdk'))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result
@@ -101,6 +106,7 @@ class Result:
         self.clustering = ClusteringCoefficient()
         self.orbit = OrbitCount()
         self.betweenness = BetweennessCentrality()
+        self.nspdk = NSPDK()
 
     @property
     def uniqueness_not_calculated(self):
@@ -116,6 +122,7 @@ class Result:
         data['clustering'] = self.clustering.asdict()
         data['orbit'] = self.orbit.asdict()
         data['betweenness'] = self.betweenness.asdict()
+        data['nspdk'] = self.nspdk.asdict()
         return data
 
     def save(self, path):
@@ -164,6 +171,13 @@ class Result:
         self.betweenness.mean = None
         self.betweenness.std = None
 
+    def clean_nspdk(self):
+        self.nspdk.scores = []
+        self.nspdk.data_hist = None
+        self.nspdk.samples_hist = None
+        self.nspdk.mean = None
+        self.nspdk.std = None
+
 
 class EvaluatorBase:
     def __init__(self, model_name):
@@ -209,6 +223,8 @@ class EvaluatorBase:
 
             if not result.betweenness.is_computed:
                 self.evaluate_kl(result, exp, dataset, 'betweenness')
+
+            self.evaluate_kl(result, exp, dataset, "nspdk")
 
             result.save(exp.root / "results")
 

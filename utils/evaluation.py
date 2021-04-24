@@ -1,4 +1,5 @@
 import os
+from eden.graph import vectorize
 import numpy as np
 import itertools
 import networkx as nx
@@ -105,10 +106,13 @@ def orbit_count_histogram(graphs):
     return np.array(counts)
 
 
-def nspdk(ref, sample):
-    sample = [G for G in sample if not G.number_of_nodes() == 0]
-    mmd_dist = mmd.compute_mmd(ref, sample, metric='nspdk', is_hist=False, n_jobs=-1)
-    return mmd_dist
+def nspdk(graphs):
+    graphs = [G for G in graphs if not G.number_of_nodes() == 0]
+
+    for i, G in enumerate(graphs):
+        graphs[i] = nx.convert_node_labels_to_integers(G)
+
+    return vectorize(graphs).toarray().reshape(-1)
 
 
 def normalize_counts(ref_counts, sample_counts, bins):
@@ -146,6 +150,10 @@ def kl_divergence(ref, sample, metric):
     elif metric == 'betweenness':
         ref_counts = betweenness_histogram(ref)
         sample_counts = betweenness_histogram(sample)
+
+    elif metric == 'nspdk':
+        ref_counts = nspdk(ref)
+        sample_counts = nspdk(sample)
 
     ref_hist, sample_hist = normalize_counts(ref_counts, sample_counts, BINS)
     return entropy(ref_hist + EPS, sample_hist + EPS), ref_hist, sample_hist

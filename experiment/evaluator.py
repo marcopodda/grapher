@@ -94,7 +94,7 @@ class Result:
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.orbit = OrbitCount.load(resultdict.pop('orbit'))
         result.betweenness = OrbitCount.load(resultdict.pop('betweenness'))
-        result.nspdk = NSPDK.load(resultdict.pop('nspdk', None))
+        # result.nspdk = NSPDK.load(resultdict.pop('nspdk', None))
         for key in resultdict:
             setattr(result, key, resultdict[key])
         return result

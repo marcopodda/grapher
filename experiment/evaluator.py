@@ -94,12 +94,9 @@ class Result:
         result.clustering = ClusteringCoefficient.load(resultdict.pop('clustering'))
         result.orbit = OrbitCount.load(resultdict.pop('orbit'))
         result.betweenness = OrbitCount.load(resultdict.pop('betweenness'))
-        if hasattr(result, 'nspdk'):
-            result.nspdk = NSPDK.load(resultdict.pop('nspdk'))
+        result.nspdk = NSPDK.load(resultdict.pop('nspdk', None))
         for key in resultdict:
             setattr(result, key, resultdict[key])
-        if not hasattr(result, 'nspdk'):
-            setattr(result, 'nspdk', None)
         return result
 
     def __init__(self, model_name, dataset_name):

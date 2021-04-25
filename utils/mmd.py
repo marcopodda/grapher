@@ -78,7 +78,8 @@ def compute_mmd(samples1, samples2, metric, is_hist=True, n_jobs=None):
     # print("-----------------------", len(samples1), len(samples2))
     try:
         X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    except:
+    except Exception as e:
+        print(e)
         X = 0
     try:
         Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)

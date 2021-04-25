@@ -108,8 +108,6 @@ def orbit_count_histogram(graphs):
 
 
 def nspdk(graphs):
-    graphs = [G for G in graphs if not G.number_of_nodes() == 0]
-
     for i, G in enumerate(graphs):
         graphs[i] = nx.convert_node_labels_to_integers(G)
 

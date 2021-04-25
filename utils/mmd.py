@@ -44,7 +44,7 @@ def kernel_compute(X, Y=None, is_hist=True, metric='linear', n_jobs=None):
 
         if is_hist:
             row_sum = np.sum(X_p, axis=1)
-            X_p = X_p / row_sum[:, None]
+            X_p = X_p / (row_sum[:, None] + 1e-8)
 
         return X_p
 

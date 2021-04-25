@@ -78,8 +78,10 @@ def betweenness_dist(samples):
 
 
 def nspdk_dist(samples):
-    P = Parallel(n_jobs=40, verbose=0)
-    counts = P(delayed(vectorize)(G, complexity=4, discrete=True) for G in samples)
+    for i, G in enumerate(samples):
+        samples[i] = nx.convert_node_labels_to_integers(G)
+
+    counts = vectorize(samples, complexity=4, discrete=True)
     return counts
 
 

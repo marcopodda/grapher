@@ -102,7 +102,7 @@ def load_test_set(dataset):
 def load_samples(path):
     samples = torch.load(path)
     samples = [G for G in samples if not G.number_of_nodes() == 0]
-    return path(samples)
+    return patch(samples)
 
 
 def score(test_set, model, dataset, metric):

@@ -168,45 +168,26 @@ def clean_graph(G_or_edges):
     return G
 
 
-def is_duplicate(G, Gs, fast):
-    for g in Gs:
-        if fast:
-            mapping = {n: i for (i, n) in enumerate(g.nodes(), 3)}
-            g = nx.relabel_nodes(g, mapping)
-            test = sorted(G.edges()) == sorted(g.edges())
-        else:
-            test = nx.faster_could_be_isomorphic(G, g)
-
-        if test is True:
-            return True
-
-    return False
-
-
-def novelty(ref, sample, fast):
-    novel = []
+def novelty(ref, sample):
     ref = [clean_graph(G_or_edges) for G_or_edges in ref]
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
-    for i, G in enumerate(sample):
-        if not is_duplicate(G, ref, fast):
-            novel.append(G)
+    count = []
+    for G in sample:
+        test = np.array([nx.is_isomorphic(G, g) for g in ref])
+        count.append((test==0).any())
 
-    if len(novel) == 0:
-        return 0.0, []
-
-    return len(novel) / len(sample), novel
+    count = np.array(count)
+    return count.sum() / count.shape[0]
 
 
-def uniqueness(sample, fast):
-    unique = []
+def uniqueness(sample):
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
-    for i, G in enumerate(sample):
-        if not is_duplicate(G, sample[i+1:], fast):
-            unique.append(G)
+    count = []
+    for i, G in enumerate(sample[:-1]):
+        test = np.array([nx.is_isomorphic(G, g) for g in sample[i+1:]])
+        count.append((test==0).any())
 
-    if len(unique) == 0:
-        return 0.0, []
-
-    return len(unique) / len(sample), unique
+    count = np.array(count)
+    return count.sum() / count.shape[0]

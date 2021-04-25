@@ -34,5 +34,11 @@ HUMANIZE = {
     "clustering": "Clustering Coef.",
     "orbit": "Orbit Counts",
     "nspdk": "NSPDK",
-    "betweenness": "Beetweenness C."
+    "betweenness": "Beetweenness C.",
+    "novelty1000": "Novelty@1000",
+    "novelty5000": "Novelty@5000",
+    "uniqueness1000": "Uniqueness@1000",
+    "uniqueness5000": "Uniqueness@5000",
+    "time1000": "Time@1000",
+    "time5000": "Time@5000"
 }

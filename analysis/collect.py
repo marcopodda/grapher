@@ -69,7 +69,7 @@ def to_histogram(v):
 
 
 def collate_experiments():
-    all_data, all_hist_data = [], []
+    all_data = []
 
     for model in MODELS:
         for dataset in DATASETS:
@@ -80,27 +80,13 @@ def collate_experiments():
                 row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
                 all_data.append(row)
 
-                ref_hist = result[metric]["data_hist"]
-                sample_hist = result[metric]["samples_hist"]
-
-                if metric != 'nspdk':
-                    ref_hist = to_histogram(ref_hist)
-                    sample_hist = to_histogram(sample_hist)
-
-                for i, (r, g) in enumerate(zip(ref_hist, sample_hist), 1):
-                    row = {"Model": "Data", "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "Value": r}
-                    all_hist_data.append(row)
-                    row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "Value": g}
-                    all_hist_data.append(row)
-
-            # for metric in QUANT_METRICS:
-            #     m = result[metric]
-            #     row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
-            #     all_data.append(row)
+            for metric in QUANT_METRICS:
+                m = result[metric]
+                row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
+                all_data.append(row)
 
     all_data = pd.DataFrame(all_data)
-    all_hist_data = pd.DataFrame(all_hist_data)
-    return all_data, all_hist_data
+    return all_data
 
 
 def collate_result(result):

@@ -116,7 +116,7 @@ def score(test_set, model, dataset, metric):
 
         i += 1
 
-        if i == 3:
+        if i > 3:
             break
         print("----------------------------------")
         print(f"{model} {dataset} {metric} {i}")

@@ -20,9 +20,11 @@ def patch(samples):
     return samples
 
 
-def degree_worker(G):
+def degree_worker(G, max_degree):
     degree_dist = list(dict(nx.degree(G)).values())
-    return np.array(degree_dist)
+    vec = np.zeros((max_degree,))
+    vec[:len(degree_dist)] = degree_dist
+    return vec
 
 
 def degree_dist(samples):
@@ -70,11 +72,11 @@ def betweenness_dist(samples):
 
 
 METRICS = {
-    "degree": {"fun": degree_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "clustering": {"fun": clustering_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
-    "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)},
-    "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "nspdk": {"fun": nspdk, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
+    "degree": {"fun": degree_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
+    "clustering": {"fun": clustering_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
+    "orbit": {"fun": orbit_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)},
+    "betweenness": {"fun": betweenness_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
+    "nspdk": {"fun": nspdk, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
 }
 
 
@@ -83,15 +85,19 @@ def load_test_set(dataset):
     data = torch.load(raw_dir / f"{dataset}.pt").graphlist
     splits = load_yaml(raw_dir / f"splits.yaml")
     test_set = [data[i] for i in splits["test"]]
-    return patch(test_set)
+    graphs = patch(test_set)
+    max_degree = max(max(list(dict(G.degree()).values()) for G in graphs))
+    return graphs, max_degree
 
 
 def load_samples(path):
     samples = torch.load(path)
-    return patch([G for G in samples if not G.number_of_nodes() == 0])
+    graphs = patch([G for G in samples if not G.number_of_nodes() == 0])
+    max_degree = max(max(list(dict(G.degree()).values()) for G in graphs))
+    return graphs, max_degree
 
 
-def score(test_set, model, dataset, metric):
+def score(test_set, model, dataset, metric, deg):
     generated_dir = RUNS_DIR / model / dataset / "samples"
 
     scores = []
@@ -105,11 +111,12 @@ def score(test_set, model, dataset, metric):
 
         start = time.time()
 
-        generated = load_samples(generated_path)
+        generated, gen_max_degree = load_samples(generated_path)
         fun = METRICS[metric]["fun"]
-        mmd_kwargs = METRICS[metric]["kwargs"]
+        mmd_kwargs = METRICS[metric]["mmd_kwargs"]
 
-        gen_dist = fun(generated)
+        max_degree = max(deg, gen_max_degree)
+        gen_dist = fun(generated) if metric != "degree" else fun(generated, max_degree)
         test_dist = fun(test_set)
 
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
@@ -128,3 +135,14 @@ def score(test_set, model, dataset, metric):
             "gen": gen_dist,
             "ref": test_dist})
     return scores
+
+
+def score_all():
+    SCORES_DIR = Path("SCORES")
+    for dataset in DATASET_NAMES:
+        test_set, test_set_degree= load_test_set(dataset)
+        for model in MODEL_NAMES:
+            for metric in QUALITATIVE_METRIC_NAMES:
+                if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():
+                    s = score(test_set, model, dataset, metric, test_set_degree)
+                    torch.save(s, SCORES_DIR / f"{model}_{dataset}_{metric}.pt")

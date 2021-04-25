@@ -63,7 +63,7 @@ def calculate_nspdk(root, model, dataset):
 def to_histogram(v):
     data = []
     for x in v:
-        data.extend([v.index(x)+1] * int(np.round(x)))
+        data.extend([v.index(x)] * int(np.round(x)))
     return data
 
 
@@ -79,8 +79,13 @@ def collate_experiments():
                 row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": s}
                 all_data.append(row)
 
-                ref_hist = to_histogram(result[metric]["data_hist"])
-                sample_hist = to_histogram(result[metric]["samples_hist"])
+                ref_hist = result[metric]["data_hist"]
+                sample_hist = result[metric]["samples_hist"]
+
+                if metric != 'nspdk':
+                    ref_hist = to_histogram(ref_hist)
+                    sample_hist = to_histogram(sample_hist)
+
                 for i, (r, g) in enumerate(zip(ref_hist, sample_hist), 1):
                     row = {"Model": "Data", "Dataset": dataset, "Metric": metric, "Value": r}
                     all_hist_data.append(row)
@@ -92,7 +97,9 @@ def collate_experiments():
                 row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": None}
                 all_data.append(row)
 
-    return pd.DataFrame(all_data), pd.DataFrame(all_hist_data)
+    all_data = pd.DataFrame(all_data)
+    all_hist_data = pd.DataFrame(all_hist_data)
+    return all_data, all_hist_data
 
 
 def collate_order_experiments():

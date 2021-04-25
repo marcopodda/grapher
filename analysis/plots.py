@@ -13,11 +13,24 @@ plt.rcParams.update({
 
 def plot_metric_kde():
     _, data = collate_experiments()
-    # data = data.loc[(data.Dataset==dataset) & (data.Metric==metric),:]
-    data = data[data.Model.isin(["Data", "GRAPHRNN"])]
-    data = data[data.Dataset.isin(["trees", "ENZYMES"])]
-    data = data[data.Metric.isin(["betweenness", "nspdk"])]
-    sns.displot(x="Value", row="Dataset", col="Metric", hue="Model", data=data, stat="density", kind="kde", common_norm=False)
-    # plt.tight_layout()
-    plt.savefig("prova.png")
+    data = data[data.Metric.isin(["degree", "clustering", "orbits"])]
+    data = data[data.Dataset!="PROTEINS_full"]
+    data = data[data.Model.isin(["Data", "GRAPHER", "GRAPHRNN"])]
+    facet_kws = {"sharex": False, "sharey": False}
+    sns.displot(x="Value", row="Dataset", col="Metric", hue="Model", data=data, kind="kde", facet_kws=facet_kws, common_norm=False)
+    plt.savefig("distplot.eps")
+    plt.clf()
+
+
+def plot_m(dataset, metric):
+    _, data = collate_experiments()
+    data = data[data.Dataset==dataset]
+    data = data[data.Metric==metric]
+    data = data[data.Model.isin(["Data", "GRAPHER", "GRAPHRNN"])]
+    sns.distplot(data[data.Model=="Data"].Value, hist=False, label="Data")
+    sns.distplot(data[data.Model=="GRAPHER"].Value, hist=False, label="GRAPHER")
+    sns.distplot(data[data.Model=="GRAPHRNN"].Value, hist=False, label="GRAPHRNN")
+
+    plt.tight_layout()
+    plt.savefig(f"{dataset}-{metric}.eps")
     plt.clf()

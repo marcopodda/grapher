@@ -9,7 +9,6 @@ from joblib import Parallel, delayed
 import tempfile
 
 from utils.misc import graph_to_file
-from utils import mmd
 
 
 BINS = 100

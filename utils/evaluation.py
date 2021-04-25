@@ -111,7 +111,7 @@ def nspdk(graphs):
     for i, G in enumerate(graphs):
         graphs[i] = nx.convert_node_labels_to_integers(G)
 
-    return vectorize(graphs)
+    return graphs
 
 
 def normalize_counts(ref_counts, sample_counts, bins):

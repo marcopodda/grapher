@@ -111,10 +111,14 @@ def score(test_set, model, dataset, metric):
 
         gen_dist = fun(generated)
         test_dist = fun(test_set)
+
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
 
         elapsed = time.time() - start
+        print("----------------------------------")
         print(f"{model} {dataset} {metric} {i} {elapsed}")
+        print("shapes", gen_dist.shape, test_dist.shape)
+        print("----------------------------------")
 
         scores.append({
             "model": model,

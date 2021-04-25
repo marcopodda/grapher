@@ -65,7 +65,8 @@ METRICS = {
     "degree": {"fun": degree_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=-1)},
     "clustering": {"fun": clustering_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=-1)},
     "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian, sigma=30.0), is_hist=True, n_jobs=-1)},
-    "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=-1)},
+    "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=-1)},
+    "nspdk": {"fun": betweenness_dist, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=-1)},
 }
 
 

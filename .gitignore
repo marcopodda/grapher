@@ -6,7 +6,7 @@ DATA/**
 *.env
 *.out
 *.in
-run_*.sh
+run*.sh
 *.log
 *.png
 *.svg

@@ -1,3 +1,4 @@
+import time
 import torch
 import numpy as np
 import networkx as nx
@@ -85,6 +86,11 @@ def load_test_set(dataset):
     return patch(test_set)
 
 
+def load_samples(path):
+    samples = torch.load(path)
+    return patch([G for G in samples if not G.number_of_nodes() == 0])
+
+
 def score(test_set, model, dataset, metric):
     generated_dir = RUNS_DIR / model / dataset / "samples"
 
@@ -97,13 +103,18 @@ def score(test_set, model, dataset, metric):
         if i == 3:
             break
 
-        generated = patch(torch.load(generated_path))
+        start = time.time()
+
+        generated = load_samples(generated_path)
         fun = METRICS[metric]["fun"]
         mmd_kwargs = METRICS[metric]["kwargs"]
 
         gen_dist = fun(generated)
         test_dist = fun(test_set)
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
+
+        elapsed = time.time() - start
+        print(f"{model} {dataset} {metric} {i} {elapsed}")
 
         scores.append({
             "model": model,

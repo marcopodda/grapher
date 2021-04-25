@@ -30,7 +30,7 @@ def degree_worker(G):
 
 
 def degree_dist(samples):
-    P = Parallel(n_jobs=-1, verbose=1)
+    P = Parallel(n_jobs=40, verbose=1)
     return P(delayed(degree_worker)(G) for G in samples)
 
 
@@ -39,7 +39,7 @@ def clustering_worker(G):
 
 
 def clustering_dist(samples):
-    P = Parallel(n_jobs=-1, verbose=1)
+    P = Parallel(n_jobs=40, verbose=1)
     return P(delayed(clustering_worker)(G) for G in samples)
 
 
@@ -48,7 +48,7 @@ def orbit_worker(G):
 
 
 def orbit_dist(samples):
-    P = Parallel(n_jobs=-1, verbose=1)
+    P = Parallel(n_jobs=40, verbose=1)
     return P(delayed(orbit_worker)(G) for G in samples)
 
 
@@ -57,16 +57,16 @@ def betweenness_worker(G):
 
 
 def betweenness_dist(samples):
-    P = Parallel(n_jobs=-1, verbose=1)
+    P = Parallel(n_jobs=40, verbose=1)
     return P(delayed(betweenness_worker)(G) for G in samples)
 
 
 METRICS = {
-    "degree": {"fun": degree_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=-1)},
-    "clustering": {"fun": clustering_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=-1)},
-    "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian, sigma=30.0), is_hist=True, n_jobs=-1)},
-    "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=-1)},
-    "nspdk": {"fun": betweenness_dist, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=-1)},
+    "degree": {"fun": degree_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
+    "clustering": {"fun": clustering_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
+    "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian, sigma=30.0), is_hist=True, n_jobs=40)},
+    "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
+    "nspdk": {"fun": betweenness_dist, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
 }
 
 

@@ -17,27 +17,22 @@ ORDER_DIR = RUNS_DIR / "ORDER"
 DATA_DIR = ROOT / "DATA"
 
 
-
-HUMANIZE_DATASET = {
-    "community": "Community",
-    "PROTEINS_full": "Protein",
-    "ladders": "Ladders",
-    "trees": "Trees",
-    "ENZYMES": "Enzymes",
-    "ego": "Ego"
-}
-
-HUMANIZE_ORDER = {
-    "random": "Random",
-    "bfs-random": "BF Random",
-    "dfs-random": "DF Random",
-    "dfs-fixed": "DF",
+HUMANIZE = {
+    "PROTEINS_full": "PROTEINS",
+    "trees": "TREES",
+    "ladders": "LADDERS",
+    "community": "COMMUNITY",
+    "ego": "EGO",
+    "ENZYMES": "ENZYMES",
+    "bfs-fixed": "BFS",
+    "dfs-fixed": "DFS",
+    "random": "RANDOM",
+    "dfs-random": "DFS RANDOM",
+    "bfs-random": "BFS RANDOM",
     "smiles": "SMILES",
-}
-
-HUMANIZE_METRIC = {
-    "degree": "Degree Distribution",
-    "clustering": "Clustering Coefficients",
+    "degree": "Degree Dist.",
+    "clustering": "Clustering Coef.",
     "orbit": "Orbit Counts",
-    "nspdk": "NSPDK"
+    "nspdk": "NSPDK",
+    "betweenness": "Beetweenness C."
 }

@@ -1,3 +1,4 @@
+from os import replace
 import torch
 import networkx as nx
 import numpy as np
@@ -5,7 +6,7 @@ import pandas as pd
 
 from statistics import mean, stdev
 
-from utils.constants import DATASET_NAMES, MODEL_NAMES, ORDER_DIR, RUNS_DIR, ROOT
+from utils.constants import DATASET_NAMES, ORDER_DIR, RUNS_DIR, ROOT, HUMANIZE
 from utils.evaluation import nspdk
 from utils.serializer import load_yaml, save_yaml
 
@@ -76,7 +77,7 @@ def collate_experiments():
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": s}
+                row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
                 all_data.append(row)
 
                 ref_hist = result[metric]["data_hist"]
@@ -87,15 +88,15 @@ def collate_experiments():
                     sample_hist = to_histogram(sample_hist)
 
                 for i, (r, g) in enumerate(zip(ref_hist, sample_hist), 1):
-                    row = {"Model": "Data", "Dataset": dataset, "Metric": metric, "Value": r}
+                    row = {"Model": "Data", "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "Value": r}
                     all_hist_data.append(row)
-                    row = {"Model": model, "Dataset": dataset, "Metric": metric, "Value": g}
+                    row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "Value": g}
                     all_hist_data.append(row)
 
-            for metric in QUANT_METRICS:
-                m = result[metric]
-                row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": None}
-                all_data.append(row)
+            # for metric in QUANT_METRICS:
+            #     m = result[metric]
+            #     row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
+            #     all_data.append(row)
 
     all_data = pd.DataFrame(all_data)
     all_hist_data = pd.DataFrame(all_hist_data)
@@ -103,25 +104,18 @@ def collate_experiments():
 
 
 def collate_result(result):
-    # gens, refs = [], []
-    # for elem in result:
-    #     print(elem["model"], elem["dataset"], elem["metric"])
     elem = result[0]
     try:
         ref = elem["ref"].reshape(-1)
     except:
         ref = elem["ref"].toarray().reshape(-1)
-    # refs.append(ref)
+    ref = np.random.choice(ref, min(len(ref), 2000), replace=False)
 
     try:
         gen = elem["gen"].reshape(-1)
     except:
         gen = elem["gen"].toarray().reshape(-1)
-        # gens.append(gen)
-
-    # print([l.shape for l in gens])
-    # ref = np.vstack(refs).mean(axis=1)
-    # gen = np.vstack(gens).mean(axis=1)
+    gen = np.random.choice(gen, min(len(ref), 2000), replace=False)
 
     return ref, gen
 
@@ -132,7 +126,7 @@ def collate_scores():
     rows = []
 
     for dataset in DATASET_NAMES:
-        for model in MODEL_NAMES:
+        for model in ["GRAPHRNN", "GRAPHER"]:
             for metric in QUAL_METRICS:
                 path = SCORES_DIR / f"{model}_{dataset}_{metric}.pt"
                 if path.exists():
@@ -140,15 +134,15 @@ def collate_scores():
                     for i in range(len(ref)):
                         rows.append({
                             "Model": "Data",
-                            "Dataset": dataset,
-                            "Metric": metric,
+                            "Dataset": HUMANIZE[dataset],
+                            "Metric": HUMANIZE[metric],
                             "Value": ref[i]
                         })
                     for i in range(len(gen)):
                         rows.append({
                             "Model": model,
-                            "Dataset": dataset,
-                            "Metric": metric,
+                            "Dataset": HUMANIZE[dataset],
+                            "Metric": HUMANIZE[metric],
                             "Value": gen[i]
                         })
 
@@ -172,27 +166,10 @@ def collate_order_experiments():
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"Order": order, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": s}
+                row = {"Order": HUMANIZE[order], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
                 all_data.append(row)
 
     return pd.DataFrame(all_data)
-
-
-HUMANIZE = {
-    "PROTEINS_full": "PROTEINS",
-    "trees": "TREES",
-    "ladders": "LADDERS",
-    "community": "COMMUNITY",
-    "ego": "EGO",
-    "ENZYMES": "ENZYMES",
-    "bfs-fixed": "BFS",
-    "dfs-fixed": "DFS",
-    "random": "RANDOM",
-    "dfs-random": "DFS RANDOM",
-    "bfs-random": "BFS RANDOM",
-    "smiles": "SMILES"
-}
-
 
 
 def parse_log(path):
@@ -202,13 +179,13 @@ def parse_log(path):
         for l in f.readlines():
             if l.startswith("Training"):
                 line = l.split(" ")
-                dataset, order = HUMANIZE[line[2]], HUMANIZE[line[5].rsplit("\n")[0]]
+                dataset, order = line[2], line[5].rsplit("\n")[0]
             else:
                 epoch, _, _, lt, _ = l.split(" - ")
                 _, value = lt.split(": ")
                 rows.append({
-                    "Dataset": dataset,
-                    "Order": order,
+                    "Dataset": HUMANIZE[dataset],
+                    "Order": HUMANIZE[order],
                     "Loss": float(value),
                     "Epoch": int(epoch)
                 })

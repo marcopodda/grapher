@@ -60,8 +60,15 @@ def calculate_nspdk(root, model, dataset):
     return float(mean(values)), float(stdev(values)), values
 
 
+def to_histogram(v):
+    data = []
+    for x in v:
+        data.extend([v.index(x)+1] * int(np.round(x)))
+    return data
+
+
 def collate_experiments():
-    all_data = []
+    all_data, all_hist_data = [], []
 
     for model in MODELS:
         for dataset in DATASETS:
@@ -69,15 +76,23 @@ def collate_experiments():
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"model": model, "dataset": dataset, "metric": metric, "avg": m, "stdev": s}
+                row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": s}
                 all_data.append(row)
+
+                ref_hist = to_histogram(result[metric]["data_hist"])
+                sample_hist = to_histogram(result[metric]["samples_hist"])
+                for i, (r, g) in enumerate(zip(ref_hist, sample_hist), 1):
+                    row = {"Model": "Data", "Dataset": dataset, "Metric": metric, "Value": r}
+                    all_hist_data.append(row)
+                    row = {"Model": model, "Dataset": dataset, "Metric": metric, "Value": g}
+                    all_hist_data.append(row)
 
             for metric in QUANT_METRICS:
                 m = result[metric]
-                row = {"model": model, "dataset": dataset, "metric": metric, "avg": m, "stdev": None}
+                row = {"Model": model, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": None}
                 all_data.append(row)
 
-    return pd.DataFrame(all_data)
+    return pd.DataFrame(all_data), pd.DataFrame(all_hist_data)
 
 
 def collate_order_experiments():
@@ -95,7 +110,7 @@ def collate_order_experiments():
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"order": order, "dataset": dataset, "metric": metric, "avg": m, "stdev": s}
+                row = {"Order": order, "Dataset": dataset, "Metric": metric, "avg": m, "stdev": s}
                 all_data.append(row)
 
     return pd.DataFrame(all_data)

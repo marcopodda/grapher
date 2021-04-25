@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import networkx as nx
+from pathlib import Path
 from joblib import Parallel, delayed
 from functools import partial
 
@@ -99,5 +100,6 @@ def score_all():
     for model in MODEL_NAMES:
         for dataset in DATASET_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
-                s = score(model, dataset, metric)
-                torch.save(s, f"{model}_{dataset}_{metric}.pt")
+                if not Path(f"{model}_{dataset}_{metric}.pt").exists():
+                    s = score(model, dataset, metric)
+                    torch.save(s, f"{model}_{dataset}_{metric}.pt")

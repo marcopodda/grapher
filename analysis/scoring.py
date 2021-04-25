@@ -159,11 +159,11 @@ def score(test_set, model, dataset, metric):
 
 def score_all():
     SCORES_DIR = Path("SCORES")
-    for dataset in DATASET_NAMES:
+    for dataset in ["PROTEINS_full"]: # DATASET_NAMES
         test_set = load_test_set(dataset)
         test_set = random_sample(test_set)
-        for model in MODEL_NAMES:
-            for metric in QUALITATIVE_METRIC_NAMES:
+        for model in ["ER"]: # MODEL_NAMES:
+            for metric in ["nspdk"]: # QUALITATIVE_METRIC_NAMES:
                 if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():
                     s = score(test_set, model, dataset, metric)
                     torch.save(s, SCORES_DIR / f"{model}_{dataset}_{metric}.pt")

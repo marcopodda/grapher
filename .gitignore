@@ -1,6 +1,5 @@
 **/__pycache__
 DATA/**
-RUNS/**
 *.py[ocd]
 *.png
 **/.vscode
@@ -12,5 +11,9 @@ run_*.sh
 *.png
 *.svg
 *.exe
+*.eps
+*.pdf
+RUNS
 RUNS.bk
 SCORES
+SCORES.bk

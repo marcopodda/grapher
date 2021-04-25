@@ -112,6 +112,8 @@ def score(test_set, model, dataset, metric, deg):
         start = time.time()
 
         generated, gen_max_degree = load_samples(generated_path)
+        generated = random_sample(generated)
+
         fun = METRICS[metric]["fun"]
         mmd_kwargs = METRICS[metric]["mmd_kwargs"]
 
@@ -137,10 +139,18 @@ def score(test_set, model, dataset, metric, deg):
     return scores
 
 
+def random_sample(graphs, n=100):
+    if n >= len(graphs):
+        return graphs
+    indices = np.random.choice(len(graphs), n)
+    return [graphs[i] for i in indices]
+
+
 def score_all():
     SCORES_DIR = Path("SCORES")
     for dataset in DATASET_NAMES:
-        test_set, test_set_degree= load_test_set(dataset)
+        test_set, test_set_degree = load_test_set(dataset)
+        test_set = random_sample(test_set)
         for model in MODEL_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
                 if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():

@@ -116,6 +116,8 @@ def score(test_set, model, dataset, metric):
 
         if i == 3:
             break
+        print("----------------------------------")
+        print(f"{model} {dataset} {metric} {i}")
 
         start = time.time()
 
@@ -131,9 +133,7 @@ def score(test_set, model, dataset, metric):
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
 
         elapsed = time.time() - start
-        print("----------------------------------")
-        print(f"{model} {dataset} {metric} {i} {elapsed}")
-        print("shapes", gen_dist.shape, test_dist.shape)
+        print(f"shapes: gen {gen_dist.shape}, ref {test_dist.shape} elapsed: {elapsed:.4f}")
         print("----------------------------------")
 
         scores.append({

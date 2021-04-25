@@ -8,13 +8,7 @@ from functools import partial
 from utils import mmd
 from utils.serializer import load_yaml
 from utils.constants import DATASET_NAMES, MODEL_NAMES, QUALITATIVE_METRIC_NAMES, RUNS_DIR, DATA_DIR
-from utils.evaluation import orca
-
-
-def pad(v, dim):
-    pad_vec = np.zeros((dim,)) - 1
-    pad_vec[:len(v)] = v
-    return pad_vec
+from utils.evaluation import orca, nspdk
 
 
 def patch(samples):
@@ -26,82 +20,107 @@ def patch(samples):
 
 
 def degree_worker(G):
-    return list(dict(nx.degree(G)).values())
+    degree_dist = list(dict(nx.degree(G)).values())
+    return np.array(degree_dist)
 
 
 def degree_dist(samples):
-    P = Parallel(n_jobs=40, verbose=1)
-    return P(delayed(degree_worker)(G) for G in samples)
+    P = Parallel(n_jobs=40, verbose=0)
+    counts = P(delayed(degree_worker)(G) for G in samples)
+    return np.array(counts)
 
 
 def clustering_worker(G):
-    return list(dict(nx.clustering(G)).values())
+    clustering_coefs = list(dict(nx.clustering(G)).values())
+    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
+    return hist
 
 
 def clustering_dist(samples):
-    P = Parallel(n_jobs=40, verbose=1)
-    return P(delayed(clustering_worker)(G) for G in samples)
+    P = Parallel(n_jobs=40, verbose=0)
+    counts = P(delayed(clustering_worker)(G) for G in samples)
+    return np.array(counts)
 
 
-def orbit_worker(G):
-    return orca(G)
+def orbit_worker(graph):
+    try:
+        orbit_counts = orca(graph)
+        counts = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
+        return counts
+    except Exception as e:
+        return np.zeros((graph.number_of_nodes(), 15))
 
 
-def orbit_dist(samples):
-    P = Parallel(n_jobs=40, verbose=1)
-    return P(delayed(orbit_worker)(G) for G in samples)
+def orbit_dist(graphs):
+    P = Parallel(n_jobs=40, verbose=0)
+    counts = P(delayed(orbit_worker)(G) for G in graphs)
+    return np.array(counts)
 
 
 def betweenness_worker(G):
-    return list(dict(nx.betweenness_centrality(G)).values())
+    bcs = list(dict(nx.betweenness_centrality(G)).values())
+    return np.array(bcs)
 
 
 def betweenness_dist(samples):
-    P = Parallel(n_jobs=40, verbose=1)
-    return P(delayed(betweenness_worker)(G) for G in samples)
+    P = Parallel(n_jobs=40, verbose=0)
+    counts = P(delayed(betweenness_worker)(G) for G in samples)
+    return np.array(counts)
 
 
 METRICS = {
     "degree": {"fun": degree_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
     "clustering": {"fun": clustering_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
-    "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian, sigma=30.0), is_hist=True, n_jobs=40)},
+    "orbit": {"fun": orbit_dist, "kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)},
     "betweenness": {"fun": betweenness_dist, "kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "nspdk": {"fun": betweenness_dist, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
+    "nspdk": {"fun": nspdk, "kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
 }
 
 
-def score(model, dataset, metric):
+def load_test_set(dataset):
     raw_dir = DATA_DIR / dataset / "raw"
     data = torch.load(raw_dir / f"{dataset}.pt").graphlist
     splits = load_yaml(raw_dir / f"splits.yaml")
     test_set = [data[i] for i in splits["test"]]
-    test_set = patch(test_set)
-    max_test_nodes = max([G.number_of_nodes() for G in test_set])
+    return patch(test_set)
 
+
+def score(test_set, model, dataset, metric):
     generated_dir = RUNS_DIR / model / dataset / "samples"
 
     scores = []
-    for generated_path in generated_dir.iterdir():
+
+    for i, generated_path in enumerate(generated_dir.iterdir()):
         if '1000' in generated_path.stem or '5000' in generated_path.stem:
             continue
-        generated = patch(torch.load(generated_path))
 
+        if i == 3:
+            break
+
+        generated = patch(torch.load(generated_path))
         fun = METRICS[metric]["fun"]
         mmd_kwargs = METRICS[metric]["kwargs"]
 
         gen_dist = fun(generated)
         test_dist = fun(test_set)
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
-        print(model, dataset, metric, score)
-        scores.append((score, gen_dist, test_dist))
+
+        scores.append({
+            "model": model,
+            "dataset": dataset,
+            "metric": metric,
+            "score": score,
+            "gen": gen_dist,
+            "ref": test_dist})
     return scores
 
 
 def score_all():
     SCORES_DIR = Path("SCORES")
-    for model in MODEL_NAMES:
-        for dataset in DATASET_NAMES:
+    for dataset in DATASET_NAMES:
+        test_set = load_test_set(dataset)
+        for model in MODEL_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
                 if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():
-                    s = score(model, dataset, metric)
+                    s = score(test_set, model, dataset, metric)
                     torch.save(s, SCORES_DIR / f"{model}_{dataset}_{metric}.pt")

@@ -29,7 +29,9 @@ def degree_histogram(graphs):
 
 def clustering_worker(G):
     clustering_coefs = dict(nx.clustering(G))
-    return list(clustering_coefs.values())
+    clustering_coefs = list(clustering_coefs.values())
+    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
+    return hist
 
 
 def clustering_histogram(graphs):
@@ -96,7 +98,7 @@ def orbit_worker(graph):
         orbit_counts_graph = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
         return orbit_counts_graph
     except Exception as e:
-        return 0
+        return np.zeros((graph.number_of_nodes(), 15))
 
 
 def orbit_count_histogram(graphs):
@@ -111,7 +113,7 @@ def nspdk(graphs):
     for i, G in enumerate(graphs):
         graphs[i] = nx.convert_node_labels_to_integers(G)
 
-    return vectorize(graphs).toarray().reshape(-1)
+    return vectorize(graphs)
 
 
 def normalize_counts(ref_counts, sample_counts, bins):

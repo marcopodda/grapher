@@ -101,6 +101,6 @@ def score_all():
     for model in MODEL_NAMES:
         for dataset in DATASET_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
-                if not Path(f"{model}_{dataset}_{metric}.pt").exists():
+                if not Path(f"SCORES/{model}_{dataset}_{metric}.pt").exists():
                     s = score(model, dataset, metric)
-                    torch.save(s, f"{model}_{dataset}_{metric}.pt")
+                    torch.save(s, f"SCORES/{model}_{dataset}_{metric}.pt")

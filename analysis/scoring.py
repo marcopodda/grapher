@@ -108,11 +108,13 @@ def load_samples(path):
 def score(test_set, model, dataset, metric):
     generated_dir = RUNS_DIR / model / dataset / "samples"
 
-    scores = []
+    scores, i = [], 0
 
-    for i, generated_path in enumerate(generated_dir.iterdir()):
+    for generated_path in generated_dir.iterdir():
         if '1000' in generated_path.stem or '5000' in generated_path.stem:
             continue
+
+        i += 1
 
         if i == 3:
             break

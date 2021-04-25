@@ -76,8 +76,18 @@ def compute_mmd(samples1, samples2, metric, is_hist=True, n_jobs=None):
 
     # print('Compute_mmd', inspect.ArgSpec(compute_mmd))
     # print("-----------------------", len(samples1), len(samples2))
-    X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    Z = kernel_compute(samples1, Y=samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    try:
+        X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    except:
+        X = 0
+    try:
+        Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    except:
+        Y = 0
+
+    try:
+        Z = kernel_compute(samples1, Y=samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    except:
+        Z = 0
 
     return np.average(X) + np.average(Y) - 2 * np.average(Z)

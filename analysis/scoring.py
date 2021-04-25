@@ -45,7 +45,7 @@ def clustering_worker(G):
     return hist
 
 
-def clustering_dist(samples, max_nodes):
+def clustering_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
     return np.array(counts)
@@ -60,7 +60,7 @@ def orbit_worker(graph):
         return np.zeros((graph.number_of_nodes(), 15))
 
 
-def orbit_dist(samples, max_nodes):
+def orbit_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
     return np.array(counts)
@@ -70,7 +70,7 @@ def betweenness_worker(G):
     return list(dict(nx.betweenness_centrality(G)).values())
 
 
-def betweenness_dist(samples, max_nodes):
+def betweenness_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
     return pad(counts)
@@ -84,25 +84,28 @@ METRICS = {
     "nspdk": {"fun": nspdk, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
 }
 
+def random_sample(graphs, n=100):
+    if n >= len(graphs):
+        return graphs
+    indices = np.random.choice(len(graphs), n)
+    return [graphs[i] for i in indices]
+
 
 def load_test_set(dataset):
     raw_dir = DATA_DIR / dataset / "raw"
     data = torch.load(raw_dir / f"{dataset}.pt").graphlist
     splits = load_yaml(raw_dir / f"splits.yaml")
     test_set = [data[i] for i in splits["test"]]
-    graphs = patch(test_set)
-    max_degree = max(max(list(dict(G.degree()).values()) for G in graphs))
-    return graphs, max_degree
+    return patch(test_set)
 
 
 def load_samples(path):
     samples = torch.load(path)
-    graphs = patch([G for G in samples if not G.number_of_nodes() == 0])
-    max_degree = max(max(list(dict(G.degree()).values()) for G in graphs))
-    return graphs, max_degree
+    samples = [G for G in samples if not G.number_of_nodes() == 0]
+    return path(samples)
 
 
-def score(test_set, model, dataset, metric, deg):
+def score(test_set, model, dataset, metric):
     generated_dir = RUNS_DIR / model / dataset / "samples"
 
     scores = []
@@ -116,14 +119,13 @@ def score(test_set, model, dataset, metric, deg):
 
         start = time.time()
 
-        generated, gen_max_degree = load_samples(generated_path)
+        generated = load_samples(generated_path)
         generated = random_sample(generated)
 
         fun = METRICS[metric]["fun"]
         mmd_kwargs = METRICS[metric]["mmd_kwargs"]
 
-        max_degree = max(deg, gen_max_degree)
-        gen_dist = fun(generated) if metric != "degree" else fun(generated, max_degree)
+        gen_dist = fun(generated)
         test_dist = fun(test_set)
 
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
@@ -144,20 +146,13 @@ def score(test_set, model, dataset, metric, deg):
     return scores
 
 
-def random_sample(graphs, n=100):
-    if n >= len(graphs):
-        return graphs
-    indices = np.random.choice(len(graphs), n)
-    return [graphs[i] for i in indices]
-
-
 def score_all():
     SCORES_DIR = Path("SCORES")
     for dataset in DATASET_NAMES:
-        test_set, test_set_degree = load_test_set(dataset)
+        test_set = load_test_set(dataset)
         test_set = random_sample(test_set)
         for model in MODEL_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
                 if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():
-                    s = score(test_set, model, dataset, metric, test_set_degree)
+                    s = score(test_set, model, dataset, metric)
                     torch.save(s, SCORES_DIR / f"{model}_{dataset}_{metric}.pt")

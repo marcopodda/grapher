@@ -23,7 +23,7 @@ def patch(samples):
 def pad(lvec):
     width = max(len(l) for l in lvec)
     height = len(lvec)
-    mat = np.zeros((width, height))
+    mat = np.zeros((height, width))
     for i, v in enumerate(lvec):
         mat[i, :len(v)] = v
     return mat

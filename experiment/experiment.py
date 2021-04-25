@@ -60,6 +60,7 @@ class Experiment(BaseExperiment):
     model_name = "GRAPHER"
 
     def train(self):
+        print(f"Training on {self.dataset} on order dfs-fixed")
         config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)

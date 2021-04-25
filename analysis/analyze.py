@@ -5,7 +5,7 @@ import pandas as pd
 
 from statistics import mean, stdev
 
-from utils.constants import ORDER_DIR, RUNS_DIR
+from utils.constants import DATASET_NAMES, MODEL_NAMES, ORDER_DIR, RUNS_DIR, ROOT
 from utils.evaluation import nspdk
 from utils.serializer import load_yaml, save_yaml
 
@@ -102,6 +102,61 @@ def collate_experiments():
     return all_data, all_hist_data
 
 
+def collate_result(result):
+    # gens, refs = [], []
+    # for elem in result:
+    #     print(elem["model"], elem["dataset"], elem["metric"])
+    elem = result[0]
+    try:
+        ref = elem["ref"].reshape(-1)
+    except:
+        ref = elem["ref"].toarray().reshape(-1)
+    # refs.append(ref)
+
+    try:
+        gen = elem["gen"].reshape(-1)
+    except:
+        gen = elem["gen"].toarray().reshape(-1)
+        # gens.append(gen)
+
+    # print([l.shape for l in gens])
+    # ref = np.vstack(refs).mean(axis=1)
+    # gen = np.vstack(gens).mean(axis=1)
+
+    return ref, gen
+
+
+
+def collate_scores():
+    SCORES_DIR = ROOT / "SCORES"
+    rows = []
+
+    for dataset in DATASET_NAMES:
+        for model in MODEL_NAMES:
+            for metric in QUAL_METRICS:
+                path = SCORES_DIR / f"{model}_{dataset}_{metric}.pt"
+                if path.exists():
+                    ref, gen = collate_result(torch.load(path))
+                    for i in range(len(ref)):
+                        rows.append({
+                            "Model": "Data",
+                            "Dataset": dataset,
+                            "Metric": metric,
+                            "Value": ref[i]
+                        })
+                    for i in range(len(gen)):
+                        rows.append({
+                            "Model": model,
+                            "Dataset": dataset,
+                            "Metric": metric,
+                            "Value": gen[i]
+                        })
+
+    all_scores = pd.DataFrame(rows)
+    return all_scores[all_scores.Value>0]
+
+
+
 def collate_order_experiments():
     all_data = []
 
@@ -121,3 +176,41 @@ def collate_order_experiments():
                 all_data.append(row)
 
     return pd.DataFrame(all_data)
+
+
+HUMANIZE = {
+    "PROTEINS_full": "PROTEINS",
+    "trees": "TREES",
+    "ladders": "LADDERS",
+    "community": "COMMUNITY",
+    "ego": "EGO",
+    "ENZYMES": "ENZYMES",
+    "bfs-fixed": "BFS",
+    "dfs-fixed": "DFS",
+    "random": "RANDOM",
+    "dfs-random": "DFS RANDOM",
+    "bfs-random": "BFS RANDOM",
+    "smiles": "SMILES"
+}
+
+
+
+def parse_log(path):
+    rows = []
+    dataset, order = None, None
+    with open(path, "r") as f:
+        for l in f.readlines():
+            if l.startswith("Training"):
+                line = l.split(" ")
+                dataset, order = HUMANIZE[line[2]], HUMANIZE[line[5].rsplit("\n")[0]]
+            else:
+                epoch, _, _, lt, _ = l.split(" - ")
+                _, value = lt.split(": ")
+                rows.append({
+                    "Dataset": dataset,
+                    "Order": order,
+                    "Loss": float(value),
+                    "Epoch": int(epoch)
+                })
+
+    return pd.DataFrame(rows)

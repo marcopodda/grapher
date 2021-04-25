@@ -98,9 +98,10 @@ def score(model, dataset, metric):
 
 
 def score_all():
+    SCORES_DIR = Path("SCORES")
     for model in MODEL_NAMES:
         for dataset in DATASET_NAMES:
             for metric in QUALITATIVE_METRIC_NAMES:
-                if not Path(f"SCORES/{model}_{dataset}_{metric}.pt").exists():
+                if not (SCORES_DIR / f"{model}_{dataset}_{metric}.pt").exists():
                     s = score(model, dataset, metric)
-                    torch.save(s, f"SCORES/{model}_{dataset}_{metric}.pt")
+                    torch.save(s, SCORES_DIR / f"{model}_{dataset}_{metric}.pt")

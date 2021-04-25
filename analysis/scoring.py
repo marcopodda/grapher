@@ -6,7 +6,7 @@ from functools import partial
 
 from utils import mmd
 from utils.serializer import load_yaml
-from utils.constants import DATASET_NAMES, MODEL_NAMES, QUAL_METRICS, RUNS_DIR, DATA_DIR
+from utils.constants import DATASET_NAMES, MODEL_NAMES, QUALITATIVE_METRIC_NAMES, RUNS_DIR, DATA_DIR
 from utils.evaluation import orca
 
 
@@ -98,6 +98,6 @@ def score(model, dataset, metric):
 def score_all():
     for model in MODEL_NAMES:
         for dataset in DATASET_NAMES:
-            for metric in QUAL_METRICS:
+            for metric in QUALITATIVE_METRIC_NAMES:
                 s = score(model, dataset, metric)
                 torch.save(s, f"{model}_{dataset}_{metric}.pt")

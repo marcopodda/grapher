@@ -49,10 +49,10 @@ def kernel_compute(X, Y=None, is_hist=True, metric='linear', n_jobs=None):
         return X_p
 
     if metric == 'nspdk':
-        X = vectorize(X, complexity=4, discrete=True)
+        # X = vectorize(X, complexity=4, discrete=True)
 
-        if Y is not None:
-            Y = vectorize(Y, complexity=4, discrete=True)
+        # if Y is not None:
+        #     Y = vectorize(Y, complexity=4, discrete=True)
 
         return pairwise_kernels(X, Y, metric='linear', n_jobs=n_jobs)
 

@@ -5,6 +5,7 @@ import networkx as nx
 from pathlib import Path
 from joblib import Parallel, delayed
 from functools import partial
+from eden.graph import vectorize
 
 from utils import mmd
 from utils.serializer import load_yaml
@@ -76,12 +77,18 @@ def betweenness_dist(samples):
     return pad(counts)
 
 
+def nspdk_dist(samples):
+    P = Parallel(n_jobs=40, verbose=0)
+    counts = P(delayed(vectorize)(G, complexity=4, discrete=True) for G in samples)
+    return counts
+
+
 METRICS = {
     "degree": {"fun": degree_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
     "clustering": {"fun": clustering_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
     "orbit": {"fun": orbit_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)},
     "betweenness": {"fun": betweenness_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "nspdk": {"fun": nspdk, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
+    "nspdk": {"fun": nspdk_dist, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
 }
 
 def random_sample(graphs, n=100):
@@ -135,7 +142,7 @@ def score(test_set, model, dataset, metric):
         score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
 
         elapsed = time.time() - start
-        print(f"shapes: gen {len(gen_dist[0])}, ref {len(test_dist[0])} elapsed: {elapsed:.4f}")
+        print(f"Done. Time elapsed: {elapsed:.4f}")
         print("----------------------------------")
 
         scores.append({

@@ -20,17 +20,23 @@ def patch(samples):
     return samples
 
 
-def degree_worker(G, max_degree):
-    degree_dist = list(dict(nx.degree(G)).values())
-    vec = np.zeros((max_degree,))
-    vec[:len(degree_dist)] = degree_dist
-    return vec
+def pad(lvec):
+    width = max(len(l) for l in lvec)
+    height = len(lvec)
+    mat = np.zeros((width, height))
+    for i, v in enumerate(lvec):
+        mat[i, :len(v)] = v
+    return mat
+
+
+def degree_worker(G):
+    return list(dict(nx.degree(G)).values())
 
 
 def degree_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
-    return np.array(counts)
+    return pad(counts)
 
 
 def clustering_worker(G):
@@ -39,7 +45,7 @@ def clustering_worker(G):
     return hist
 
 
-def clustering_dist(samples):
+def clustering_dist(samples, max_nodes):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
     return np.array(counts)
@@ -54,21 +60,20 @@ def orbit_worker(graph):
         return np.zeros((graph.number_of_nodes(), 15))
 
 
-def orbit_dist(graphs):
+def orbit_dist(samples, max_nodes):
     P = Parallel(n_jobs=40, verbose=0)
-    counts = P(delayed(orbit_worker)(G) for G in graphs)
+    counts = P(delayed(orbit_worker)(G) for G in samples)
     return np.array(counts)
 
 
 def betweenness_worker(G):
-    bcs = list(dict(nx.betweenness_centrality(G)).values())
-    return np.array(bcs)
+    return list(dict(nx.betweenness_centrality(G)).values())
 
 
-def betweenness_dist(samples):
+def betweenness_dist(samples, max_nodes):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
-    return np.array(counts)
+    return pad(counts)
 
 
 METRICS = {

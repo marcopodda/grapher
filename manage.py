@@ -36,7 +36,6 @@ def main():
         else:
             exp_class = get_exp_class(args['<model>'])
             for dataset in DATASET_NAMES:
-                print(f"training dataset {dataset}")
                 try:
                     exp = exp_class(dataset)
                     exp.train()

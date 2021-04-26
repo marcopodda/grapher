@@ -121,31 +121,28 @@ def clean_graph(G_or_edges):
     return G
 
 
-def novelty(ref, sample):
+def novelty_worker(G, ref):
+    count = np.array([nx.is_isomorphic(G, g) for g in ref])
+    return (count==0).any()
+
+
+def novelty(ref, samples):
     ref = [clean_graph(G_or_edges) for G_or_edges in ref]
-    sample = [clean_graph(G_or_edges) for G_or_edges in sample]
+    samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
-    count = []
-    for G in sample:
-        P = Parallel(n_jobs=32, verbose=0)
-        test = P(delayed(nx.is_isomorphic)(G, g) for g in ref)
-        test = np.array(test)
-        count.append((test==0).any())
-
-    count = np.array(count)
-    return count.sum() / count.shape[0]
+    P = Parallel(n_jobs=3, verbose=1)
+    counts = P(delayed(novelty_worker)(G, ref) for G in samples)
+    return sum(counts) / len(counts)
 
 
-def uniqueness(sample):
-    sample = [clean_graph(G_or_edges) for G_or_edges in sample]
+def uniqueness_worker(G, samples):
+    count = np.array([nx.is_isomorphic(G, g) for g in samples])
+    return (count==0).any()
 
-    count = []
 
-    for i, G in enumerate(sample[:-1]):
-        P = Parallel(n_jobs=32, verbose=0)
-        test = P(delayed(nx.is_isomorphic)(G, g) for g in sample[i+1:])
-        test = np.array(test)
-        count.append((test==0).any())
+def uniqueness(samples):
+    samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
-    count = np.array(count)
-    return count.sum() / count.shape[0]
+    P = Parallel(n_jobs=3, verbose=1)
+    counts = P(delayed(uniqueness_worker)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
+    return sum(counts) / len(counts)

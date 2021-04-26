@@ -14,11 +14,13 @@ from utils.evaluation import orca
 
 
 def patch(samples):
-    for i, G in enumerate(samples):
-        samples[i] = nx.convert_node_labels_to_integers(G)
-        nodes = max(nx.connected_components(samples[i]), key=len)
-        samples[i] = nx.Graph(samples[i]).subgraph(nodes)
-    return samples
+    graphs = []
+    for G in samples:
+        G = nx.convert_node_labels_to_integers(G)
+        nodes = max(nx.connected_components(G), key=len)
+        G = nx.Graph(G).subgraph(nodes)
+        graphs.append(G)
+    return graphs
 
 
 def pad(lvec):

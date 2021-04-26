@@ -153,7 +153,7 @@ class EvaluatorBase:
         test_set = patch(dataset.get_data("test"))
 
         results = []
-        for trial in self.num_trials:
+        for trial in range(self.num_trials):
             np.random.seed(trial)
             gen = random_sample(samples, n=self.num_samples_metric)
             gen_dist = fun(patch(gen))

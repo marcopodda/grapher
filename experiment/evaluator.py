@@ -116,7 +116,7 @@ class EvaluatorBase:
         filename = f"samples.pt"
 
         if not (exp.root / "samples" / filename).exists():
-            print("\tGetting samples...")
+            print("\tGetting samples...", end=" ")
             start = time.time()
             samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start

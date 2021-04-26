@@ -130,7 +130,7 @@ def novelty(ref, samples):
     ref = [clean_graph(G_or_edges) for G_or_edges in ref]
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
-    P = Parallel(n_jobs=64, verbose=0)
+    P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(novelty_worker)(G, ref) for G in samples)
     return sum(counts) / len(counts)
 
@@ -143,6 +143,6 @@ def uniqueness_worker(G, samples):
 def uniqueness(samples):
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
-    P = Parallel(n_jobs=64, verbose=0)
+    P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(uniqueness_worker)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
     return sum(counts) / len(counts)

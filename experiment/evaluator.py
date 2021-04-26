@@ -50,6 +50,7 @@ METRICS = {
 
 
 class EvaluatorBase:
+    requires_quantitative = True
     def __init__(self, model_name):
         self.model_name = model_name
         self.num_samples = 5000
@@ -73,11 +74,21 @@ class EvaluatorBase:
 
             path = exp.root / "results" / f"results.pt"
             if not path.exists():
+                result = {}
                 samples = self.get_samples(exp)
-                print("\tCalculating novelty...")
-                novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
-                print("\tCalculating uniqueness...")
-                uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
+
+                if self.requires_quantitative:
+                    print("\tCalculating novelty...")
+                    novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
+                    print("\tCalculating uniqueness...")
+                    uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
+                    result.update(**{
+                        f"novelty{self.num_samples}": novelty_large,
+                        f"uniqueness{self.num_samples}": uniqueness_large,
+                        f"novelty{self.num_samples_small}": novelty_small,
+                        f"uniqueness{self.num_samples_small}": uniqueness_small
+                    })
+
                 print("\tCalculating degree distribution...")
                 degree = self.evaluate_metric('degree', dataset, samples)
                 print("\tCalculating clustering coefficient...")
@@ -88,17 +99,13 @@ class EvaluatorBase:
                 betweenness = self.evaluate_metric('betweenness', dataset, samples)
                 print("\tCalculating NSPDK...")
                 nspdk = self.evaluate_metric('nspdk', dataset, samples)
-                result = {
-                    f"novelty{self.num_samples}": novelty_large,
-                    f"uniqueness{self.num_samples}": uniqueness_large,
-                    f"novelty{self.num_samples_small}": novelty_small,
-                    f"uniqueness{self.num_samples_small}": uniqueness_small,
+                result.update(**{
                     "degree": degree,
                     "clustering": clustering,
                     "orbit": orbit,
                     "betweenness": betweenness,
                     "nspdk": nspdk
-                }
+                })
                 torch.save(result, path)
                 print("Done.")
                 return
@@ -146,7 +153,7 @@ class EvaluatorBase:
         test_set = patch(dataset.get_data("test"))
 
         results = []
-        for trial in self.trials:
+        for trial in self.num_trials:
             np.random.seed(trial)
             gen = random_sample(samples, n=self.num_samples_metric)
             gen_dist = fun(patch(gen))
@@ -169,6 +176,7 @@ class Evaluator(EvaluatorBase):
 
 class OrderEvaluator(EvaluatorBase):
     root = Path("RUNS") / "ORDER"
+    requires_quantitative = False
 
     def __init__(self, model_name):
         super().__init__(model_name)

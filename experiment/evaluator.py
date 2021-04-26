@@ -73,7 +73,7 @@ class EvaluatorBase:
 
             path = exp.root / "results" / f"results.pt"
             if not path.exists():
-                time_taken, samples = self.get_samples(exp)
+                samples = self.get_samples(exp)
                 novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
                 uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
                 degree = self.evaluate_metric('degree', dataset, samples)
@@ -82,7 +82,6 @@ class EvaluatorBase:
                 betweenness = self.evaluate_metric('betweenness', dataset, samples)
                 nspdk = self.evaluate_metric('nspdk', dataset, samples)
                 result = {
-                    f"time{self.num_samples}": time_taken,
                     f"novelty{self.num_samples}": novelty_large,
                     f"uniqueness{self.num_samples}": uniqueness_large,
                     f"novelty{self.num_samples_small}": novelty_small,
@@ -103,10 +102,12 @@ class EvaluatorBase:
             start = time.time()
             samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start
+            with open(exp.root / "samples" / "elapsed.txt", "w") as f:
+                print(time_elapsed, file=f)
             torch.save(samples, exp.root / "samples" / filename)
 
         samples = torch.load(exp.root / "samples" / filename)
-        return time_elapsed, [G for G in samples if G.number_of_nodes() > 0]
+        return [G for G in samples if G.number_of_nodes() > 0]
 
     def evaluate_novelty(self, dataset, samples):
         np.random.seed(42)

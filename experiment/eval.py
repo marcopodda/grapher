@@ -67,7 +67,8 @@ def orbit_worker(G):
 def orbit_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    return np.array(counts)
+    counts = np.array(counts)
+    return counts[~np.all(counts == 0, axis=1)]
 
 
 def betweenness_worker(G):

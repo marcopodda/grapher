@@ -136,7 +136,7 @@ def novelty(ref, samples):
 
 
 def uniqueness_worker(G, samples):
-    count = np.array([nx.is_isomorphic(G, g) for g in samples])
+    count = np.array([nx.faster_could_be_isomorphic(G, g) for g in samples])
     return count.sum() > 0
 
 

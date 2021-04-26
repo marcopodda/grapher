@@ -126,12 +126,12 @@ class EvaluatorBase:
             time_elapsed = time.time() - start
             with open(exp.root / "samples" / "elapsed.txt", "w") as f:
                 print(time_elapsed, file=f)
+            samples = list(itertools.chain.from_iterable(samples))
             torch.save(samples, exp.root / "samples" / filename)
             print("\tDone.")
         else:
             print("\tSamples ready.")
 
-        samples = list(itertools.chain.from_iterable(samples))
         samples = torch.load(exp.root / "samples" / filename)
         return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]
 

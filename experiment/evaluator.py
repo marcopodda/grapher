@@ -176,6 +176,7 @@ class EvaluatorBase:
 
         return results
 
+
 class Evaluator(EvaluatorBase):
     root = Path("RUNS")
 
@@ -183,12 +184,3 @@ class Evaluator(EvaluatorBase):
 class OrderEvaluator(EvaluatorBase):
     root = Path("RUNS") / "ORDER"
     requires_quantitative = False
-
-    def __init__(self, model_name):
-        super().__init__(model_name)
-
-    def novelty_not_calculated(self, result):
-        return False
-
-    def uniqueness_not_calculated(self, result):
-        return False

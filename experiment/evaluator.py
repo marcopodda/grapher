@@ -101,6 +101,9 @@ class EvaluatorBase:
                 }
                 torch.save(result, path)
                 print("Done.")
+                return
+
+            print("Already evaluated, skipping.")
 
     def get_samples(self, exp):
         time_elapsed = None

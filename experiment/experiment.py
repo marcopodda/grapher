@@ -73,7 +73,7 @@ class Experiment(BaseExperiment):
         dataset = self.dataset_class(config, self.root, name=self.dataset)
         trainer = Trainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
         samples = trainer.sample(num_samples=num_samples)
-        return GraphList([clean_graph(e) for e in samples])
+        return [clean_graph(e) for e in samples]
 
 
 class OrderExperiment(Experiment):

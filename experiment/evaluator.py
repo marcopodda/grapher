@@ -1,3 +1,4 @@
+import itertools
 import time
 from joblib.parallel import Parallel, delayed
 import torch
@@ -130,6 +131,7 @@ class EvaluatorBase:
         else:
             print("\tSamples ready.")
 
+        samples = list(itertools.chain.from_iterable(samples))
         samples = torch.load(exp.root / "samples" / filename)
         return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]
 

@@ -128,7 +128,7 @@ class EvaluatorBase:
             print("Samples ready.")
 
         samples = torch.load(exp.root / "samples" / filename)
-        return [G for G in samples if G.number_of_nodes() > 1]
+        return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]
 
     def evaluate_novelty(self, dataset, samples):
         np.random.seed(42)

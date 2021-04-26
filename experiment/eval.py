@@ -123,7 +123,7 @@ def clean_graph(G_or_edges):
 
 def novelty_worker(G, ref):
     count = np.array([nx.faster_could_be_isomorphic(G, g) for g in ref])
-    return count.sum() > 0
+    return count.sum() == 0
 
 
 def novelty(ref, samples):
@@ -137,7 +137,7 @@ def novelty(ref, samples):
 
 def uniqueness_worker(G, samples):
     count = np.array([nx.faster_could_be_isomorphic(G, g) for g in samples])
-    return count.sum() > 0
+    return count.sum() == 0
 
 
 def uniqueness(samples):

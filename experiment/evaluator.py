@@ -108,7 +108,6 @@ class EvaluatorBase:
                 })
                 torch.save(result, path)
                 print("Done.")
-                return
 
             print("Already evaluated, skipping.")
 

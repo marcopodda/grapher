@@ -112,7 +112,8 @@ class EvaluatorBase:
         np.random.seed(42)
         train_data = dataset.get_data('train')
         min_num_samples = min(len(samples), self.num_samples_small)
-        samples_small = np.random.choice(samples, min_num_samples, replace=False)
+        indices = np.random.choice(len(samples), min_num_samples, replace=False)
+        samples_small = [samples[i] for i in indices]
         novelty_small = novelty(train_data, samples_small)
         novelty_large = novelty(train_data, samples)
         return novelty_small, novelty_large
@@ -120,7 +121,8 @@ class EvaluatorBase:
     def evaluate_uniqueness(self, samples):
         np.random.seed(123)
         min_num_samples = min(len(samples), self.num_samples_small)
-        samples_small = np.random.choice(samples, min_num_samples, replace=False)
+        indices = np.random.choice(len(samples), min_num_samples, replace=False)
+        samples_small = [samples[i] for i in indices]
         uniqueness_small = uniqueness(samples_small)
         uniqueness_large = uniqueness(samples)
         return uniqueness_small, uniqueness_large

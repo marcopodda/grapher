@@ -55,13 +55,13 @@ def clustering_dist(samples):
     return np.array(counts)
 
 
-def orbit_worker(graph):
+def orbit_worker(G):
     try:
-        orbit_counts = orca(graph)
-        counts = np.sum(orbit_counts, axis=0) / graph.number_of_nodes()
+        orbit_counts = orca(G)
+        counts = np.sum(orbit_counts, axis=0) / G.number_of_nodes()
         return counts
     except Exception as e:
-        return np.zeros((graph.number_of_nodes(), 15))
+        return np.zeros((G.number_of_nodes(), 15))
 
 
 def orbit_dist(samples):
@@ -91,7 +91,7 @@ def nspdk_dist(samples):
 def random_sample(graphs, n=100):
     if n >= len(graphs):
         return graphs
-    indices = np.random.choice(len(graphs), n)
+    indices = np.random.choice(len(graphs), n, replace=False)
     return [graphs[i] for i in indices]
 
 

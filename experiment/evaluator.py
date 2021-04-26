@@ -160,6 +160,7 @@ class EvaluatorBase:
 
         test_set = patch(dataset.get_data("test"))
         samples = patch(samples)
+
         num_samples = min(len(test_set), self.num_samples_metric)
 
         results = []

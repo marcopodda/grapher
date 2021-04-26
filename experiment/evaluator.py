@@ -108,20 +108,24 @@ class EvaluatorBase:
                 })
                 torch.save(result, path)
                 print("Done.")
-
-            print("Already evaluated, skipping.")
+            else:
+                print("Already evaluated, skipping.")
 
     def get_samples(self, exp):
         time_elapsed = None
         filename = f"samples.pt"
 
         if not (exp.root / "samples" / filename).exists():
+            print("Getting samples...")
             start = time.time()
             samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start
             with open(exp.root / "samples" / "elapsed.txt", "w") as f:
                 print(time_elapsed, file=f)
             torch.save(samples, exp.root / "samples" / filename)
+            print("Done.")
+        else:
+            print("Samples ready.")
 
         samples = torch.load(exp.root / "samples" / filename)
         return [G for G in samples if G.number_of_nodes() > 0]

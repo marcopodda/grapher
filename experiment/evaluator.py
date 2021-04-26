@@ -159,15 +159,18 @@ class EvaluatorBase:
         mmd_kwargs = METRICS[metric]["mmd_kwargs"]
 
         test_set = patch(dataset.get_data("test"))
+        samples = patch(samples)
         num_samples = min(len(test_set), self.num_samples_metric)
 
         results = []
         for trial in range(self.num_trials):
             np.random.seed(trial)
             gen = random_sample(samples, n=num_samples)
-            gen_dist = fun(patch(gen))
             ref = random_sample(test_set, n=num_samples)
+
+            gen_dist = fun(gen)
             test_dist = fun(ref)
+
             score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
             results.append({
                 "model": self.model_name,

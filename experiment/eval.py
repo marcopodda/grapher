@@ -127,7 +127,7 @@ def novelty(ref, sample):
 
     count = []
     for G in sample:
-        P = Parallel(n_jobs=32, verbose=1)
+        P = Parallel(n_jobs=32, verbose=0)
         test = P(delayed(nx.is_isomorphic)(G, g) for g in ref)
         test = np.array(test)
         count.append((test==0).any())
@@ -142,7 +142,7 @@ def uniqueness(sample):
     count = []
 
     for i, G in enumerate(sample[:-1]):
-        P = Parallel(n_jobs=32, verbose=1)
+        P = Parallel(n_jobs=32, verbose=0)
         test = P(delayed(nx.is_isomorphic)(G, g) for g in sample[i+1:])
         test = np.array(test)
         count.append((test==0).any())

@@ -119,7 +119,7 @@ class EvaluatorBase:
         if not (exp.root / "samples" / filename).exists():
             print("\tGetting samples...", end=" ")
             start = time.time()
-            P = Parallel(n_jobs=32, verbose=1)
+            P = Parallel(n_jobs=32, verbose=0)
             samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
             # samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start

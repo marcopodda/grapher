@@ -64,7 +64,7 @@ def loss(x, n, G_real, generator):
 def optimizer_brute(x_min, x_max, x_step, n, G_real, generator):
     loss_all = []
     x_list = np.arange(x_min, x_max, x_step)
-    P = Parallel(n_jobs=40, verbose=1)
+    P = Parallel(n_jobs=40, verbose=0)
     loss_all = P(delayed(loss)(x_test, n, G_real, generator) for x_test in x_list if x_test < n)
     # for x_test in x_list:
     #     if x_test < n:

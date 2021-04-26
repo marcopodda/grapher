@@ -18,7 +18,8 @@ from .eval import (
     patch,
     random_sample,
     novelty,
-    uniqueness)
+    uniqueness,
+    pad_to_dense)
 
 from utils import mmd
 from utils.constants import DATASET_NAMES
@@ -164,16 +165,20 @@ class EvaluatorBase:
             ref = random_sample(test_set, n=num_samples)
 
             gen_dist = fun(gen)
-            test_dist = fun(ref)
+            ref_dist = fun(ref)
 
-            score = mmd.compute_mmd(test_dist, gen_dist, **mmd_kwargs)
+            if metric == 'degree':
+                gen_dist = pad_to_dense(gen_dist)
+                ref_dist = pad_to_dense(ref_dist)
+
+            score = mmd.compute_mmd(ref_dist, gen_dist, **mmd_kwargs)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,
                 "metric": metric,
                 "score": score,
                 "gen": gen_dist,
-                "ref": test_dist
+                "ref": ref_dist
             })
 
         return results

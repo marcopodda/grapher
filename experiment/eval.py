@@ -24,33 +24,37 @@ def patch(samples):
     return graphs
 
 
-def pad(lvec):
-    width = max(len(l) for l in lvec)
-    height = len(lvec)
-    mat = np.zeros((height, width))
-    for i, v in enumerate(lvec):
-        mat[i, :len(v)] = v
-    return mat
+def pad_to_dense(M):
+    """Appends the minimal required amount of zeroes at the end of each
+     array in the jagged array `M`, such that `M` looses its jagedness."""
+
+    maxlen = max(len(r) for r in M)
+
+    Z = np.zeros((len(M), maxlen))
+    for enu, row in enumerate(M):
+        Z[enu, :len(row)] += row
+    return Z
 
 
 def degree_worker(G):
-    return list(dict(nx.degree(G)).values())
+    degrees = list(dict(nx.degree(G)).values())
+    return np.bincount(degrees)
 
 
-def degree_dist(samples):
-    P = Parallel(n_jobs=40, verbose=0)
+def degree_dist(samples, n_jobs=40):
+    P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
-    return pad(counts)
+    return np.array(counts[1:])
 
 
 def clustering_worker(G):
     clustering_coefs = list(dict(nx.clustering(G)).values())
-    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
+    hist, _ = np.histogram(clustering_coefs, bins=32, range=(0.0, 1.0), density=False)
     return hist
 
 
-def clustering_dist(samples):
-    P = Parallel(n_jobs=40, verbose=0)
+def clustering_dist(samples, n_jobs=40):
+    P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
     return np.array(counts)
 
@@ -64,21 +68,23 @@ def orbit_worker(G):
         return np.zeros((G.number_of_nodes(), 15))
 
 
-def orbit_dist(samples):
-    P = Parallel(n_jobs=40, verbose=0)
+def orbit_dist(samples, n_jobs=40):
+    P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
     counts = np.array(counts)
     return counts[~np.all(counts == 0, axis=1)]
 
 
 def betweenness_worker(G):
-    return list(dict(nx.betweenness_centrality(G)).values())
+    betweenness = list(dict(nx.betweenness_centrality(G)).values())
+    hist, _ = np.histogram(betweenness, bins=32, range=(0.0, 1.0), density=False)
+    return hist
 
 
-def betweenness_dist(samples):
-    P = Parallel(n_jobs=40, verbose=0)
+def betweenness_dist(samples, n_jobs=40):
+    P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
-    return pad(counts)
+    return counts
 
 
 def nspdk_dist(samples):

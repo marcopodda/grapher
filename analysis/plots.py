@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from analysis.analyze import parse_log, collate_scores
+from analysis.collect import parse_log, collate_scores
 
 plt.rcParams.update({
     "pgf.texsystem": "pdflatex",

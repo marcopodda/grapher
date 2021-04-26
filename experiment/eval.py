@@ -122,7 +122,7 @@ def clean_graph(G_or_edges):
 
 
 def novelty_worker(G, ref):
-    count = np.array([nx.is_isomorphic(G, g) for g in ref])
+    count = np.array([nx.faster_could_be_isomorphic(G, g) for g in ref])
     return count.sum() > 0
 
 

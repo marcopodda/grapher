@@ -24,9 +24,6 @@ from utils import mmd
 from utils.constants import DATASET_NAMES
 
 
-np.random.seed(123)
-
-
 METRICS = {
     "degree": {
         "fun": degree_dist,
@@ -136,7 +133,6 @@ class EvaluatorBase:
         return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]
 
     def evaluate_novelty(self, dataset, samples):
-        np.random.seed(42)
         train_data = dataset.get_data('train')
         min_num_samples = min(len(samples), self.num_samples_small)
         indices = np.random.choice(len(samples), min_num_samples, replace=False)
@@ -146,7 +142,6 @@ class EvaluatorBase:
         return novelty_small, novelty_large
 
     def evaluate_uniqueness(self, samples):
-        np.random.seed(123)
         min_num_samples = min(len(samples), self.num_samples_small)
         indices = np.random.choice(len(samples), min_num_samples, replace=False)
         samples_small = [samples[i] for i in indices]
@@ -164,8 +159,7 @@ class EvaluatorBase:
         num_samples = min(len(test_set), self.num_samples_metric)
 
         results = []
-        for trial in range(self.num_trials):
-            np.random.seed(trial)
+        for _ in range(self.num_trials):
             gen = random_sample(samples, n=num_samples)
             ref = random_sample(test_set, n=num_samples)
 

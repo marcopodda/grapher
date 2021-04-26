@@ -11,6 +11,7 @@ from utils import mmd
 from utils.serializer import load_yaml
 from utils.constants import RUNS_DIR, DATA_DIR
 from utils.evaluation import orca
+from joblib import Parallel, delayed
 
 
 def patch(samples):
@@ -126,7 +127,9 @@ def novelty(ref, sample):
 
     count = []
     for G in sample:
-        test = np.array([nx.is_isomorphic(G, g) for g in ref])
+        P = Parallel(n_jobs=32, verbose=1)
+        test = P(delayed(nx.is_isomorphic)(G, g) for g in ref)
+        test = np.array(test)
         count.append((test==0).any())
 
     count = np.array(count)
@@ -137,8 +140,11 @@ def uniqueness(sample):
     sample = [clean_graph(G_or_edges) for G_or_edges in sample]
 
     count = []
+
     for i, G in enumerate(sample[:-1]):
-        test = np.array([nx.is_isomorphic(G, g) for g in sample[i+1:]])
+        P = Parallel(n_jobs=32, verbose=1)
+        test = P(delayed(nx.is_isomorphic)(G, g) for g in sample[i+1:])
+        test = np.array(test)
         count.append((test==0).any())
 
     count = np.array(count)

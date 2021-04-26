@@ -107,7 +107,7 @@ def collate_result(result):
 
 
 
-def collate_scores():
+def collate_histograms():
     SCORES_DIR = ROOT / "SCORES"
     rows = []
 

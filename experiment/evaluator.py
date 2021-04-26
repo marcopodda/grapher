@@ -107,25 +107,25 @@ class EvaluatorBase:
                     "nspdk": nspdk
                 })
                 torch.save(result, path)
-                print("Done.")
+                print("\tDone.")
             else:
-                print("Already evaluated, skipping.")
+                print("\tAlready evaluated, skipping.")
 
     def get_samples(self, exp):
         time_elapsed = None
         filename = f"samples.pt"
 
         if not (exp.root / "samples" / filename).exists():
-            print("Getting samples...")
+            print("\tGetting samples...")
             start = time.time()
             samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start
             with open(exp.root / "samples" / "elapsed.txt", "w") as f:
                 print(time_elapsed, file=f)
             torch.save(samples, exp.root / "samples" / filename)
-            print("Done.")
+            print("\tDone.")
         else:
-            print("Samples ready.")
+            print("\tSamples ready.")
 
         samples = torch.load(exp.root / "samples" / filename)
         return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]

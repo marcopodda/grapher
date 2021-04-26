@@ -1,4 +1,5 @@
 import time
+from joblib.parallel import Parallel, delayed
 import torch
 import numpy as np
 import networkx as nx
@@ -118,7 +119,9 @@ class EvaluatorBase:
         if not (exp.root / "samples" / filename).exists():
             print("\tGetting samples...", end=" ")
             start = time.time()
-            samples = exp.sample(num_samples=self.num_samples)
+            P = Parallel(n_jobs=32, verbose=1)
+            samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
+            # samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start
             with open(exp.root / "samples" / "elapsed.txt", "w") as f:
                 print(time_elapsed, file=f)

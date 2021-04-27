@@ -18,54 +18,9 @@ QUANT_METRICS = ["novelty1000", "novelty5000", "uniqueness1000", "uniqueness5000
 ALL_METRICS = QUAL_METRICS + QUANT_METRICS
 
 
-def patch_graphs(graphlist):
-    graphs = []
-    for i, _ in enumerate(graphlist):
-        G = graphlist[i]
-        G = nx.convert_node_labels_to_integers(G)
-        for node in G.nodes():
-            G.nodes[node]["label"] = str(nx.degree(G, node))
-        graphs.append(G)
-    return graphs
-
-
 def load_result(root, model, dataset):
-    path = root / model / dataset / "results" / f"{dataset}.yaml"
-    return load_yaml(path)
-
-
-def load_qual_samples(root, model, dataset):
-    path = root / model / dataset / "samples"
-    samples = []
-    for filepath in sorted(list(path.iterdir())):
-        if '000' in filepath.stem:
-            continue
-        graphlist = torch.load(filepath)
-        samples.append(patch_graphs(graphlist))
-    return samples
-
-
-def load_test_set(root, model, dataset):
-    path = root / model / dataset / "data"
-    splits = load_yaml(path / "splits.yaml")
-    dataset = torch.load(path / f"{dataset}.pt")
-    graphs = patch_graphs(dataset.graphlist)
-    graphs = [graphs[i] for i in splits["test"]]
-    return graphs
-
-
-def calculate_nspdk(root, model, dataset):
-    samples = load_qual_samples(root, model, dataset)
-    ref = load_test_set(root, model, dataset)
-    values = [float(nspdk(ref, sample)) for sample in samples]
-    return float(mean(values)), float(stdev(values)), values
-
-
-def to_histogram(v):
-    data = []
-    for x in v:
-        data.extend([v.index(x)] * int(np.round(x)))
-    return data
+    path = root / model / dataset / "results" / f"results.pt"
+    return torch.load(path)
 
 
 def collate_experiments():
@@ -89,51 +44,53 @@ def collate_experiments():
     return all_data
 
 
-def collate_result(result):
-    elem = result[0]
-    try:
-        ref = elem["ref"].reshape(-1)
-    except:
-        ref = elem["ref"].toarray().reshape(-1)
-    ref = np.random.choice(ref, min(len(ref), 2000), replace=False)
+def collate_metric(metric_data):
+    num_trials = len(metric_data)
+    refs, gens, scores = [], [], []
 
-    try:
-        gen = elem["gen"].reshape(-1)
-    except:
-        gen = elem["gen"].toarray().reshape(-1)
-    gen = np.random.choice(gen, min(len(ref), 2000), replace=False)
+    for num_trial in range(num_trials):
+        elem = metric_data[num_trial]
+        refs.append(elem["ref"])
+        gens.append(elem["gen"])
+        scores.append(elem["score"])
 
-    return ref, gen
+    return {
+        "avg": np.mean(scores),
+        "std": np.std(scores),
+        "ref": np.array(refs).mean(axis=0),
+        "gen": np.array(gens).mean(axis=0)
+    }
 
 
 
-def collate_histograms():
-    SCORES_DIR = ROOT / "SCORES"
+def collate_results():
     rows = []
 
     for dataset in DATASET_NAMES:
-        for model in ["GRAPHRNN", "GRAPHER"]:
-            for metric in QUAL_METRICS:
-                path = SCORES_DIR / f"{model}_{dataset}_{metric}.pt"
-                if path.exists():
-                    ref, gen = collate_result(torch.load(path))
-                    for i in range(len(ref)):
+        for model in MODELS:
+            path = RUNS_DIR / model / dataset / "results" / "results.pt"
+            if path.exists():
+                result = torch.load(path)
+                for metric in QUAL_METRICS:
+                    metric_data = collate_metric(result[metric])
+                    ref_data = metric_data["ref"]
+                    for i in range(ref_data.shape[0]):
                         rows.append({
                             "Model": "Data",
                             "Dataset": HUMANIZE[dataset],
                             "Metric": HUMANIZE[metric],
-                            "Value": ref[i]
+                            "Value": ref_data[i]
                         })
-                    for i in range(len(gen)):
+                    gen_data = metric_data["gen"]
+                    for i in range(gen_data.shape[0]):
                         rows.append({
                             "Model": model,
                             "Dataset": HUMANIZE[dataset],
                             "Metric": HUMANIZE[metric],
-                            "Value": gen[i]
+                            "Value": gen_data[i]
                         })
 
-    all_scores = pd.DataFrame(rows)
-    return all_scores[all_scores.Value>0]
+    return pd.DataFrame(rows)
 
 
 

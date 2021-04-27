@@ -1,7 +1,8 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from analysis.collect import parse_log, collate_scores
+from utils.constants import HUMANIZE
+from analysis.collect import parse_log, collate_results, QUAL_METRICS, DATASETS
 
 plt.rcParams.update({
     "pgf.texsystem": "pdflatex",
@@ -12,12 +13,20 @@ plt.rcParams.update({
 
 
 def plot_kde():
-    data = collate_scores()
+    models = ["Data", "GRAPHER", "GRAPHRNN"]
+    metrics = [HUMANIZE[m] for m in QUAL_METRICS]
+    datasets = [HUMANIZE[d] for d in DATASETS]
+
+    data = collate_results()
+    data = data[data.Model.isin(models)]
+    data = data[data.Value>0]
+
     g = sns.displot(
-        x="Value", hue="Model", col="Dataset", row="Metric", kind="kde",
-        data=data, common_norm=False,
+        x="Value", hue="Model", row="Metric", col="Dataset", # kind="kde",
+        data=data, common_norm=False, hue_order=models, row_order=metrics, col_order=datasets,
         facet_kws=dict(sharex=False, sharey=False), height=3)
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
+    # g.set_axis_labels(x_var=metrics, y_var=datasets)
     plt.savefig("displot.eps")
     plt.clf()
 

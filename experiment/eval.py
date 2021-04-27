@@ -148,12 +148,9 @@ def _norm(vec):
     return vec / vec.sum()
 
 
-def normalize(ref_counts, sample_counts, hist, bins=100):
+def normalize(ref_counts, gen_counts, hist, bins=100):
     if hist:
-        ref_dist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-        gen_dist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
-    else:
-        ref_dist = _norm(ref_counts)
-        gen_dist = _norm(sample_counts)
+        ref_counts, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+        gen_counts, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
 
-    return ref_dist, gen_dist
+    return ref_counts, gen_counts

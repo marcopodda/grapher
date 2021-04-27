@@ -119,8 +119,14 @@ def clean_graph(G_or_edges):
 def dup(G, Gs):
     test = False
     for g in Gs:
-        test = sorted(G.edges()) == sorted(g.edges())
-        if test is True:
+        mapping = {i:n for (i,n) in enumerate(G.nodes())}
+        try:
+            nx.relabel_nodes(g, mapping)
+        except Exception as e:
+            print(e)
+            continue
+        if sorted(G.edges()) == sorted(g.edges()):
+            test = True
             break
     return test
 

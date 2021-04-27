@@ -38,7 +38,7 @@ def pad_to_dense(M):
 
 def degree_worker(G):
     degrees = list(dict(nx.degree(G)).values())
-    return np.bincount(degrees)
+    return degrees
 
 
 def degree_dist(samples, n_jobs=40):

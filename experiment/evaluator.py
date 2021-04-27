@@ -73,9 +73,9 @@ class EvaluatorBase:
             dataset = load_dataset(dataset_name, self.model_name, exp)
 
             path = exp.root / "results" / f"results.pt"
+            samples = self.get_samples(exp)
             if not path.exists():
                 result = {}
-                samples = self.get_samples(exp)
 
                 if self.requires_quantitative:
                     print("\tCalculating novelty...")

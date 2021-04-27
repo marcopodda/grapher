@@ -149,7 +149,7 @@ def uniqueness(samples, fast):
     return sum(counts) / len(counts)
 
 
-def normalize(ref_counts, gen_counts, unit, bins=100):
+def normalize(ref_counts, gen_counts, unit=False, bins=100):
     rng = (0.0, 1.0) if unit else None
     ref_counts, _ = np.histogram(ref_counts, bins=bins, range=rng, density=False)
     gen_counts, _ = np.histogram(gen_counts, bins=bins, range=rng, density=False)

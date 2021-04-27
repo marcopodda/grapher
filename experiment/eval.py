@@ -35,7 +35,8 @@ def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    counts = np.array(counts)
+    return counts / counts.sum()
 
 
 def clustering_worker(G):
@@ -47,15 +48,15 @@ def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    counts = np.array(counts)
+    return counts / counts.sum()
 
 
 def orbit_worker(G):
     try:
         counts = orca(G)
         counts = counts.sum(axis=1).reshape(-1)
-        print(counts)
-        return counts.tolist()
+        return counts / counts.sum()
     except Exception as e:
         print("orca", e)
         return np.zeros(G.number_of_nodes())
@@ -77,7 +78,8 @@ def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    counts = np.array(counts)
+    return counts / counts.sum()
 
 
 def nspdk_dist(samples):
@@ -85,8 +87,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    print("nspdk", counts.shape)
-    return counts.reshape(-1)
+    return counts / counts.sum()
 
 
 def random_sample(graphs, n=100):

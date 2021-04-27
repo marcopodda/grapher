@@ -145,7 +145,7 @@ def uniqueness(samples):
 
 
 def _norm(vec):
-    return (vec - vec.min()) / (vec.max() - vec.min())
+    return vec / vec.sum()
 
 
 def normalize(ref_counts, sample_counts, hist, bins=100):

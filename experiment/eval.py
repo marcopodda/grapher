@@ -58,7 +58,7 @@ def orbit_worker(G):
         return counts.tolist()
     except Exception as e:
         print("orca", e)
-        return np.zeros(G.number_of_nodes)
+        return np.zeros(G.number_of_nodes())
 
 
 def orbit_dist(samples, n_jobs=40):

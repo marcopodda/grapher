@@ -55,7 +55,7 @@ class EvaluatorBase:
         self.model_name = model_name
         self.num_samples = 5000
         self.num_samples_small = 1000
-        self.num_samples_metric = 100
+        self.num_samples_metric = 30
         self.num_trials = 3
 
     def novelty_not_calculated(self, result):

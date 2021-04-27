@@ -195,13 +195,12 @@ class EvaluatorBase:
             gen = gen_samples[i]
             ref = ref_samples[i]
 
-            gen_dist = fun(gen)
-            ref_dist = fun(ref)
-
             if metric == 'degree':
                 gen_dist = pad_to_dense(gen_dist, max_degree)
                 ref_dist = pad_to_dense(ref_dist, max_degree)
-            print(gen_dist.shape, ref_dist.shape)
+
+            gen_dist = fun(gen)
+            ref_dist = fun(ref)
 
             score = mmd.compute_mmd(ref_dist, gen_dist, **mmd_kwargs)
             results.append({

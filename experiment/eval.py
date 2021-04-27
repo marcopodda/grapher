@@ -52,8 +52,8 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(G):
     try:
-        counts = orca(G).sum(axis=1)
-        return counts.reshape(-1).tolist()
+        counts = orca(G).sum(axis=1).reshape(-1)
+        return counts.tolist()
     except Exception as e:
         print("orca", e)
         return np.zeros(G.number_of_nodes)
@@ -83,7 +83,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    return counts.reshape(-1)
+    return counts.sum(axis=1).reshape(-1)
 
 
 def random_sample(graphs, n=100):
@@ -148,7 +148,7 @@ def uniqueness(samples, fast):
     return sum(counts) / len(counts)
 
 
-def normalize(ref_counts, gen_counts, hist, bins=100):
+def normalize(ref_counts, gen_counts, bins=100):
     ref_counts, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
     gen_counts, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
     return ref_counts, gen_counts

@@ -18,10 +18,11 @@ def plot_kde():
     datasets = [HUMANIZE[d] for d in DATASETS]
 
     data = collate_results()
+    data.to_csv("a.csv")
     data = data[data.Model.isin(models)]
 
     g = sns.displot(
-        x="Value", hue="Model", row="Dataset", col="Metric", kind="hist",
+        x="Value", hue="Model", row="Dataset", col="Metric", kind="kde",
         data=data, common_norm=False, hue_order=models, row_order=datasets, col_order=metrics,
         facet_kws=dict(sharex=False, sharey=False), height=3)
 

@@ -50,11 +50,11 @@ def collate_metric(metric_data, is_nspdk):
 
     for num_trial in range(num_trials):
         elem = metric_data[num_trial]
-        # if is_nspdk:
-        ref_hist, _ = np.histogram(elem["ref"], bins=100, range=(0.0, 1.0), density=False)
-        gen_hist, _ = np.histogram(elem["gen"], bins=100, range=(0.0, 1.0), density=False)
-        elem["ref"] = ref_hist[1:]
-        elem["gen"] = gen_hist[1:]
+        if is_nspdk:
+            ref_hist, _ = np.histogram(elem["ref"], bins=100, range=(0.0, 1.0), density=False)
+            gen_hist, _ = np.histogram(elem["gen"], bins=100, range=(0.0, 1.0), density=False)
+            elem["ref"] = ref_hist[1:]
+            elem["gen"] = gen_hist[1:]
         refs.append(elem["ref"])
         gens.append(elem["gen"])
         scores.append(elem["score"])

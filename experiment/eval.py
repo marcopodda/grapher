@@ -28,13 +28,14 @@ def patch(samples):
 def degree_worker(G):
     degrees = dict(nx.degree(G))
     degrees = list(degrees.values())
-    return np.bincount(degrees, minlength=100)
+    return degrees
 
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
-    return np.array(counts).sum(axis=0)
+    counts = list(itertools.chain.from_iterable(counts))
+    return np.array(counts)
 
 
 def clustering_worker(G):
@@ -51,16 +52,18 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(G):
     try:
-        return orca(G).sum(axis=0)
+        counts = orca(G).sum(axis=1)
+        return counts.reshape(-1).tolist()
     except Exception as e:
         print("orca", e)
-        return np.zeros(15)
+        return np.zeros(G.number_of_nodes)
 
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    return np.array(counts).sum(axis=0)
+    counts = list(itertools.chain.from_iterable(counts))
+    return np.array(counts)
 
 
 def betweenness_worker(G):
@@ -80,7 +83,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    return counts.sum(axis=0)
+    return counts.reshape(-1)
 
 
 def random_sample(graphs, n=100):
@@ -146,8 +149,6 @@ def uniqueness(samples, fast):
 
 
 def normalize(ref_counts, gen_counts, hist, bins=100):
-    if hist:
-        ref_counts, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-        gen_counts, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
-
+    ref_counts, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+    gen_counts, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
     return ref_counts, gen_counts

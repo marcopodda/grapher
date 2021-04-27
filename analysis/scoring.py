@@ -37,7 +37,7 @@ def degree_worker(G):
 def degree_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
-    return pad(counts)
+    return counts
 
 
 def clustering_worker(G):
@@ -49,7 +49,7 @@ def clustering_worker(G):
 def clustering_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
-    return np.array(counts)
+    return counts
 
 
 def orbit_worker(graph):
@@ -64,7 +64,7 @@ def orbit_worker(graph):
 def orbit_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    return np.array(counts)
+    return counts
 
 
 def betweenness_worker(G):
@@ -74,7 +74,7 @@ def betweenness_worker(G):
 def betweenness_dist(samples):
     P = Parallel(n_jobs=40, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
-    return pad(counts)
+    return counts
 
 
 def nspdk_dist(samples):

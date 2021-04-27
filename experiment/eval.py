@@ -1,3 +1,4 @@
+import itertools
 import time
 import torch
 import numpy as np
@@ -24,72 +25,63 @@ def patch(samples):
     return graphs
 
 
-def pad_to_dense(M, maxlen):
-    """Appends the minimal required amount of zeroes at the end of each
-     array in the jagged array `M`, such that `M` looses its jagedness."""
-    Z = np.zeros((len(M), maxlen))
-    for enu, row in enumerate(M):
-        Z[enu, :len(row)] += row
-    return Z
-
-
 def degree_worker(G):
-    degrees = list(dict(nx.degree(G)).values())
-    return degrees
+    degrees = dict(nx.degree(G))
+    return list(degrees.values())
 
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
 def clustering_worker(G):
-    clustering_coefs = list(dict(nx.clustering(G)).values())
-    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
-    return hist
+    clustering_coefs = dict(nx.clustering(G))
+    return list(clustering_coefs.values())
 
 
 def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
 def orbit_worker(G):
     try:
-        orbit_counts = orca(G)
-        counts = np.sum(orbit_counts, axis=0) / G.number_of_nodes()
-        return counts
+        return orca(G).reshape(-1)
     except Exception as e:
-        return np.zeros((G.number_of_nodes(), 15))
+        print("orca", e)
+        return np.zeros((G.number_of_nodes(), 15)).reshape(-1)
 
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    counts = np.array(counts)
-    return counts[~np.all(counts == 0, axis=1)]
+    counts = list(itertools.chain.from_iterable(counts))
+    return np.array(counts)
 
 
 def betweenness_worker(G):
-    betweenness = list(dict(nx.betweenness_centrality(G)).values())
-    hist, _ = np.histogram(betweenness, bins=100, range=(0.0, 1.0), density=False)
-    return hist
+    betweenness = dict(nx.betweenness_centrality(G))
+    return list(betweenness.values())
 
 
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
-    return counts
+    counts = list(itertools.chain.from_iterable(counts))
+    return np.array(counts)
 
 
 def nspdk_dist(samples):
     for i, G in enumerate(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
-    counts = vectorize(samples, complexity=4, discrete=True)
-    return counts
+    counts = vectorize(samples, complexity=4, discrete=True).toarray()
+    return counts.reshape(-1)
 
 
 def random_sample(graphs, n=100):
@@ -150,3 +142,19 @@ def uniqueness(samples):
     P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(uniqueness_worker)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
     return sum(counts) / len(counts)
+
+
+def normalize(ref_counts, sample_counts, bins=100):
+    min_value = max(ref_counts.min(), sample_counts.min())
+    max_value = max(ref_counts.max(), sample_counts.max())
+
+    if max_value == 0:
+        return np.zeros((bins,)), np.zeros((bins,))
+
+    ref_counts = (ref_counts - min_value) / (max_value - min_value)
+    ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+
+    sample_counts = (sample_counts - min_value) / (max_value - min_value)
+    sample_hist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
+
+    return ref_hist, sample_hist

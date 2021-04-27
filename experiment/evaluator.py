@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 from pathlib import Path
 from functools import partial
+from scipy.stats import entropy
 
 from dataset import load_dataset
 from .experiment import load_experiment
@@ -19,10 +20,13 @@ from .eval import (
     random_sample,
     novelty,
     uniqueness,
-    pad_to_dense)
+    normalize)
 
 from utils import mmd
 from utils.constants import DATASET_NAMES
+
+
+EPS = 1e-8
 
 
 METRICS = {
@@ -167,45 +171,26 @@ class EvaluatorBase:
 
     def evaluate_metric(self, metric, dataset, samples):
         fun = METRICS[metric]["fun"]
-        mmd_kwargs = METRICS[metric]["mmd_kwargs"]
 
         test_set = patch(dataset.get_data("test"))
         samples = patch(samples)
-
         num_samples = min(len(test_set), self.num_samples_metric)
-
-        gen_samples = []
-        ref_samples = []
-        max_degree = 0
-
-        for _ in range(self.num_trials):
-            gen = random_sample(samples, n=num_samples)
-            gen_samples.append(gen)
-            ref = random_sample(test_set, n=num_samples)
-            ref_samples.append(ref)
-            max_degree = max(calc_num_nodes(gen), max_degree)
-            max_degree = max(calc_num_nodes(ref), max_degree)
 
         results = []
         for i in range(self.num_trials):
-            gen = gen_samples[i]
-            ref = ref_samples[i]
+            ref = fun(random_sample(test_set, n=num_samples))
+            gen = fun(random_sample(samples, n=num_samples))
 
-            gen_dist = fun(gen)
-            ref_dist = fun(ref)
+            ref_hist, gen_hist = normalize(ref, gen)
 
-            if metric == 'degree':
-                gen_dist = pad_to_dense(gen_dist, max_degree)
-                ref_dist = pad_to_dense(ref_dist, max_degree)
-
-            score = mmd.compute_mmd(ref_dist, gen_dist, **mmd_kwargs)
+            score = entropy(ref_hist + EPS, gen_hist + EPS)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,
                 "metric": metric,
                 "score": score,
-                "gen": gen_dist,
-                "ref": ref_dist
+                "gen": gen_hist,
+                "ref": ref_hist
             })
 
         return results

@@ -13,20 +13,30 @@ plt.rcParams.update({
 
 
 def plot_kde():
-    models = ["Data", "GRAPHER", "GRAPHRNN"]
+    models = ["Data", "Ours", "GraphRNN"]
     metrics = [HUMANIZE[m] for m in QUAL_METRICS]
     datasets = [HUMANIZE[d] for d in DATASETS]
 
     data = collate_results()
     data = data[data.Model.isin(models)]
-    data = data[data.Value>0]
 
     g = sns.displot(
-        x="Value", hue="Model", row="Metric", col="Dataset", # kind="kde",
-        data=data, common_norm=False, hue_order=models, row_order=metrics, col_order=datasets,
+        x="Value", hue="Model", row="Dataset", col="Metric", kind="hist",
+        data=data, common_norm=False, hue_order=models, row_order=datasets, col_order=metrics,
         facet_kws=dict(sharex=False, sharey=False), height=3)
-    g.set_titles(col_template="{col_name}", row_template="{row_name}")
-    # g.set_axis_labels(x_var=metrics, y_var=datasets)
+
+    for i, _ in enumerate(datasets):
+        for j, _ in enumerate(metrics):
+            g.axes[i,j].set_xlabel("")
+            g.axes[i,j].set_ylabel("")
+
+    for i, metric in enumerate(metrics):
+        g.axes[-1,i].set_xlabel(metric)
+
+    for i, dataset in enumerate(datasets):
+        g.axes[i,0].set_ylabel(dataset)
+
+    g.set_titles(template="", col_template="", row_template="")
     plt.savefig("displot.eps")
     plt.clf()
 

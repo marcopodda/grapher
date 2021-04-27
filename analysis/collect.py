@@ -32,24 +32,29 @@ def collate_experiments():
 
             for metric in QUAL_METRICS:
                 m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
+                row = {"Model": HUMANIZE[model], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
                 all_data.append(row)
 
             for metric in QUANT_METRICS:
                 m = result[metric]
-                row = {"Model": model, "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
+                row = {"Model": HUMANIZE[model], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
                 all_data.append(row)
 
     all_data = pd.DataFrame(all_data)
     return all_data
 
 
-def collate_metric(metric_data):
+def collate_metric(metric_data, is_nspdk):
     num_trials = len(metric_data)
     refs, gens, scores = [], [], []
 
     for num_trial in range(num_trials):
         elem = metric_data[num_trial]
+        # if is_nspdk:
+        ref_hist, _ = np.histogram(elem["ref"], bins=100, range=(0.0, 1.0), density=False)
+        gen_hist, _ = np.histogram(elem["gen"], bins=100, range=(0.0, 1.0), density=False)
+        elem["ref"] = ref_hist[1:]
+        elem["gen"] = gen_hist[1:]
         refs.append(elem["ref"])
         gens.append(elem["gen"])
         scores.append(elem["score"])
@@ -72,7 +77,7 @@ def collate_results():
             if path.exists():
                 result = torch.load(path)
                 for metric in QUAL_METRICS:
-                    metric_data = collate_metric(result[metric])
+                    metric_data = collate_metric(result[metric], metric=="nspdk")
                     ref_data = metric_data["ref"]
                     for i in range(ref_data.shape[0]):
                         rows.append({
@@ -84,7 +89,7 @@ def collate_results():
                     gen_data = metric_data["gen"]
                     for i in range(gen_data.shape[0]):
                         rows.append({
-                            "Model": model,
+                            "Model": HUMANIZE[model],
                             "Dataset": HUMANIZE[dataset],
                             "Metric": HUMANIZE[metric],
                             "Value": gen_data[i]

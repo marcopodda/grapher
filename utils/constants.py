@@ -18,6 +18,11 @@ DATA_DIR = ROOT / "DATA"
 
 
 HUMANIZE = {
+    "GRAPHER": "Ours",
+    "GRAPHRNN": "GraphRNN",
+    "BA": "B-A",
+    "ER": "E-R",
+    "GRU": "GRU-B",
     "PROTEINS_full": "PROTEINS",
     "trees": "TREES",
     "ladders": "LADDERS",

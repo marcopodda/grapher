@@ -4,6 +4,6 @@ dropout: 0.75
 embed_dim: 64
 hidden_dim: 256
 max_epochs: 2000
-stop_loss: 0.28
+stop_loss: 0.23
 temperature1: 0.75
 temperature2: 0.75

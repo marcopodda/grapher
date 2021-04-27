@@ -3,7 +3,7 @@ order: bfs-fixed
 dropout: 0.25
 embed_dim: 64
 hidden_dim: 256
-stop_loss: 0.28
-temperature1: 0.75
-temperature2: 0.75
+stop_loss: 0.16
+temperature1: 0.5
+temperature2: 0.5
 max_epochs: 2000

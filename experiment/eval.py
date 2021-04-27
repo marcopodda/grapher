@@ -51,10 +51,10 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(G):
     try:
-        return orca(G).reshape(-1)
+        return orca(G).reshape(-1).tolist()
     except Exception as e:
         print("orca", e)
-        return np.zeros((G.number_of_nodes(), 15)).reshape(-1)
+        return [0] * (G.number_of_nodes() * 15)
 
 
 def orbit_dist(samples, n_jobs=40):

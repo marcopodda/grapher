@@ -121,7 +121,7 @@ def dup(G, Gs, fast):
     test = False
 
     for g in Gs:
-        test = sorted(G.edges()) == sorted(g.edges()) if fast else nx.is_isomorphic(G, g)
+        test = sorted(G.edges()) == sorted(g.edges()) if fast else nx.faster_could_be_isomorphic()(G, g)
         if test is True:
             break
 

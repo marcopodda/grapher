@@ -53,8 +53,9 @@ def clustering_dist(samples, n_jobs=40):
 def orbit_worker(G):
     try:
         counts = orca(G)
-        print("orca", counts.shape)
+        print("orca1", counts.shape)
         counts = counts.sum(axis=1).reshape(-1)
+        print("orca2", counts.shape)
         return counts.tolist()
     except Exception as e:
         print("orca", e)
@@ -86,7 +87,7 @@ def nspdk_dist(samples):
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
     print("nspdk", counts.shape)
-    return counts.sum(axis=1).reshape(-1)
+    return counts.reshape(-1)
 
 
 def random_sample(graphs, n=100):

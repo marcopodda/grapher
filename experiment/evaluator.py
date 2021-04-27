@@ -85,7 +85,7 @@ class EvaluatorBase:
             if not path.exists():
                 result = {}
 
-                if self.requires_quantitative:
+                if False and self.requires_quantitative:
                     print("\tCalculating novelty...")
                     novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
                     print("\tCalculating uniqueness...")

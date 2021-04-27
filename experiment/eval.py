@@ -27,7 +27,6 @@ def patch(samples):
 def pad_to_dense(M, maxlen):
     """Appends the minimal required amount of zeroes at the end of each
      array in the jagged array `M`, such that `M` looses its jagedness."""
-    print([len(x) for x in M], maxlen)
     Z = np.zeros((len(M), maxlen))
     for enu, row in enumerate(M):
         Z[enu, :len(row)] += row

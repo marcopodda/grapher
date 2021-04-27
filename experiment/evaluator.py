@@ -49,12 +49,8 @@ METRICS = {
 }
 
 
-def calc_max_degree(graphs):
-    degrees = []
-    for G in graphs:
-        degs = list(dict(G.degree()).values())
-        degrees.append(max(degs))
-    return max(degrees)
+def calc_num_nodes(graphs):
+    return max([G.number_of_nodes() for G in graphs])
 
 
 class EvaluatorBase:
@@ -187,8 +183,8 @@ class EvaluatorBase:
             gen_samples.append(gen)
             ref = random_sample(test_set, n=num_samples)
             ref_samples.append(ref)
-            max_degree = max(calc_max_degree(gen), max_degree)
-            max_degree = max(calc_max_degree(ref), max_degree)
+            max_degree = max(calc_num_nodes(gen), max_degree)
+            max_degree = max(calc_num_nodes(ref), max_degree)
 
         results = []
         for i in range(self.num_trials):

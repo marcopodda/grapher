@@ -61,7 +61,7 @@ class Experiment(BaseExperiment):
 
     def train(self):
         if not (self.root / "ckpt" / "best.pt").exists():
-            print(f"Training on {self.dataset} on order dfs-fixed")
+            print(f"Training on {self.dataset} on order bfs-fixed")
             config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
             dataset = self.dataset_class(config, self.root, name=self.dataset)
             trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)

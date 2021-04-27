@@ -49,6 +49,14 @@ METRICS = {
 }
 
 
+def calc_max_degree(graphs):
+    degrees = []
+    for G in graphs:
+        degs = list(dict(G.degree()).values())
+        degrees.append(max(degs))
+    return max(degrees)
+
+
 class EvaluatorBase:
     requires_quantitative = True
     def __init__(self, model_name):
@@ -170,17 +178,29 @@ class EvaluatorBase:
 
         num_samples = min(len(test_set), self.num_samples_metric)
 
-        results = []
+        gen_samples = []
+        ref_samples = []
+        max_degree = 0
+
         for _ in range(self.num_trials):
             gen = random_sample(samples, n=num_samples)
+            gen_samples.append(gen)
             ref = random_sample(test_set, n=num_samples)
+            ref_samples.append(ref)
+            max_degree = max(calc_max_degree(gen), max_degree)
+            max_degree = max(calc_max_degree(ref), max_degree)
+
+        results = []
+        for i in range(self.num_trials):
+            gen = gen_samples[i]
+            ref = ref_samples[i]
 
             gen_dist = fun(gen)
             ref_dist = fun(ref)
 
             if metric == 'degree':
-                gen_dist = pad_to_dense(gen_dist)
-                ref_dist = pad_to_dense(ref_dist)
+                gen_dist = pad_to_dense(gen_dist, max_degree)
+                ref_dist = pad_to_dense(ref_dist, max_degree)
 
             score = mmd.compute_mmd(ref_dist, gen_dist, **mmd_kwargs)
             results.append({

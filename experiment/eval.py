@@ -52,7 +52,9 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(G):
     try:
-        counts = orca(G).sum(axis=1).reshape(-1)
+        counts = orca(G)
+        print("orca", counts.shape)
+        counts = counts.sum(axis=1).reshape(-1)
         return counts.tolist()
     except Exception as e:
         print("orca", e)
@@ -83,6 +85,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
+    print("nspdk", counts.shape)
     return counts.sum(axis=1).reshape(-1)
 
 

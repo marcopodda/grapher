@@ -35,8 +35,7 @@ def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    counts = np.array(counts)
-    return counts / counts.sum()
+    return np.array(counts)
 
 
 def clustering_worker(G):
@@ -48,15 +47,14 @@ def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(clustering_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    counts = np.array(counts)
-    return counts / counts.sum()
+    return np.array(counts)
 
 
 def orbit_worker(G):
     try:
         counts = orca(G)
         counts = counts.sum(axis=1).reshape(-1)
-        return counts / counts.sum()
+        return counts
     except Exception as e:
         print("orca", e)
         return np.zeros(G.number_of_nodes())
@@ -78,8 +76,7 @@ def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    counts = np.array(counts)
-    return counts / counts.sum()
+    return np.array(counts)
 
 
 def nspdk_dist(samples):
@@ -87,7 +84,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    return counts / counts.sum()
+    return counts.reshape(-1)
 
 
 def random_sample(graphs, n=100):
@@ -152,7 +149,8 @@ def uniqueness(samples, fast):
     return sum(counts) / len(counts)
 
 
-def normalize(ref_counts, gen_counts, bins=100):
-    ref_counts, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-    gen_counts, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
+def normalize(ref_counts, gen_counts, unit, bins=100):
+    rng = (0.0, 1.0) if unit else None
+    ref_counts, _ = np.histogram(ref_counts, bins=bins, range=rng, density=False)
+    gen_counts, _ = np.histogram(gen_counts, bins=bins, range=rng, density=False)
     return ref_counts, gen_counts

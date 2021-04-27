@@ -196,8 +196,8 @@ class EvaluatorBase:
             ref = ref_samples[i]
 
             if metric == 'degree':
-                gen_dist = pad_to_dense(gen_dist, max_degree)
-                ref_dist = pad_to_dense(ref_dist, max_degree)
+                gen = pad_to_dense(gen, max_degree)
+                ref = pad_to_dense(ref, max_degree)
 
             gen_dist = fun(gen)
             ref_dist = fun(ref)

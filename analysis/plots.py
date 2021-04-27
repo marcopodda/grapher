@@ -25,7 +25,7 @@ def plot_kde():
 def plot_loss(log_path):
     log = parse_log(log_path)
     hue_order = ["BFS", "DFS", "RANDOM", "BFS RANDOM", "DFS RANDOM", "SMILES"]
-    g = sns.FacetGrid(log, col="Dataset", hue="Order", col_wrap=3, hue_order=hue_order, height=3, sharex=False)
+    g = sns.FacetGrid(log, col="Dataset", hue="Order", col_wrap=2, hue_order=hue_order, height=3, sharex=False)
     g.map(sns.lineplot, "Epoch", "Loss")
     g.add_legend()
     g.set_titles(col_template="{col_name}", row_template="{row_name}")

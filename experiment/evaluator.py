@@ -117,7 +117,7 @@ class EvaluatorBase:
                 torch.save(result, path)
                 print("\tDone.")
             else:
-                print("Already evaluated, skipping.")
+                print("\tAlready evaluated, skipping.")
 
     def get_samples(self, exp):
         time_elapsed = None
@@ -134,7 +134,7 @@ class EvaluatorBase:
                 print(time_elapsed, file=f)
             samples = list(itertools.chain.from_iterable(samples))
             torch.save(samples, exp.root / "samples" / filename)
-            print("\tDone.")
+            print("Done.")
         else:
             print("\tSamples ready.")
 

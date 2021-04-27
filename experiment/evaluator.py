@@ -96,39 +96,28 @@ class EvaluatorBase:
                         f"novelty{self.num_samples_small}": novelty_small,
                         f"uniqueness{self.num_samples_small}": uniqueness_small
                     })
+                    torch.save(result, path)
 
-                print("\tCalculating degree distribution...")
-                degree = self.evaluate_metric('degree', dataset, samples)
-                print("\tCalculating clustering coefficient...")
-                clustering = self.evaluate_metric('clustering', dataset, samples)
-                print("\tCalculating orbit counts...")
-                orbit = self.evaluate_metric('orbit', dataset, samples)
-                print("\tCalculating betweenness centrality...")
-                betweenness = self.evaluate_metric('betweenness', dataset, samples)
-                print("\tCalculating NSPDK...")
-                nspdk = self.evaluate_metric('nspdk', dataset, samples)
-                result.update(**{
-                    "degree": degree,
-                    "clustering": clustering,
-                    "orbit": orbit,
-                    "betweenness": betweenness,
-                    "nspdk": nspdk
-                })
-                torch.save(result, path)
-                print("\tDone.")
-            else:
-                result = torch.load(path)
-                print("\tCalculating degree distribution...")
-                degree = self.evaluate_metric('degree', dataset, samples)
-                result["degree"] = degree
-                print("\tCalculating clustering coefficient...")
-                clustering = self.evaluate_metric('clustering', dataset, samples)
-                result["clustering"] = clustering
-                print("\tCalculating betweenness...")
-                betweenness = self.evaluate_metric('betweenness', dataset, samples)
-                result["betweenneess"] = betweenness
-                torch.save(result, path)
-                print("\tAlready evaluated, skipping.")
+            result = torch.load(path)
+            print("\tCalculating degree distribution...")
+            degree = self.evaluate_metric('degree', dataset, samples)
+            print("\tCalculating clustering coefficient...")
+            clustering = self.evaluate_metric('clustering', dataset, samples)
+            print("\tCalculating orbit counts...")
+            orbit = self.evaluate_metric('orbit', dataset, samples)
+            print("\tCalculating betweenness centrality...")
+            betweenness = self.evaluate_metric('betweenness', dataset, samples)
+            print("\tCalculating NSPDK...")
+            nspdk = self.evaluate_metric('nspdk', dataset, samples)
+            result.update(**{
+                "degree": degree,
+                "clustering": clustering,
+                "orbit": orbit,
+                "betweenness": betweenness,
+                "nspdk": nspdk
+            })
+            torch.save(result, path)
+            print("\tDone.")
 
     def get_samples(self, exp):
         time_elapsed = None
@@ -174,13 +163,11 @@ class EvaluatorBase:
 
         test_set = patch(dataset.get_data("test"))
         samples = patch(samples)
-        num_samples = min(len(test_set), self.num_samples_metric)
 
         results = []
-        for i in range(self.num_trials):
-            ref = fun(random_sample(test_set, n=num_samples))
-            gen = fun(random_sample(samples, n=num_samples))
-
+        ref = fun(test_set)
+        for _ in range(self.num_trials):
+            gen = fun(random_sample(samples, n=len(test_set)))
             ref_hist, gen_hist = normalize(ref, gen)
 
             score = entropy(ref_hist + EPS, gen_hist + EPS)

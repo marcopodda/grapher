@@ -84,21 +84,22 @@ class EvaluatorBase:
             samples = self.get_samples(exp)
             if not path.exists():
                 result = {}
+            else:
+                result = torch.load(path)
 
-                if False and self.requires_quantitative:
-                    print("\tCalculating novelty...")
-                    novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
-                    print("\tCalculating uniqueness...")
-                    uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
-                    result.update(**{
-                        f"novelty{self.num_samples}": novelty_large,
-                        f"uniqueness{self.num_samples}": uniqueness_large,
-                        f"novelty{self.num_samples_small}": novelty_small,
-                        f"uniqueness{self.num_samples_small}": uniqueness_small
-                    })
-                    torch.save(result, path)
+            if False and self.requires_quantitative:
+                print("\tCalculating novelty...")
+                novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
+                print("\tCalculating uniqueness...")
+                uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
+                result.update(**{
+                    f"novelty{self.num_samples}": novelty_large,
+                    f"uniqueness{self.num_samples}": uniqueness_large,
+                    f"novelty{self.num_samples_small}": novelty_small,
+                    f"uniqueness{self.num_samples_small}": uniqueness_small
+                })
+                torch.save(result, path)
 
-            result = torch.load(path)
             print("\tCalculating degree distribution...")
             degree = self.evaluate_metric('degree', dataset, samples)
             print("\tCalculating clustering coefficient...")

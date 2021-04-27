@@ -34,7 +34,6 @@ def degree_worker(G):
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts).sum(axis=0)
 
 

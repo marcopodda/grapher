@@ -76,20 +76,21 @@ def compute_mmd(samples1, samples2, metric, is_hist=True, n_jobs=None):
 
     # print('Compute_mmd', inspect.ArgSpec(compute_mmd))
     # print("-----------------------", len(samples1), len(samples2))
-    try:
-        X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    except Exception as e:
-        print(e)
-        X = 0
-        raise
-    try:
-        Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    except:
-        Y = 0
+    X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    Z = kernel_compute(samples1, Y=samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
+    return np.average(X) + np.average(Y) - 2 * np.average(Z)
 
-    try:
-        Z = kernel_compute(samples1, Y=samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    except:
-        Z = 0
 
+def nspdk(X, Y, n_jobs=None):
+    """
+    MMD between two list of samples
+    """
+
+    # print('Compute_mmd', inspect.ArgSpec(compute_mmd))
+    # print("-----------------------", len(samples1), len(samples2))
+
+    X = pairwise_kernels(X, X, metric='linear', n_jobs=n_jobs)
+    Y = pairwise_kernels(Y, Y, metric='linear', n_jobs=n_jobs)
+    Z = pairwise_kernels(X, Y, metric='linear', n_jobs=n_jobs)
     return np.average(X) + np.average(Y) - 2 * np.average(Z)

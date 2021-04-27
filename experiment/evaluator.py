@@ -15,7 +15,6 @@ from .eval import (
     clustering_dist,
     orbit_dist,
     betweenness_dist,
-    nspdk_dist,
     patch,
     random_sample,
     novelty,
@@ -30,26 +29,10 @@ EPS = 1e-8
 
 
 METRICS = {
-    "degree": {
-        "fun": degree_dist,
-        "kwargs": {"unit": False, "clip": False}
-    },
-    "clustering": {
-        "fun": clustering_dist,
-        "kwargs": {"unit": True, "clip": False}
-    },
-    "orbit": {
-        "fun": orbit_dist,
-        "kwargs": {"unit": False, "clip": False}
-    },
-    "betweenness": {
-        "fun": betweenness_dist,
-        "kwargs": {"unit": True, "clip": False}
-    },
-    "nspdk": {
-        "fun": nspdk_dist,
-        "kwargs": {"unit": False, "clip": True}
-    },
+    "degree": degree_dist,
+    "clustering": clustering_dist,
+    "orbit": orbit_dist,
+    "betweenness": betweenness_dist,
 }
 
 
@@ -160,8 +143,7 @@ class EvaluatorBase:
         return uniqueness_small, uniqueness_large
 
     def evaluate_metric(self, metric, dataset, samples):
-        fun = METRICS[metric]["fun"]
-        kwargs = METRICS[metric]["kwargs"]
+        fun = METRICS[metric]
 
         test_set = patch(dataset.get_data("test"))
         samples = patch(samples)
@@ -170,8 +152,12 @@ class EvaluatorBase:
         ref = fun(test_set)
         for _ in range(self.num_trials):
             gen = fun(random_sample(samples, n=len(test_set)))
-            ref_dist, gen_dist = normalize(ref, gen, **kwargs)
-            score = entropy(ref_dist + EPS, gen_dist + EPS)
+            if metric == "nspdk":
+                score = mmd.nspdk(ref, gen, n_jobs=48)
+                ref_dist, gen_dist = None, None
+            else:
+                ref_dist, gen_dist = normalize(ref, gen)
+                score = entropy(ref_dist + EPS, gen_dist + EPS)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,

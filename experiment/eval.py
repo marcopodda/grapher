@@ -49,7 +49,7 @@ def degree_dist(samples, n_jobs=40):
 
 def clustering_worker(G):
     clustering_coefs = list(dict(nx.clustering(G)).values())
-    hist, _ = np.histogram(clustering_coefs, bins=32, range=(0.0, 1.0), density=False)
+    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
     return hist
 
 
@@ -77,7 +77,7 @@ def orbit_dist(samples, n_jobs=40):
 
 def betweenness_worker(G):
     betweenness = list(dict(nx.betweenness_centrality(G)).values())
-    hist, _ = np.histogram(betweenness, bins=32, range=(0.0, 1.0), density=False)
+    hist, _ = np.histogram(betweenness, bins=100, range=(0.0, 1.0), density=False)
     return hist
 
 

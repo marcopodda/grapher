@@ -109,6 +109,17 @@ class EvaluatorBase:
                 torch.save(result, path)
                 print("\tDone.")
             else:
+                result = torch.load(path)
+                print("\tCalculating degree distribution...")
+                degree = self.evaluate_metric('degree', dataset, samples)
+                result["degree"] = degree
+                print("\tCalculating clustering coefficient...")
+                clustering = self.evaluate_metric('clustering', dataset, samples)
+                result["clustering"] = clustering
+                print("\tCalculating betweenness...")
+                betweenness = self.evaluate_metric('betweenness', dataset, samples)
+                result["betweenneess"] = betweenness
+                torch.save(result, path)
                 print("\tAlready evaluated, skipping.")
 
     def get_samples(self, exp):

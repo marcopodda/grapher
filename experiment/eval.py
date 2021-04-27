@@ -116,9 +116,13 @@ def clean_graph(G_or_edges):
     return G
 
 
-def novelty_worker(G, ref):
-    count = np.array([nx.faster_could_be_isomorphic(G, g) for g in ref])
-    return count.sum() == 0
+def dup(G, Gs):
+    test = False
+    for g in Gs:
+        test = sorted(G.edges()) == sorted(g.edges())
+        if test is True:
+            break
+    return test
 
 
 def novelty(ref, samples):
@@ -126,25 +130,16 @@ def novelty(ref, samples):
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
     P = Parallel(n_jobs=48, verbose=0)
-    counts = P(delayed(novelty_worker)(G, ref) for G in samples)
+    counts = P(delayed(dup)(G, ref) for G in samples)
     return sum(counts) / len(counts)
-
-
-def uniqueness_worker(G, samples):
-    count = np.array([nx.faster_could_be_isomorphic(G, g) for g in samples])
-    return count.sum() == 0
 
 
 def uniqueness(samples):
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
     P = Parallel(n_jobs=48, verbose=0)
-    counts = P(delayed(uniqueness_worker)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
+    counts = P(delayed(dup)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
     return sum(counts) / len(counts)
-
-
-def _norm(vec):
-    return vec / vec.sum()
 
 
 def normalize(ref_counts, gen_counts, hist, bins=100):

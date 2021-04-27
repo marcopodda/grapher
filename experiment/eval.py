@@ -27,7 +27,7 @@ def patch(samples):
 
 def degree_worker(G):
     degrees = dict(nx.degree(G))
-    return list(degrees.values())
+    return np.bincount(degrees.values()).tolist()[1:]
 
 
 def degree_dist(samples, n_jobs=40):
@@ -51,17 +51,16 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(G):
     try:
-        return orca(G).reshape(-1).tolist()
+        return orca(G)
     except Exception as e:
         print("orca", e)
-        return [0] * (G.number_of_nodes() * 15)
+        return np.zeros(G.number_of_nodes(), 15)
 
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    return np.array(counts).sum(axis=0)
 
 
 def betweenness_worker(G):
@@ -81,7 +80,7 @@ def nspdk_dist(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
     counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    return counts.reshape(-1)
+    return counts.sum(axis=0)
 
 
 def random_sample(graphs, n=100):
@@ -144,17 +143,19 @@ def uniqueness(samples):
     return sum(counts) / len(counts)
 
 
-def normalize(ref_counts, sample_counts, bins=100):
+def normalize(ref_counts, sample_counts, hist, bins=100):
     min_value = max(ref_counts.min(), sample_counts.min())
     max_value = max(ref_counts.max(), sample_counts.max())
 
     if max_value == 0:
         return np.zeros((bins,)), np.zeros((bins,))
 
-    ref_counts = (ref_counts - min_value) / (max_value - min_value)
-    ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
 
+    ref_counts = (ref_counts - min_value) / (max_value - min_value)
     sample_counts = (sample_counts - min_value) / (max_value - min_value)
-    sample_hist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
+
+    if hist:
+        ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+        sample_hist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
 
     return ref_hist, sample_hist

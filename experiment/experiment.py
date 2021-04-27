@@ -60,13 +60,16 @@ class Experiment(BaseExperiment):
     model_name = "GRAPHER"
 
     def train(self):
-        print(f"Training on {self.dataset} on order dfs-fixed")
-        config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
-        loader = dataset.get_loader('train')
-        trainer.fit(loader, order=config.order)
-        config.save(self.root / "config")
+        if not (self.root / "ckpt" / "best.pt").exists():
+            print(f"Training on {self.dataset} on order dfs-fixed")
+            config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
+            dataset = self.dataset_class(config, self.root, name=self.dataset)
+            trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
+            loader = dataset.get_loader('train')
+            trainer.fit(loader, order=config.order)
+            config.save(self.root / "config")
+        else:
+            print("Already trained, skipping.")
 
     def sample(self, num_samples):
         config = Config.from_file(self.root / "config" / f"config.yaml")
@@ -90,14 +93,17 @@ class OrderExperiment(Experiment):
         super().__init__(dataset, root=root, exist_ok=exist_ok)
 
     def train(self):
-        print(f"Training on {self.dataset} on order {self.model_name}")
-        config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
-        config.update(order=self.model_name)
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
-        loader = dataset.get_loader('train')
-        trainer.fit(loader, order=config.order)
-        config.save(self.root / "config")
+        if not (self.root / "ckpt" / "best.pt").exists():
+            print(f"Training on {self.dataset} on order {self.model_name}")
+            config = Config.from_file(Path("cfg") / f"config_{self.dataset}.yaml")
+            config.update(order=self.model_name)
+            dataset = self.dataset_class(config, self.root, name=self.dataset)
+            trainer = Trainer(config, self.root, dataset.input_dim, dataset.output_dim)
+            loader = dataset.get_loader('train')
+            trainer.fit(loader, order=config.order)
+            config.save(self.root / "config")
+        else:
+            print("Already trained, skipping.")
 
 
 class GRUExperiment(BaseExperiment):
@@ -119,22 +125,27 @@ class GRUExperiment(BaseExperiment):
         config.save(self.root / "config")
 
     def sample(self, num_samples):
-        config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-        samples = trainer.sample(num_samples=num_samples)
-        return GraphList([clean_graph(e) for e in samples])
-
+        if not (self.root / "ckpt" / "best.pt").exists():
+            config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
+            dataset = self.dataset_class(config, self.root, name=self.dataset)
+            trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
+            samples = trainer.sample(num_samples=num_samples)
+            return GraphList([clean_graph(e) for e in samples])
+        else:
+            print("Already trained, skipping.")
 
 class GraphRNNExperiment(BaseExperiment):
     model_name = "GRAPHRNN"
 
     def train(self):
-        config = GraphRNNConfig.from_file(Path("cfg") / f"graphrnn_{self.dataset}.yaml")
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
-        train_data = dataset.get_data('train')
-        run_graphrnn(config, self.dataset, self.root, train_data)
-        config.save(self.root / "config")
+        if not (self.root / "ckpt" / "rnn.pt").exists():
+            config = GraphRNNConfig.from_file(Path("cfg") / f"graphrnn_{self.dataset}.yaml")
+            dataset = self.dataset_class(config, self.root, name=self.dataset)
+            train_data = dataset.get_data('train')
+            run_graphrnn(config, self.dataset, self.root, train_data)
+            config.save(self.root / "config")
+        else:
+            print("Already trained, skipping.")
 
     def sample(self, num_samples):
         config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
@@ -149,15 +160,18 @@ class GraphRNNExperiment(BaseExperiment):
 class BaselineExperiment(BaseExperiment):
 
     def train(self):
-        config = BaselineConfig.from_file(Path("cfg") / f"baseline_{self.dataset}.yaml")
-        config.update(name=self.model_name)
-        config.save(self.root / "config")
+        if not (self.root / "ckpt" / "parameters.pt").exists():
+            config = BaselineConfig.from_file(Path("cfg") / f"baseline_{self.dataset}.yaml")
+            config.update(name=self.model_name)
+            config.save(self.root / "config")
 
-        dataset = self.dataset_class(config, self.root, name=self.dataset)
+            dataset = self.dataset_class(config, self.root, name=self.dataset)
 
-        train_data = dataset.get_data('train')
-        parameters = run_baseline(self.model_name, train_data)
-        torch.save(parameters, self.root / "ckpt" / f"parameters.pt")
+            train_data = dataset.get_data('train')
+            parameters = run_baseline(self.model_name, train_data)
+            torch.save(parameters, self.root / "ckpt" / f"parameters.pt")
+        else:
+            print("Already trained, skipping.")
 
     def sample(self, num_samples):
         config = BaselineConfig.from_file(self.root / "config" / f"config.yaml")

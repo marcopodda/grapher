@@ -83,8 +83,7 @@ def nspdk_dist(samples):
     for i, G in enumerate(samples):
         samples[i] = nx.convert_node_labels_to_integers(G)
 
-    counts = vectorize(samples, complexity=4, discrete=True).toarray()
-    return counts.reshape(-1)
+    return vectorize(samples, complexity=4, discrete=True)
 
 
 def random_sample(graphs, n=100):

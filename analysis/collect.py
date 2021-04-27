@@ -44,17 +44,12 @@ def collate_experiments():
     return all_data
 
 
-def collate_metric(metric_data, is_nspdk):
+def collate_metric(metric_data):
     num_trials = len(metric_data)
     refs, gens, scores = [], [], []
 
     for num_trial in range(num_trials):
         elem = metric_data[num_trial]
-        if is_nspdk:
-            ref_hist, _ = np.histogram(elem["ref"], bins=100, range=(0.0, 1.0), density=False)
-            gen_hist, _ = np.histogram(elem["gen"], bins=100, range=(0.0, 1.0), density=False)
-            elem["ref"] = ref_hist[1:]
-            elem["gen"] = gen_hist[1:]
         refs.append(elem["ref"])
         gens.append(elem["gen"])
         scores.append(elem["score"])
@@ -76,8 +71,8 @@ def collate_results():
             path = RUNS_DIR / model / dataset / "results" / "results.pt"
             if path.exists():
                 result = torch.load(path)
-                for metric in QUAL_METRICS:
-                    metric_data = collate_metric(result[metric], metric=="nspdk")
+                for metric in QUAL_METRICS[:-1]:
+                    metric_data = collate_metric(result[metric])
                     ref_data = metric_data["ref"]
                     for i in range(ref_data.shape[0]):
                         rows.append({

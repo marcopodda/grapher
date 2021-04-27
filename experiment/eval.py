@@ -113,38 +113,35 @@ def clean_graph(G_or_edges):
     nodes = max(nx.connected_components(G), key=len)
     G = nx.Graph(G.subgraph(nodes))
     G.remove_edges_from(nx.selfloop_edges(G))
+    G = nx.relabel_nodes(G, {n:i for (i,n) in enumerate(G.nodes())})
     return G
 
 
-def dup(G, Gs):
+def dup(G, Gs, fast):
     test = False
+
     for g in Gs:
-        mapping = {i:n for (i,n) in enumerate(G.nodes())}
-        try:
-            nx.relabel_nodes(g, mapping)
-        except Exception as e:
-            print(e)
-            continue
-        if sorted(G.edges()) == sorted(g.edges()):
-            test = True
+        test = sorted(G.edges()) == sorted(g.edges()) if fast else nx.is_isomorphic(G, g)
+        if test is True:
             break
+
     return test
 
 
-def novelty(ref, samples):
+def novelty(ref, samples, fast):
     ref = [clean_graph(G_or_edges) for G_or_edges in ref]
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
     P = Parallel(n_jobs=48, verbose=0)
-    counts = P(delayed(dup)(G, ref) for G in samples)
+    counts = P(delayed(dup)(G, ref, fast) for G in samples)
     return sum(counts) / len(counts)
 
 
-def uniqueness(samples):
+def uniqueness(samples, fast):
     samples = [clean_graph(G_or_edges) for G_or_edges in samples]
 
     P = Parallel(n_jobs=48, verbose=0)
-    counts = P(delayed(dup)(G, samples[i+1:]) for i, G in enumerate(samples[:-1]))
+    counts = P(delayed(dup)(G, samples[i+1:], fast) for i, G in enumerate(samples[:-1]))
     return sum(counts) / len(counts)
 
 

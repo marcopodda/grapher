@@ -23,7 +23,7 @@ from .eval import (
     normalize)
 
 from utils import mmd
-from utils.constants import DATASET_NAMES
+from utils.constants import DATASET_NAMES, ORDER_NAMES
 
 
 EPS = 1e-8
@@ -65,6 +65,7 @@ class EvaluatorBase:
         self.num_samples_small = 1000
         self.num_samples_metric = 30
         self.num_trials = 3
+        self.fast = model_name == "GRAPHER" or model_name in ORDER_NAMES
 
     def novelty_not_calculated(self, result):
         return result.novelty_not_calculated
@@ -147,16 +148,16 @@ class EvaluatorBase:
         min_num_samples = min(len(samples), self.num_samples_small)
         indices = np.random.choice(len(samples), min_num_samples, replace=False)
         samples_small = [samples[i] for i in indices]
-        novelty_small = novelty(train_data, samples_small)
-        novelty_large = novelty(train_data, samples)
+        novelty_small = novelty(train_data, samples_small, fast=self.fast)
+        novelty_large = novelty(train_data, samples, fast=self.fast)
         return novelty_small, novelty_large
 
     def evaluate_uniqueness(self, samples):
         min_num_samples = min(len(samples), self.num_samples_small)
         indices = np.random.choice(len(samples), min_num_samples, replace=False)
         samples_small = [samples[i] for i in indices]
-        uniqueness_small = uniqueness(samples_small)
-        uniqueness_large = uniqueness(samples)
+        uniqueness_small = uniqueness(samples_small, fast=self.fast)
+        uniqueness_large = uniqueness(samples, fast=self.fast)
         return uniqueness_small, uniqueness_large
 
     def evaluate_metric(self, metric, dataset, samples):

@@ -27,14 +27,15 @@ def patch(samples):
 
 def degree_worker(G):
     degrees = dict(nx.degree(G))
-    return np.bincount(degrees.values()).tolist()[1:]
+    degrees = list(degrees.values())
+    return np.bincount(degrees, minlength=30)
 
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    return np.array(counts).sum(axis=0)
 
 
 def clustering_worker(G):
@@ -143,19 +144,16 @@ def uniqueness(samples):
     return sum(counts) / len(counts)
 
 
+def _norm(vec):
+    return (vec - vec.min()) / (vec.max() - vec.min())
+
+
 def normalize(ref_counts, sample_counts, hist, bins=100):
-    min_value = max(ref_counts.min(), sample_counts.min())
-    max_value = max(ref_counts.max(), sample_counts.max())
-
-    if max_value == 0:
-        return np.zeros((bins,)), np.zeros((bins,))
-
-
-    ref_counts = (ref_counts - min_value) / (max_value - min_value)
-    sample_counts = (sample_counts - min_value) / (max_value - min_value)
-
     if hist:
-        ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-        sample_hist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
+        ref_dist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
+        gen_dist, _ = np.histogram(sample_counts, bins=bins, range=(0.0, 1.0), density=False)
+    else:
+        ref_dist = _norm(ref_counts)
+        gen_dist = _norm(sample_counts)
 
-    return ref_hist, sample_hist
+    return ref_dist, gen_dist

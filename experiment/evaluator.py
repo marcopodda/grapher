@@ -32,23 +32,23 @@ EPS = 1e-8
 METRICS = {
     "degree": {
         "fun": degree_dist,
-        "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)
+        "kwargs": {"hist": False, "bins": 100}
     },
     "clustering": {
         "fun": clustering_dist,
-        "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)
+        "kwargs": {"hist": True, "bins": 100}
     },
     "orbit": {
         "fun": orbit_dist,
-        "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)
+        "kwargs": {"hist": False, "bins": 100}
     },
     "betweenness": {
         "fun": betweenness_dist,
-        "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)
+        "kwargs": {"hist": True, "bins": 100}
     },
     "nspdk": {
         "fun": nspdk_dist,
-        "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)
+        "kwargs": {"hist": False, "bins": 100}
     },
 }
 
@@ -160,6 +160,7 @@ class EvaluatorBase:
 
     def evaluate_metric(self, metric, dataset, samples):
         fun = METRICS[metric]["fun"]
+        kwargs = METRICS[metric]["kwargs"]
 
         test_set = patch(dataset.get_data("test"))
         samples = patch(samples)
@@ -168,7 +169,7 @@ class EvaluatorBase:
         ref = fun(test_set)
         for _ in range(self.num_trials):
             gen = fun(random_sample(samples, n=len(test_set)))
-            ref_hist, gen_hist = normalize(ref, gen)
+            ref_hist, gen_hist = normalize(ref, gen, **kwargs)
 
             score = entropy(ref_hist + EPS, gen_hist + EPS)
             results.append({

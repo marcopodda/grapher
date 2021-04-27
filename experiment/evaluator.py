@@ -13,6 +13,7 @@ from .experiment import load_experiment
 from .eval import (
     degree_dist,
     clustering_dist,
+    nspdk_dist,
     orbit_dist,
     betweenness_dist,
     patch,
@@ -33,6 +34,7 @@ METRICS = {
     "clustering": clustering_dist,
     "orbit": orbit_dist,
     "betweenness": betweenness_dist,
+    "nspdk": nspdk_dist
 }
 
 

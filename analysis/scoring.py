@@ -86,11 +86,11 @@ def nspdk_dist(samples):
 
 
 METRICS = {
-    "degree": {"fun": degree_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "clustering": {"fun": clustering_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=40)},
-    "orbit": {"fun": orbit_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=30.0), is_hist=True, n_jobs=40)},
-    "betweenness": {"fun": betweenness_dist, "mmd_kwargs": dict(metric=mmd.gaussian_emd, is_hist=True, n_jobs=40)},
-    "nspdk": {"fun": nspdk_dist, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=40)},
+    "degree": {"fun": degree_dist, "mmd_kwargs": dict(metric=mmd.gaussian, is_hist=True, n_jobs=48)},
+    "clustering": {"fun": clustering_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=48)},
+    "orbit": {"fun": orbit_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian, sigma=30.0), is_hist=True, n_jobs=48)},
+    "betweenness": {"fun": betweenness_dist, "mmd_kwargs": dict(metric=partial(mmd.gaussian_emd, sigma=0.1, distance_scaling=100), is_hist=True, n_jobs=48)},
+    "nspdk": {"fun": nspdk_dist, "mmd_kwargs": dict(metric="nspdk", is_hist=False, n_jobs=48)},
 }
 
 def random_sample(graphs, n=100):

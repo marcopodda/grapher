@@ -169,16 +169,16 @@ class EvaluatorBase:
         ref = fun(test_set)
         for _ in range(self.num_trials):
             gen = fun(random_sample(samples, n=len(test_set)))
-            ref_hist, gen_hist = normalize(ref, gen, **kwargs)
-
-            score = entropy(ref_hist + EPS, gen_hist + EPS)
+            ref_dist, gen_dist = normalize(ref, gen, **kwargs)
+            print(ref_dist, gen_dist)
+            score = entropy(ref_dist + EPS, gen_dist + EPS)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,
                 "metric": metric,
                 "score": score,
-                "gen": gen_hist,
-                "ref": ref_hist
+                "gen": gen_dist,
+                "ref": ref_dist
             })
 
         return results

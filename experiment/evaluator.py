@@ -68,7 +68,7 @@ class EvaluatorBase:
         for dataset_name in DATASET_NAMES:
             if self.model_name == "smiles" and dataset_name not in ["PROTEINS_full", "ENZYMES"]:
                 continue
-            print(f"Evaluating {dataset_name}...")
+            print(f"--------------Evaluating {self.model_name} on {dataset_name}--------------")
             exp = load_experiment(self.root, self.model_name, dataset_name)
             dataset = load_dataset(dataset_name, self.model_name, exp)
 

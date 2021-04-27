@@ -53,9 +53,8 @@ def clustering_dist(samples, n_jobs=40):
 def orbit_worker(G):
     try:
         counts = orca(G)
-        print("orca1", counts.shape)
         counts = counts.sum(axis=1).reshape(-1)
-        print("orca2", counts.shape)
+        print(counts)
         return counts.tolist()
     except Exception as e:
         print("orca", e)

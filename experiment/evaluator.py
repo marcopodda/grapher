@@ -32,23 +32,23 @@ EPS = 1e-8
 METRICS = {
     "degree": {
         "fun": degree_dist,
-        "kwargs": {"unit": False}
+        "kwargs": {"unit": False, "clip": False}
     },
     "clustering": {
         "fun": clustering_dist,
-        "kwargs": {"unit": True}
+        "kwargs": {"unit": True, "clip": False}
     },
     "orbit": {
         "fun": orbit_dist,
-        "kwargs": {"unit": False}
+        "kwargs": {"unit": False, "clip": False}
     },
     "betweenness": {
         "fun": betweenness_dist,
-        "kwargs": {"unit": True}
+        "kwargs": {"unit": True, "clip": False}
     },
     "nspdk": {
         "fun": nspdk_dist,
-        "kwargs": {"unit": False}
+        "kwargs": {"unit": False, "clip": True}
     },
 }
 

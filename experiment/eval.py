@@ -21,7 +21,7 @@ def patch(samples):
 
 def degree_worker(G):
     degrees = dict(nx.degree(G))
-    degrees = np.array(degrees.values())
+    degrees = np.array(list(degrees.values()))
     return degrees / degrees.sum()
 
 

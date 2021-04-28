@@ -172,8 +172,6 @@ class EvaluatorBase:
         return uniqueness_small, uniqueness_large
 
     def evaluate_metric(self, metric, dataset, generated):
-        fun = METRICS[metric]
-
         test_set = patch(dataset.get_data("test"))
         generated = patch(generated)
 
@@ -184,6 +182,7 @@ class EvaluatorBase:
                 score = mmd.compute_mmd(test_set, sample, metric="nspdk", is_hist=False, n_jobs=48)
                 ref_counts, gen_counts = None, None
             else:
+                fun = METRICS[metric]
                 ref_counts, gen_counts = fun(test_set), fun(sample)
                 ref_hist, gen_hist = normalize(ref_counts, gen_counts, norm=metric in ["degree", "orbit"])
                 score = entropy(ref_hist + EPS, gen_hist + EPS)

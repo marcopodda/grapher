@@ -80,18 +80,11 @@ def betweenness_dist(samples, n_jobs=40):
     return np.array(counts)
 
 
-def load_test_set(dataset):
-    raw_dir = DATA_DIR / dataset / "raw"
-    data = torch.load(raw_dir / f"{dataset}.pt").graphlist
-    splits = load_yaml(raw_dir / f"splits.yaml")
-    test_set = [data[i] for i in splits["test"]]
-    return patch(test_set)
-
-
-def load_samples(path):
-    samples = torch.load(path)
-    samples = [G for G in samples if not G.number_of_nodes() == 0]
-    return patch(samples)
+def random_sample(graphs, n=100):
+    if n >= len(graphs):
+        return graphs
+    indices = np.random.choice(len(graphs), n, replace=False)
+    return [graphs[i] for i in indices]
 
 
 def clean_graph(G):

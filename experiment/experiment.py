@@ -152,7 +152,8 @@ class GraphRNNExperiment(BaseExperiment):
 
     def sample(self, num_samples):
         config = GraphRNNConfig.from_file(self.root / "config" / f"config.yaml")
-        device = get_device("cpu")
+        config.device = "cpu"
+        device = get_device(config)
         rnn_state_dict = torch.load(self.root / "ckpt" / f"rnn.pt", map_location=device)
         output_state_dict = torch.load(self.root / "ckpt" / f"output.pt", map_location=device)
         rnn, output = load_model(config, rnn_state_dict, output_state_dict)

@@ -187,7 +187,7 @@ class EvaluatorBase:
                 ref_counts, gen_counts = None, None
             else:
                 ref_counts, gen_counts = fun(test_set), fun(sample)
-                ref_hist, gen_hist = normalize(ref_counts, gen_counts)
+                ref_hist, gen_hist = normalize(ref_counts, gen_counts, norm=metric in ["degree", "orbit"])
                 score = entropy(ref_hist + EPS, gen_hist + EPS)
             results.append({
                 "model": self.model_name,

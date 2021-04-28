@@ -47,15 +47,14 @@ def clustering_dist(samples, n_jobs=40):
 def orbit_worker(G):
     try:
         counts = orca(G)
-        return np.sum(counts, axis=0)
+        return np.sum(counts)
     except Exception as e:
-        return np.zeros(15)
+        return 0
 
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
@@ -99,14 +98,9 @@ def load_samples(path):
     return patch(samples)
 
 
-def clean_graph(G_or_edges):
-    if isinstance(G_or_edges, list) or isinstance(G_or_edges, tuple):
-        G = nx.Graph(G_or_edges)
-    else:
-        G = G_or_edges
-
+def clean_graph(G):
     G.remove_edges_from(nx.selfloop_edges(G))
-    G = nx.relabel_nodes(G, {n:i for (i,n) in enumerate(G.nodes())})
+    G = nx.relabel_nodes(G, {n: i for (i, n) in enumerate(G.nodes())})
     return G
 
 

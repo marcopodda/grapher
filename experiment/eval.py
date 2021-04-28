@@ -22,7 +22,7 @@ def patch(samples):
 def degree_worker(G):
     degrees = dict(nx.degree(G))
     degrees = np.array(list(degrees.values()))
-    return degrees / degrees.sum()
+    return degrees / G.number_of_nodes()
 
 
 def degree_dist(samples, n_jobs=40):
@@ -133,6 +133,6 @@ def uniqueness(samples, fast):
 
 
 def normalize(ref_counts, gen_counts, bins=100):
-    ref_hist, _ = np.histogram(ref_counts, bins=bins, density=True)
-    gen_hist, _ = np.histogram(gen_counts, bins=bins, density=True)
+    ref_hist, _ = np.histogram(ref_counts, bins=bins, density=False)
+    gen_hist, _ = np.histogram(gen_counts, bins=bins, density=False)
     return ref_hist, gen_hist

@@ -48,7 +48,7 @@ class EvaluatorBase:
         self.model_name = model_name
         self.num_samples = 5000
         self.num_samples_small = 1000
-        self.num_trials = 5
+        self.num_trials = 3
         self.fast = model_name == "GRAPHER" or model_name in ORDER_NAMES
 
     def novelty_not_calculated(self, result):

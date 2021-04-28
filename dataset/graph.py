@@ -117,34 +117,39 @@ def bfs_order(G, start_id):
 
 def encode_graph(G, order):
     G = max_connected_comp(G)
+    mapping = {n: i for (i, n) in enumerate(G.nodes())}
+    G = nx.relabel_nodes(G, mapping)
 
-    if order == "bfs-random":
-        start_node = np.random.choice(list(G.nodes()))
+    nodes_list = list(G.nodes())
+
+    if order == "bfs-fixed":
+        start_node = min(nodes_list)
         seq = bfs_order(G, start_id=start_node)
-    elif order == "bfs-fixed":
-        start_node = min(list(G.nodes()))
+    elif order == "bfs-random":
+        start_node = np.random.choice(nodes_list)
         seq = bfs_order(G, start_id=start_node)
     elif order == "dfs-random":
-        start_node = np.random.choice(list(G.nodes()))
+        start_node = np.random.choice(nodes_list)
         seq = dfs_order(G, start_id=start_node)
     elif order == "dfs-fixed":
-        start_node = min(list(G.nodes()))
+        start_node = min(nodes_list)
         seq = dfs_order(G, start_id=start_node)
     elif order == "random":
-        seq = list(G.nodes())
+        seq = nodes_list
         np.random.shuffle(seq)
-    else:
+    elif order == "smiles":
         # this is the case of SMILES ordering, which
         # for chemical datasets is given by default
-        seq = list(G.nodes())
+        seq = nodes_list
+    else:
+        raise ValueError
 
     # start from 3 because we are also counting pad, sos and eos tokens
     mapping = {n: i for (i, n) in enumerate(seq, 3)}
-
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
-    if order in ["bfs-random", "bfs-fixed", "dfs-random", "dfs-fixed"]:
+    if order != "smiles":
         edges = sorted(edges)
 
     return list(zip(*edges))

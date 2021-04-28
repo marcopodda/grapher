@@ -49,10 +49,10 @@ def kernel_compute(X, Y=None, is_hist=True, metric='linear', n_jobs=None):
         return X_p
 
     if metric == 'nspdk':
-        # X = vectorize(X, complexity=4, discrete=True)
+        X = vectorize(X, complexity=4, discrete=True)
 
-        # if Y is not None:
-        #     Y = vectorize(Y, complexity=4, discrete=True)
+        if Y is not None:
+            Y = vectorize(Y, complexity=4, discrete=True)
 
         return pairwise_kernels(X, Y, metric='linear', n_jobs=n_jobs)
 
@@ -79,18 +79,4 @@ def compute_mmd(samples1, samples2, metric, is_hist=True, n_jobs=None):
     X = kernel_compute(samples1, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
     Y = kernel_compute(samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
     Z = kernel_compute(samples1, Y=samples2, is_hist=is_hist, metric=metric, n_jobs=n_jobs)
-    return np.average(X) + np.average(Y) - 2 * np.average(Z)
-
-
-def nspdk(X, Y, n_jobs=None):
-    """
-    MMD between two list of samples
-    """
-
-    # print('Compute_mmd', inspect.ArgSpec(compute_mmd))
-    # print("-----------------------", len(samples1), len(samples2))
-
-    X = kernel_compute(X, is_hist=False, metric="nspdk", n_jobs=n_jobs)
-    Y = kernel_compute(Y, is_hist=False, metric="nspdk", n_jobs=n_jobs)
-    Z = kernel_compute(X, Y=Y, is_hist=False, metric="nspdk", n_jobs=n_jobs)
     return np.average(X) + np.average(Y) - 2 * np.average(Z)

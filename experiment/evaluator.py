@@ -153,9 +153,10 @@ class EvaluatorBase:
         results = []
         ref = fun(test_set)
         for _ in range(self.num_trials):
-            gen = fun(random_sample(samples, n=len(test_set)))
+            rsamples = random_sample(samples, n=len(test_set))
+            gen = fun(rsamples)
             if metric == "nspdk":
-                score = mmd.nspdk(ref, gen, n_jobs=48)
+                score = mmd.compute_mmd(test_set, rsamples, n_jobs=48)
                 ref_dist, gen_dist = None, None
             else:
                 ref_dist, gen_dist = normalize(ref, gen)

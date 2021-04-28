@@ -70,6 +70,18 @@ class EvaluatorBase:
 
             if not path.exists():
                 result = {}
+                if self.requires_quantitative:
+                    result = torch.load(path)
+                    print("\tCalculating novelty...")
+                    novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
+                    print("\tCalculating uniqueness...")
+                    uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
+                    result.update(**{
+                        f"novelty{self.num_samples}": novelty_large,
+                        f"uniqueness{self.num_samples}": uniqueness_large,
+                        f"novelty{self.num_samples_small}": novelty_small,
+                        f"uniqueness{self.num_samples_small}": uniqueness_small,
+                    })
                 print("\tCalculating degree distribution...")
                 degree = self.evaluate_metric('degree', dataset, samples)
                 print("\tCalculating clustering coefficient...")
@@ -96,11 +108,14 @@ class EvaluatorBase:
                     novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
                     print("\tCalculating uniqueness...")
                     uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
+                    print("\tCalculating orbit counts...")
+                    orbit = self.evaluate_metric('orbit', dataset, samples)
                     result.update(**{
                         f"novelty{self.num_samples}": novelty_large,
                         f"uniqueness{self.num_samples}": uniqueness_large,
                         f"novelty{self.num_samples_small}": novelty_small,
-                        f"uniqueness{self.num_samples_small}": uniqueness_small
+                        f"uniqueness{self.num_samples_small}": uniqueness_small,
+                        "orbit": orbit
                     })
                     result = torch.save(result, path)
                 print("\tAlready evaluated, skipping.")

@@ -14,7 +14,7 @@ plt.rcParams.update({
 
 def plot_kde():
     models = ["Data", "Ours", "GraphRNN"]
-    metrics = [HUMANIZE[m] for m in QUAL_METRICS]
+    metrics = [HUMANIZE[m] for m in QUAL_METRICS[:-1]]
     datasets = [HUMANIZE[d] for d in DATASETS]
 
     data = collate_results()

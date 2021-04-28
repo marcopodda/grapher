@@ -16,13 +16,7 @@ from joblib import Parallel, delayed
 
 
 def patch(samples):
-    graphs = []
-    for G in samples:
-        G = nx.convert_node_labels_to_integers(G)
-        nodes = max(nx.connected_components(G), key=len)
-        G = nx.Graph(G).subgraph(nodes)
-        graphs.append(G)
-    return graphs
+    return [nx.convert_node_labels_to_integers(G) for G in samples]
 
 
 def degree_worker(G):
@@ -55,7 +49,7 @@ def orbit_worker(G):
         counts = orca(G)
         return np.sum(counts, axis=0)
     except Exception as e:
-        return np.zeros(G.number_of_nodes())
+        return np.zeros(15)
 
 
 def orbit_dist(samples, n_jobs=40):
@@ -111,8 +105,6 @@ def clean_graph(G_or_edges):
     else:
         G = G_or_edges
 
-    nodes = max(nx.connected_components(G), key=len)
-    G = nx.Graph(G.subgraph(nodes))
     G.remove_edges_from(nx.selfloop_edges(G))
     G = nx.relabel_nodes(G, {n:i for (i,n) in enumerate(G.nodes())})
     return G

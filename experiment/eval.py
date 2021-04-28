@@ -21,8 +21,8 @@ def patch(samples):
 
 def degree_worker(G):
     degrees = dict(nx.degree(G))
-    degrees = list(degrees.values())
-    return degrees
+    degrees = np.array(degrees.values())
+    return degrees / degrees.sum()
 
 
 def degree_dist(samples, n_jobs=40):

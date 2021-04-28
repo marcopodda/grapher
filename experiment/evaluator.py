@@ -101,22 +101,37 @@ class EvaluatorBase:
                 torch.save(result, path)
                 print("\tDone.")
             else:
+                result = torch.load(path)
                 if self.requires_quantitative:
                     result = torch.load(path)
                     print("\tCalculating novelty...")
                     novelty_small, novelty_large = self.evaluate_novelty(dataset, samples)
                     print("\tCalculating uniqueness...")
                     uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
-                    print("\tCalculating orbit counts...")
-                    orbit = self.evaluate_metric('orbit', dataset, samples)
                     result.update(**{
                         f"novelty{self.num_samples}": novelty_large,
                         f"uniqueness{self.num_samples}": uniqueness_large,
                         f"novelty{self.num_samples_small}": novelty_small,
-                        f"uniqueness{self.num_samples_small}": uniqueness_small,
-                        "orbit": orbit
+                        f"uniqueness{self.num_samples_small}": uniqueness_small
                     })
-                    result = torch.save(result, path)
+                print("\tCalculating degree distribution...")
+                degree = self.evaluate_metric('degree', dataset, samples)
+                print("\tCalculating clustering coefficient...")
+                clustering = self.evaluate_metric('clustering', dataset, samples)
+                print("\tCalculating orbit counts...")
+                orbit = self.evaluate_metric('orbit', dataset, samples)
+                print("\tCalculating betweenness centrality...")
+                betweenness = self.evaluate_metric('betweenness', dataset, samples)
+                print("\tCalculating NSPDK...")
+                nspdk = self.evaluate_metric('nspdk', dataset, samples)
+                result.update(**{
+                    "degree": degree,
+                    "clustering": clustering,
+                    "orbit": orbit,
+                    "betweenness": betweenness,
+                    "nspdk": nspdk
+                })
+                torch.save(result, path)
                 print("\tAlready evaluated, skipping.")
 
     def get_samples(self, exp):

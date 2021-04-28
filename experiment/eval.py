@@ -21,8 +21,8 @@ def patch(samples):
 
 def degree_worker(G):
     degrees = dict(nx.degree(G))
-    degrees = np.array(list(degrees.values()))
-    return degrees / G.number_of_nodes()
+    degrees = list(degrees.values())
+    return degrees
 
 
 def degree_dist(samples, n_jobs=40):
@@ -47,7 +47,7 @@ def clustering_dist(samples, n_jobs=40):
 def orbit_worker(G):
     try:
         counts = orca(G)
-        return np.sum(counts, axis=0) / G.number_of_nodes()
+        return np.sum(counts, axis=0)
     except Exception as e:
         return np.zeros(15)
 
@@ -133,6 +133,8 @@ def uniqueness(samples, fast):
 
 
 def normalize(ref_counts, gen_counts, bins=100):
+    ref_counts = (ref_counts - ref_counts.min()) / (ref_counts.max() - ref_counts.min() + 1e-8)
+    gen_counts = (gen_counts - gen_counts.min()) / (gen_counts.max() - gen_counts.min() + 1e-8)
     ref_hist, _ = np.histogram(ref_counts, bins=bins, density=False)
     gen_hist, _ = np.histogram(gen_counts, bins=bins, density=False)
     return ref_hist, gen_hist

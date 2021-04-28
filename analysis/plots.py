@@ -19,6 +19,7 @@ def plot_kde():
 
     data = collate_results()
     data = data[data.Model.isin(models)]
+    data = data[data.Value>0]
 
     g = sns.displot(
         x="Value", hue="Model", row="Dataset", col="Metric", kind="kde",

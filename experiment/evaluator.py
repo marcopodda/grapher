@@ -169,18 +169,18 @@ class EvaluatorBase:
             sample = random_sample(generated, n=len(test_set))
             if metric == "nspdk":
                 score = mmd.compute_mmd(test_set, sample, metric="nspdk", is_hist=False, n_jobs=48)
-                ref_dist, sample_dist = None, None
+                ref_counts, gen_counts = None, None
             else:
                 ref, sample = fun(test_set), fun(sample)
-                ref_dist, sample_dist = normalize(ref, sample)
-                score = entropy(ref_dist + EPS, sample_dist + EPS)
+                ref_counts, gen_counts, ref_hist, gen_hist = normalize(ref, sample)
+                score = entropy(ref_hist + EPS, gen_hist + EPS)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,
                 "metric": metric,
                 "score": score,
-                "gen": sample_dist,
-                "ref": ref_dist
+                "ref": ref_counts,
+                "gen": gen_counts,
             })
 
         return results

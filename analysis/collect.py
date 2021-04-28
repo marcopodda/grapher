@@ -57,8 +57,8 @@ def collate_metric(metric_data):
     return {
         "avg": np.mean(scores),
         "std": np.std(scores),
-        "ref": np.array(refs).mean(axis=0),
-        "gen": np.array(gens).mean(axis=0)
+        "ref": np.array(refs).mean(axis=0).round(),
+        "gen": np.array(gens).mean(axis=0).round()
     }
 
 

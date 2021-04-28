@@ -73,7 +73,7 @@ class DatasetManager:
     def get_data(self, name):
         indices = self.splits[name]
         graphs = operator.itemgetter(*indices)(self.data.graphlist)
-        # graphs = [max_connected_comp(G) for G in graphs]
+        graphs = [max_connected_comp(G) for G in graphs]
         return GraphList(graphs)
 
     def __len__(self):

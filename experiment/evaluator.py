@@ -186,8 +186,8 @@ class EvaluatorBase:
                 score = mmd.compute_mmd(test_set, sample, metric="nspdk", is_hist=False, n_jobs=48)
                 ref_counts, gen_counts = None, None
             else:
-                ref, sample = fun(test_set), fun(sample)
-                ref_counts, gen_counts, ref_hist, gen_hist = normalize(ref, sample)
+                ref_counts, gen_counts = fun(test_set), fun(sample)
+                ref_hist, gen_hist = normalize(ref_counts, gen_counts)
                 score = entropy(ref_hist + EPS, gen_hist + EPS)
             results.append({
                 "model": self.model_name,

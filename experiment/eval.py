@@ -53,7 +53,7 @@ def clustering_dist(samples, n_jobs=40):
 def orbit_worker(G):
     try:
         counts = orca(G)
-        return np.sum(counts, axis=0) / G.number_of_nodes()
+        return np.sum(counts, axis=1).reshape(-1)
     except Exception as e:
         return np.zeros(G.number_of_nodes())
 

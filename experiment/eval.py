@@ -52,12 +52,10 @@ def orbit_worker(G):
         sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
 
         with open("./utils/orca/graph.out", "r") as f:
-            count = []
             for line in f.readlines():
                 line = line.rstrip("\n")
                 line = [int(x) for x in line.split(" ")]
-                count.append(sum(line))
-            counts.extend(count)
+                counts.append(sum(line))
         return counts
     except:
         return [0]
@@ -80,20 +78,6 @@ def betweenness_dist(samples, n_jobs=40):
     counts = P(delayed(betweenness_worker)(G) for G in samples)
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
-
-
-def nspdk_dist(samples):
-    for i, G in enumerate(samples):
-        samples[i] = nx.convert_node_labels_to_integers(G)
-
-    return vectorize(samples, complexity=4, discrete=True)
-
-
-def random_sample(graphs, n=100):
-    if n >= len(graphs):
-        return graphs
-    indices = np.random.choice(len(graphs), n, replace=False)
-    return [graphs[i] for i in indices]
 
 
 def load_test_set(dataset):
@@ -149,6 +133,6 @@ def normalize(ref_counts, gen_counts, bins=100, norm=True):
         m1, m2 = min(ref_counts.min(), gen_counts.min()), max(ref_counts.max(), gen_counts.max())
         ref_counts = (ref_counts - m1) / (m2 - m1 + 1e-8)
         gen_counts = (gen_counts - m1) / (m2 - m1 + 1e-8)
-    ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-    gen_hist, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
+    ref_hist, _ = np.histogram(ref_counts, bins=bins, density=False)
+    gen_hist, _ = np.histogram(gen_counts, bins=bins, density=False)
     return ref_hist, gen_hist

@@ -18,7 +18,6 @@ def plot_kde():
     datasets = [HUMANIZE[d] for d in DATASETS]
 
     data = collate_results()
-    data.to_csv("a.csv")
     data = data[data.Model.isin(models)]
 
     g = sns.displot(

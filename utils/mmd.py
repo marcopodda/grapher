@@ -90,7 +90,7 @@ def nspdk(X, Y, n_jobs=None):
     # print('Compute_mmd', inspect.ArgSpec(compute_mmd))
     # print("-----------------------", len(samples1), len(samples2))
 
-    X = pairwise_kernels(X, X, metric='linear', n_jobs=n_jobs)
-    Y = pairwise_kernels(Y, Y, metric='linear', n_jobs=n_jobs)
+    X = pairwise_kernels(X, metric='linear', n_jobs=n_jobs)
+    Y = pairwise_kernels(Y, metric='linear', n_jobs=n_jobs)
     Z = pairwise_kernels(X, Y, metric='linear', n_jobs=n_jobs)
     return np.average(X) + np.average(Y) - 2 * np.average(Z)

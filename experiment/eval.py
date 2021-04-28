@@ -121,7 +121,7 @@ def novelty(ref, samples, fast):
 
     P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(dup)(G, ref, fast) for G in samples)
-    return sum(counts) / len(counts)
+    return 1.0 - sum(counts) / len(counts)
 
 
 def uniqueness(samples, fast):
@@ -129,10 +129,10 @@ def uniqueness(samples, fast):
 
     P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(dup)(G, samples[i+1:], fast) for i, G in enumerate(samples[:-1]))
-    return sum(counts) / len(counts)
+    return 1.0 - sum(counts) / len(counts)
 
 
 def normalize(ref_counts, gen_counts, bins=100):
-    ref_hist, _ = np.histogram(ref_counts, bins=bins, density=False)
-    gen_hist, _ = np.histogram(gen_counts, bins=bins, density=False)
+    ref_hist, _ = np.histogram(ref_counts, bins=bins, density=True)
+    gen_hist, _ = np.histogram(gen_counts, bins=bins, density=True)
     return ref_hist, gen_hist

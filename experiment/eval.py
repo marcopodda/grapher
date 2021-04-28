@@ -133,8 +133,9 @@ def uniqueness(samples, fast):
 
 
 def normalize(ref_counts, gen_counts, bins=100):
-    ref_counts = (ref_counts - ref_counts.min()) / (ref_counts.max() - ref_counts.min() + 1e-8)
-    gen_counts = (gen_counts - gen_counts.min()) / (gen_counts.max() - gen_counts.min() + 1e-8)
+    m1, m2 = min(ref_counts.min(), gen_counts.min()), max(ref_counts.max(), gen_counts.max())
+    ref_counts = (ref_counts - m1) / (m2 - m1 + 1e-8)
+    gen_counts = (gen_counts - m1) / (m2 - m1 + 1e-8)
     ref_hist, _ = np.histogram(ref_counts, bins=bins, density=False)
     gen_hist, _ = np.histogram(gen_counts, bins=bins, density=False)
     return ref_hist, gen_hist

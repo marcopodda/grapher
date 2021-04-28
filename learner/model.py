@@ -2,7 +2,10 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+import networkx as nx
+
 from utils.constants import PAD, SOS, EOS
+from utils.graphs import max_connected_comp
 
 class RNN(nn.Module):
     def __init__(self, config, input_dim, embed_dim, hidden_dim, output_dim):
@@ -110,8 +113,9 @@ class Model(nn.Module):
             inputs, hs = self._sample_rnn1()
             outputs = self._sample_rnn2(inputs, hs[-1])
             edges = list(zip(inputs, outputs))
-
-            samples.append(edges)
+            G = nx.Graph(edges)
+            G = max_connected_comp(G)
+            samples.append(G)
         return samples
 
 

@@ -144,29 +144,28 @@ class EvaluatorBase:
         uniqueness_large = uniqueness(samples, fast=self.fast)
         return uniqueness_small, uniqueness_large
 
-    def evaluate_metric(self, metric, dataset, samples):
+    def evaluate_metric(self, metric, dataset, generated):
         fun = METRICS[metric]
 
         test_set = patch(dataset.get_data("test"))
-        samples = patch(samples)
+        generated = patch(generated)
 
         results = []
-        ref = fun(test_set)
         for _ in range(self.num_trials):
-            rsamples = random_sample(samples, n=len(test_set))
-            gen = fun(rsamples)
+            sample = random_sample(generated, n=len(test_set))
             if metric == "nspdk":
-                score = mmd.compute_mmd(test_set, rsamples, n_jobs=48)
-                ref_dist, gen_dist = None, None
+                score = mmd.compute_mmd(test_set, sample, metric="nspdk", is_hist=False, n_jobs=48)
+                ref_dist, sample_dist = None, None
             else:
-                ref_dist, gen_dist = normalize(ref, gen)
-                score = entropy(ref_dist + EPS, gen_dist + EPS)
+                ref, sample = fun(test_set), fun(sample)
+                ref_dist, sample_dist = normalize(ref, sample)
+                score = entropy(ref_dist + EPS, sample_dist + EPS)
             results.append({
                 "model": self.model_name,
                 "dataset": dataset.name,
                 "metric": metric,
                 "score": score,
-                "gen": gen_dist,
+                "gen": sample_dist,
                 "ref": ref_dist
             })
 

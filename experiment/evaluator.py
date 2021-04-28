@@ -113,8 +113,8 @@ class EvaluatorBase:
             print("\tGetting samples...", end=" ")
             start = time.time()
             P = Parallel(n_jobs=48, verbose=0)
-            # samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
-            samples = exp.sample(num_samples=self.num_samples)
+            samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
+            # samples = exp.sample(num_samples=self.num_samples)
             time_elapsed = time.time() - start
             with open(exp.root / "samples" / "elapsed.txt", "w") as f:
                 print(time_elapsed, file=f)

@@ -16,6 +16,7 @@ from .generators import community_graph_generator, ego_graph_generator, ladder_g
 from .graph import GraphList
 from .dataset import GraphDataset, GraphDataCollator
 from utils.serializer import load_yaml, save_yaml
+from utils.graphs import max_connected_comp
 from config import get_config_class
 
 
@@ -72,6 +73,7 @@ class DatasetManager:
     def get_data(self, name):
         indices = self.splits[name]
         graphs = operator.itemgetter(*indices)(self.data.graphlist)
+        graphs = [max_connected_comp(G) for G in graphs]
         return GraphList(graphs)
 
     def __len__(self):

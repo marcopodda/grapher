@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from .graph import encode_graph
 from utils.data import to_sorted_tensor, reverse_argsort, pad_left, pad_right
 from utils.constants import SOS, EOS
+from utils.graphs import max_connected_comp
 
 
 class GraphDataset(Dataset):
@@ -18,6 +19,7 @@ class GraphDataset(Dataset):
 
     def __getitem__(self, index):
         G = self.graphlist[index]
+        G = max_connected_comp(G)
         l1, l2 = encode_graph(G, self.config.order)
         return l1, l2
 

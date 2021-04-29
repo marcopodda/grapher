@@ -39,8 +39,8 @@ def degree_worker(G):
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(degree_worker)(G) for (i, G) in enumerate(samples))
-    counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    # counts = list(itertools.chain.from_iterable(counts))
+    return np.sum(counts, axis=0)
 
 
 def clustering_worker(G):

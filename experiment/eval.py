@@ -58,15 +58,18 @@ def orbit_worker(G):
                 line = [int(x) for x in line.split(" ")]
                 counts.append(sum(line))
         num_nodes = G.number_of_nodes()
-        return [c / 15 for c in counts]
+        return [c for c in counts]
     except:
         return [0]
 
 
 def orbit_dist(samples, n_jobs=40):
-    P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(orbit_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
+    counts = []
+    for G in samples:
+        counts.extend(orbit_worker(G))
+    # P = Parallel(n_jobs=n_jobs, verbose=0)
+    # counts = P(delayed(orbit_worker)(G) for G in samples)
+    # counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 

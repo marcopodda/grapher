@@ -1,14 +1,10 @@
 from os import replace
 import torch
-import networkx as nx
 import numpy as np
 import pandas as pd
 
-from statistics import mean, stdev
+from utils.constants import DATASET_NAMES, RUNS_DIR, HUMANIZE
 
-from utils.constants import DATASET_NAMES, ORDER_DIR, RUNS_DIR, ROOT, HUMANIZE
-from utils.evaluation import nspdk
-from utils.serializer import load_yaml, save_yaml
 
 ORDERS = ["bfs-fixed", "random", "dfs-random", "bfs-random", "dfs-fixed", "smiles"]
 MODELS = ["BA", "ER", "GRU", "GRAPHRNN", "GRAPHER"]

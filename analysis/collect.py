@@ -15,33 +15,6 @@ MODELS = ["BA", "ER", "GRU", "GRAPHRNN", "GRAPHER"]
 DATASETS = ["ladders", "community", "ego", "trees", "ENZYMES", "PROTEINS_full"]
 QUAL_METRICS = ["degree", "clustering", "orbit", "betweenness", "nspdk"]
 QUANT_METRICS = ["novelty1000", "novelty5000", "uniqueness1000", "uniqueness5000"]
-ALL_METRICS = QUAL_METRICS + QUANT_METRICS
-
-
-def load_result(root, model, dataset):
-    path = root / model / dataset / "results" / f"results.pt"
-    return torch.load(path)
-
-
-def collate_experiments():
-    all_data = []
-
-    for model in MODELS:
-        for dataset in DATASETS:
-            result = load_result(RUNS_DIR, model, dataset)
-
-            for metric in QUAL_METRICS:
-                m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"Model": HUMANIZE[model], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
-                all_data.append(row)
-
-            for metric in QUANT_METRICS:
-                m = result[metric]
-                row = {"Model": HUMANIZE[model], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": None}
-                all_data.append(row)
-
-    all_data = pd.DataFrame(all_data)
-    return all_data
 
 
 def collate_metric(metric_data):
@@ -67,61 +40,6 @@ def compute_mean(res, metric):
     for i in range(len(res[metric])):
         values.append(res[metric][i]["score"])
     return np.mean(values), np.std(values)
-
-
-def collate_model_result(model):
-    rows = []
-    for dataset in DATASETS:
-        result = torch.load(f"RUNS/{model}/{dataset}/results/results.pt")
-        for metric in QUAL_METRICS:
-            mean, std = compute_mean(result, metric)
-            value = f"{mean:.3f} ({std:.3f})"
-            row = dict()
-            row["dataset"] = dataset
-            row["metric"] = metric
-            row["value"] = value
-            rows.append(row)
-    return pd.DataFrame(rows)
-
-
-def collate_dataset_result(dataset):
-    rows = []
-    for model in MODELS:
-        result = torch.load(f"RUNS/{model}/{dataset}/results/results.pt")
-        for metric in QUAL_METRICS:
-            mean, std = compute_mean(result, metric)
-            value = f"{mean:.3f}" + "{\scriptsize " + f"({std:.3f})" + "}"
-            rows.append(dict(dataset=dataset, metric=metric, value=value))
-    return pd.DataFrame(rows)
-
-
-def collate_order_dataset_result(dataset):
-    rows = []
-    for order in ORDERS[1:]:
-        if order == "smiles" and dataset not in ["PROTEINS_full", "ENZYMES"]:
-            continue
-        result = torch.load(f"RUNS/ORDER/{order}/{dataset}/results/results.pt")
-        for metric in QUAL_METRICS:
-            mean, std = compute_mean(result, metric)
-            value = f"{mean:.3f} ({std:.3f})"
-            rows.append(dict(dataset=dataset, metric=metric, value=value))
-    return pd.DataFrame(rows)
-
-
-def collate_row(dataset, metric):
-    df = collate_dataset_result(dataset)
-    df = df[df.metric==metric].T
-    row = df.loc["value",:]
-    score = row.values.tolist()
-    print(" & ".join(score) + "\\\\")
-
-
-def collate_order_row(dataset, metric):
-    df = collate_order_dataset_result(dataset)
-    df = df[df.metric==metric].T
-    row = df.loc["value",:]
-    score = row.values.tolist()
-    print(" & ".join(score) + "\\\\")
 
 
 def collate_results():
@@ -154,26 +72,44 @@ def collate_results():
     return pd.DataFrame(rows)
 
 
+def collate_dataset_result(dataset):
+    rows = []
+    for model in MODELS:
+        result = torch.load(f"RUNS/{model}/{dataset}/results/results.pt")
+        for metric in QUAL_METRICS:
+            mean, std = compute_mean(result, metric)
+            value = f"{mean:.3f} ({std:.3f})"
+            rows.append(dict(dataset=dataset, metric=metric, value=value))
+    return pd.DataFrame(rows)
 
-def collate_order_experiments():
-    all_data = []
 
-    for order in ORDERS:
-        for dataset in ["trees"]:
-            if order == "smiles" and dataset not in ["PROTEINS_full", "ENZYMES"]:
-                continue
+def collate_dataset_row(dataset, metric):
+    df = collate_dataset_result(dataset)
+    df = df[df.metric==metric].T
+    row = df.loc["value",:]
+    score = row.values.tolist()
+    print(" & ".join(score) + "\\\\")
 
-            if order == "bfs-fixed":
-                result = load_result(RUNS_DIR, "GRAPHER", dataset)
-            else:
-                result = load_result(ORDER_DIR, order, dataset)
 
-            for metric in QUAL_METRICS:
-                m, s = result[metric]["mean"], result[metric]["std"]
-                row = {"Order": HUMANIZE[order], "Dataset": HUMANIZE[dataset], "Metric": HUMANIZE[metric], "avg": m, "stdev": s}
-                all_data.append(row)
+def collate_order_dataset_result(dataset):
+    rows = []
+    for order in ORDERS[1:]:
+        if order == "smiles" and dataset not in ["PROTEINS_full", "ENZYMES"]:
+            continue
+        result = torch.load(f"RUNS/ORDER/{order}/{dataset}/results/results.pt")
+        for metric in QUAL_METRICS:
+            mean, std = compute_mean(result, metric)
+            value = f"{mean:.3f} ({std:.3f})"
+            rows.append(dict(dataset=dataset, metric=metric, value=value))
+    return pd.DataFrame(rows)
 
-    return pd.DataFrame(all_data)
+
+def collate_order_row(dataset, metric):
+    df = collate_order_dataset_result(dataset)
+    df = df[df.metric==metric].T
+    row = df.loc["value",:]
+    score = row.values.tolist()
+    print(" & ".join(score) + "\\\\")
 
 
 def parse_log(path):

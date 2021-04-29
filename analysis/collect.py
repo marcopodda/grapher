@@ -13,7 +13,7 @@ from utils.serializer import load_yaml, save_yaml
 ORDERS = ["bfs-fixed", "dfs-fixed", "bfs-random", "dfs-random", "random", "smiles"]
 MODELS = ["BA", "ER", "GRU", "GRAPHRNN", "GRAPHER"]
 DATASETS = ["ladders", "community", "ego", "ENZYMES", "PROTEINS_full", "trees"]
-QUAL_METRICS = ["betweenness", "clustering", "degree", "orbit", "nspdk"]
+QUAL_METRICS = ["degree", "clustering", "orbit", "betweenness", "nspdk"]
 QUANT_METRICS = ["novelty1000", "novelty5000", "uniqueness1000", "uniqueness5000"]
 ALL_METRICS = QUAL_METRICS + QUANT_METRICS
 
@@ -61,6 +61,35 @@ def collate_metric(metric_data):
         "gen": np.array(gens).mean(axis=0).round()
     }
 
+
+def compute_mean(res, metric):
+    values = []
+    for i in range(len(res[metric])):
+        values.append(res[metric][i]["score"])
+    return np.mean(values), np.std(values)
+
+
+def collate_model_result(model):
+    rows = []
+    for dataset in DATASETS:
+        result = torch.load(f"RUNS/{model}/{dataset}/results/results.pt")
+        for metric in QUAL_METRICS:
+            mean, std = compute_mean(result, metric)
+            value = f"{mean:.3f} ({std:.3f})"
+            row = dict()
+            row["dataset"] = dataset
+            row["metric"] = metric
+            row["value"] = value
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def collate_row(model, metric):
+    df = collate_model_result(model)
+    df = df[df.metric==metric].T
+    row = df.loc["value",:]
+    score = row.values.tolist()
+    print(" & ".join(score) + "\\\\")
 
 
 def collate_results():

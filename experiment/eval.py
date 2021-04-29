@@ -1,25 +1,11 @@
 import itertools
-import subprocess as sp
-import torch
 import numpy as np
 import networkx as nx
-from pathlib import Path
 from joblib import Parallel, delayed
-from functools import partial
-from eden.graph import vectorize
 
-from utils import mmd
-from utils.serializer import load_yaml
-from utils.constants import RUNS_DIR, DATA_DIR
 from utils.evaluation import orca
 from utils.graphs import max_connected_comp
-from utils.misc import graph_to_file
 from joblib import Parallel, delayed
-
-
-def reorder(obj):
-    indices = sorted([o[0] for o in obj])
-    return list(itertools.chain.from_iterable([obj[i][1] for i in indices]))
 
 
 def patch(samples):
@@ -38,8 +24,7 @@ def degree_worker(G):
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(degree_worker)(G) for (i, G) in enumerate(samples))
-    # counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(degree_worker)(G) for G in samples)
     return np.sum(counts, axis=0)
 
 
@@ -52,8 +37,7 @@ def clustering_worker(G):
 
 def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(clustering_worker)(G) for (i, G) in enumerate(samples))
-    # counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(clustering_worker)(G) for G in samples)
     return np.sum(counts, axis=0)
 
 
@@ -68,22 +52,7 @@ def orbit_worker(G):
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(orbit_worker)(G) for (i, G) in enumerate(samples))
-    # counts = list(itertools.chain.from_iterable(counts))
-    return np.sum(counts, axis=0)
-
-
-def eigenc_worker(G):
-    eigenc = dict(nx.eigenvector_centrality(G))
-    eigenc = list(eigenc.values())
-    hist, _ = np.histogram(eigenc, bins=100, range=(0.0, 1.0), density=False)
-    return hist
-
-
-def eigenc_dist(samples, n_jobs=40):
-    P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(eigenc_worker)(G) for (i, G) in enumerate(samples))
-    # counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(orbit_worker)(G) for G in samples)
     return np.sum(counts, axis=0)
 
 
@@ -96,8 +65,7 @@ def betweenness_worker(G):
 
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(betweenness_worker)(G) for (i, G) in enumerate(samples))
-    # counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(betweenness_worker)(G) for G in samples)
     return np.sum(counts, axis=0)
 
 
@@ -141,13 +109,3 @@ def uniqueness(samples, fast):
     P = Parallel(n_jobs=48, verbose=0)
     counts = P(delayed(dup)(G, samples[i+1:], fast) for i, G in enumerate(samples[:-1]))
     return 1.0 - sum(counts) / len(counts)
-
-
-def normalize(ref_counts, gen_counts, bins=100, norm=True):
-    if norm:
-        m1, m2 = min(ref_counts.min(), gen_counts.min()), max(ref_counts.max(), gen_counts.max())
-        ref_counts = (ref_counts - m1) / (m2 - m1 + 1e-8)
-        gen_counts = (gen_counts - m1) / (m2 - m1 + 1e-8)
-    ref_hist, _ = np.histogram(ref_counts, bins=bins, range=(0.0, 1.0), density=False)
-    gen_hist, _ = np.histogram(gen_counts, bins=bins, range=(0.0, 1.0), density=False)
-    return ref_hist, gen_hist

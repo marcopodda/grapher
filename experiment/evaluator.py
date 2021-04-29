@@ -3,9 +3,7 @@ import time
 from joblib.parallel import Parallel, delayed
 import torch
 import numpy as np
-import networkx as nx
 from pathlib import Path
-from functools import partial
 from scipy.stats import entropy
 
 from dataset import load_dataset
@@ -19,8 +17,7 @@ from .eval import (
     patch,
     random_sample,
     novelty,
-    uniqueness,
-    normalize)
+    uniqueness)
 
 from utils import mmd
 from utils.constants import DATASET_NAMES, ORDER_NAMES

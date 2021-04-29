@@ -128,14 +128,12 @@ class GRUExperiment(BaseExperiment):
             print("Already trained, skipping.")
 
     def sample(self, num_samples):
-        if not (self.root / "ckpt" / "best.pt").exists():
-            config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
-            dataset = self.dataset_class(config, self.root, name=self.dataset)
-            trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
-            samples = trainer.sample(num_samples=num_samples)
-            return GraphList([clean_graph(e) for e in samples])
-        else:
-            print("Already trained, skipping.")
+        config = GRUConfig.from_file(self.root / "config" / f"config.yaml")
+        dataset = self.dataset_class(config, self.root, name=self.dataset)
+        trainer = GRUTrainer.load(config, self.root, dataset.input_dim, dataset.output_dim, best=True)
+        samples = trainer.sample(num_samples=num_samples)
+        return GraphList([clean_graph(e) for e in samples])
+
 
 class GraphRNNExperiment(BaseExperiment):
     model_name = "GRAPHRNN"

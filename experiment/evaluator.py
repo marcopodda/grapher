@@ -30,7 +30,6 @@ METRICS = {
     "clustering": clustering_dist,
     "orbit": orbit_dist,
     "betweenness": betweenness_dist,
-    "eigenc": eigenc_dist
 }
 
 

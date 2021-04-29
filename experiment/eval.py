@@ -59,7 +59,7 @@ def orbit_worker(i, G):
         return i, counts
     except Exception as e:
         print(e)
-        return i, [0]
+        return i, None
 
 
 def orbit_dist(samples, n_jobs=40):

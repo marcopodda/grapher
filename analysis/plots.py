@@ -29,7 +29,7 @@ DRAW_KWARGS = {
 }
 
 
-def plot_kde():
+def plot_kde(save_path="../phd-thesis/Figures/Chapter6/displot.eps"):
     plt.rcParams.update({ 'font.size': 20})
 
     models = ["Data", "Ours", "GraphRNN"]
@@ -61,10 +61,10 @@ def plot_kde():
     g.set_yticklabels(labels=[])
 
     plt.tight_layout()
-    plt.savefig("../phd-thesis/Figures/Chapter6/displot.eps", dpi=300)
+    plt.savefig(save_path, dpi=300)
 
 
-def plot_loss(log_path):
+def plot_loss(log_path, save_path="../phd-thesis/Figures/Chapter6/loss.eps"):
     log = parse_log(log_path)
     hue_order = ["BFS", "DFS", "RANDOM", "BFS RANDOM", "DFS RANDOM", "SMILES"]
     g = sns.FacetGrid(log, col="Dataset", hue="Order", col_wrap=2, hue_order=hue_order, height=3, sharex=False)
@@ -73,7 +73,7 @@ def plot_loss(log_path):
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
 
     plt.tight_layout()
-    plt.savefig("../phd-thesis/Figures/Chapter6/loss.eps", dpi=300)
+    plt.savefig(save_path, dpi=300)
 
 
 def draw_ladder_graph(G, ax):
@@ -104,7 +104,7 @@ DRAW_FUNCS = {
 }
 
 
-def plot_samples(graphs_per_dataset=5):
+def plot_samples(graphs_per_dataset=5, save_path="../phd-thesis/Figures/Chapter6/samples.eps"):
     num_datasets = len(DATASETS)
     col_offset = graphs_per_dataset + 1
 
@@ -158,4 +158,4 @@ def plot_samples(graphs_per_dataset=5):
     axs[0][pos_center + graphs_per_dataset + 1].set_title("GENERATED")
 
     plt.tight_layout()
-    plt.savefig("../phd-thesis/Figures/Chapter6/samples.eps", dpi=300)
+    plt.savefig(save_path, dpi=300)

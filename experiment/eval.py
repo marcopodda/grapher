@@ -57,7 +57,7 @@ def clustering_dist(samples, n_jobs=40):
     return np.sum(counts, axis=0)
 
 
-def orbit_worker(i, G):
+def orbit_worker(G):
     try:
         counts = orca(G)
         counts = counts.sum(axis=0)
@@ -68,7 +68,21 @@ def orbit_worker(i, G):
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(orbit_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = P(delayed(orbit_worker)(G) for (i, G) in enumerate(samples))
+    # counts = list(itertools.chain.from_iterable(counts))
+    return np.sum(counts, axis=0)
+
+
+def eigenc_worker(G):
+    eigenc = dict(nx.eigenvector_centrality(G))
+    eigenc = list(eigenc.values())
+    hist, _ = np.histogram(eigenc, bins=100, range=(0.0, 1.0), density=False)
+    return hist
+
+
+def eigenc_dist(samples, n_jobs=40):
+    P = Parallel(n_jobs=n_jobs, verbose=0)
+    counts = P(delayed(eigenc_worker)(G) for (i, G) in enumerate(samples))
     # counts = list(itertools.chain.from_iterable(counts))
     return np.sum(counts, axis=0)
 

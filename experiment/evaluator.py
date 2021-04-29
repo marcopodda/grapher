@@ -13,6 +13,7 @@ from .experiment import load_experiment
 from .eval import (
     degree_dist,
     clustering_dist,
+    eigenc_dist,
     orbit_dist,
     betweenness_dist,
     patch,
@@ -33,6 +34,7 @@ METRICS = {
     "clustering": clustering_dist,
     "orbit": orbit_dist,
     "betweenness": betweenness_dist,
+    "eigenc": eigenc_dist
 }
 
 
@@ -119,6 +121,8 @@ class EvaluatorBase:
                 print("\tCalculating orbit counts...")
                 orbit = self.evaluate_metric('orbit', dataset, samples)
                 print("\tCalculating betweenness centrality...")
+                eigenc = self.evaluate_metric('eigenc', dataset, samples)
+                print("\tCalculating eigenvector centrality...")
                 betweenness = self.evaluate_metric('betweenness', dataset, samples)
                 print("\tCalculating NSPDK...")
                 nspdk = self.evaluate_metric('nspdk', dataset, samples)
@@ -127,6 +131,7 @@ class EvaluatorBase:
                     "clustering": clustering,
                     "orbit": orbit,
                     "betweenness": betweenness,
+                    "eigenc": eigenc,
                     "nspdk": nspdk
                 })
                 torch.save(result, path)

@@ -17,36 +17,42 @@ from utils.misc import graph_to_file
 from joblib import Parallel, delayed
 
 
+def reorder(obj):
+    indices = sorted(obj.keys())
+    return list(itertools.chain.from_iterable([obj[i] for i in indices]))
+
+
 def patch(samples):
     return [nx.convert_node_labels_to_integers(G) for G in samples]
 
 
-def degree_worker(G):
+def degree_worker(i, G):
     degrees = dict(nx.degree(G))
     degrees = list(degrees.values())
-    return degrees
+    return {i: degrees}
 
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(degree_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(degree_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = reorder(counts)
     return np.array(counts)
 
 
-def clustering_worker(G):
+def clustering_worker(i, G):
     clustering_coefs = dict(nx.clustering(G))
-    return list(clustering_coefs.values())
+    clustering_coefs = list(clustering_coefs.values())
+    return {i: clustering_coefs}
 
 
 def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(clustering_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(clustering_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = reorder(counts)
     return np.array(counts)
 
 
-def orbit_worker(G):
+def orbit_worker(i, G):
     try:
         counts = []
         graph_to_file(G, "./utils/orca/graph.in")
@@ -57,31 +63,29 @@ def orbit_worker(G):
                 line = line.rstrip("\n")
                 line = [int(x) for x in line.split(" ")]
                 counts.append(sum(line))
-        return counts
+        return {i: counts}
     except Exception as e:
         print(e)
-        return [0]
+        return {i: [0]}
 
 
 def orbit_dist(samples, n_jobs=40):
-    counts = []
-    for G in samples:
-        counts.extend(orbit_worker(G))
-    # P = Parallel(n_jobs=n_jobs, verbose=0)
-    # counts = P(delayed(orbit_worker)(G) for G in samples)
-    # counts = list(itertools.chain.from_iterable(counts))
+    P = Parallel(n_jobs=n_jobs, verbose=0)
+    counts = P(delayed(orbit_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = reorder(counts)
     return np.array(counts)
 
 
 def betweenness_worker(G):
     betweenness = dict(nx.betweenness_centrality(G))
-    return list(betweenness.values())
+    betweenness = list(betweenness.values())
+    return betweenness
 
 
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(betweenness_worker)(G) for G in samples)
-    counts = list(itertools.chain.from_iterable(counts))
+    counts = P(delayed(betweenness_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = reorder(counts)
     return np.array(counts)
 
 

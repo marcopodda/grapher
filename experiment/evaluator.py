@@ -11,7 +11,6 @@ from .experiment import load_experiment
 from .eval import (
     degree_dist,
     clustering_dist,
-    eigenc_dist,
     orbit_dist,
     betweenness_dist,
     patch,

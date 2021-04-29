@@ -76,10 +76,10 @@ class EvaluatorBase:
                     print("\tCalculating uniqueness...")
                     uniqueness_small, uniqueness_large = self.evaluate_uniqueness(samples)
                     result.update(**{
-                        f"novelty{self.num_samples}": novelty_large,
-                        f"uniqueness{self.num_samples}": uniqueness_large,
-                        f"novelty{self.num_samples_small}": novelty_small,
-                        f"uniqueness{self.num_samples_small}": uniqueness_small,
+                        f"novelty5000": novelty_large,
+                        f"uniqueness5000": uniqueness_large,
+                        f"novelty1000": novelty_small,
+                        f"uniqueness1000": uniqueness_small,
                     })
                 print("\tCalculating degree distribution...")
                 degree = self.evaluate_metric('degree', dataset, samples)

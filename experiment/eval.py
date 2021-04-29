@@ -27,7 +27,7 @@ def patch(samples):
 
 
 def pad(v, maxlen=100):
-    w = torch.zeros(maxlen)
+    w = np.zeros(maxlen)
     w[:len(v)] = v
     return w.tolist()
 

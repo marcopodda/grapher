@@ -12,6 +12,7 @@ from utils import mmd
 from utils.serializer import load_yaml
 from utils.constants import RUNS_DIR, DATA_DIR
 from utils.evaluation import orca
+from utils.graphs import max_connected_comp
 from utils.misc import graph_to_file
 from joblib import Parallel, delayed
 
@@ -89,6 +90,7 @@ def random_sample(graphs, n=100):
 
 
 def clean_graph(G):
+    G = max_connected_comp(G)
     G.remove_edges_from(nx.selfloop_edges(G))
     G = nx.relabel_nodes(G, {n: i for (i, n) in enumerate(G.nodes())})
     return G

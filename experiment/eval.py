@@ -18,8 +18,8 @@ from joblib import Parallel, delayed
 
 
 def reorder(obj):
-    indices = sorted(obj.keys())
-    return list(itertools.chain.from_iterable([obj[i] for i in indices]))
+    indices = sorted([o[0] for o in obj])
+    return list(itertools.chain.from_iterable([obj[i][1] for i in indices]))
 
 
 def patch(samples):
@@ -29,7 +29,7 @@ def patch(samples):
 def degree_worker(i, G):
     degrees = dict(nx.degree(G))
     degrees = list(degrees.values())
-    return {i: degrees}
+    return i, degrees
 
 
 def degree_dist(samples, n_jobs=40):
@@ -42,7 +42,7 @@ def degree_dist(samples, n_jobs=40):
 def clustering_worker(i, G):
     clustering_coefs = dict(nx.clustering(G))
     clustering_coefs = list(clustering_coefs.values())
-    return {i: clustering_coefs}
+    return i, clustering_coefs
 
 
 def clustering_dist(samples, n_jobs=40):
@@ -63,10 +63,10 @@ def orbit_worker(i, G):
                 line = line.rstrip("\n")
                 line = [int(x) for x in line.split(" ")]
                 counts.append(sum(line))
-        return {i: counts}
+        return i, counts
     except Exception as e:
         print(e)
-        return {i: [0]}
+        return i, [0]
 
 
 def orbit_dist(samples, n_jobs=40):
@@ -76,10 +76,10 @@ def orbit_dist(samples, n_jobs=40):
     return np.array(counts)
 
 
-def betweenness_worker(G):
+def betweenness_worker(i, G):
     betweenness = dict(nx.betweenness_centrality(G))
     betweenness = list(betweenness.values())
-    return betweenness
+    return i, betweenness
 
 
 def betweenness_dist(samples, n_jobs=40):

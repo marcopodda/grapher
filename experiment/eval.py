@@ -26,29 +26,28 @@ def patch(samples):
     return [nx.convert_node_labels_to_integers(G) for G in samples]
 
 
-def degree_worker(i, G):
-    degrees = dict(nx.degree(G))
-    degrees = list(degrees.values())
-    return i, degrees
+def degree_worker(G):
+    return nx.degree_histogram(G)
 
 
 def degree_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(degree_worker)(i, G) for (i, G) in enumerate(samples))
-    counts = reorder(counts)
+    counts = P(delayed(degree_worker)(G) for (i, G) in enumerate(samples))
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
-def clustering_worker(i, G):
+def clustering_worker(G):
     clustering_coefs = dict(nx.clustering(G))
     clustering_coefs = list(clustering_coefs.values())
-    return i, clustering_coefs
+    hist, _ = np.histogram(clustering_coefs, bins=100, range=(0.0, 1.0), density=False)
+    return hist
 
 
 def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(clustering_worker)(i, G) for (i, G) in enumerate(samples))
-    counts = reorder(counts)
+    counts = P(delayed(clustering_worker)(G) for (i, G) in enumerate(samples))
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
@@ -58,27 +57,27 @@ def orbit_worker(i, G):
         counts = counts.sum(axis=1)
         return i, counts
     except Exception as e:
-        print(e)
         return i, [0]
 
 
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(i, G) for (i, G) in enumerate(samples))
-    counts = reorder(counts)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 
-def betweenness_worker(i, G):
+def betweenness_worker(G):
     betweenness = dict(nx.betweenness_centrality(G))
     betweenness = list(betweenness.values())
-    return i, betweenness
+    hist, _ = np.histogram(betweenness, bins=100, range=(0.0, 1.0), density=False)
+    return hist
 
 
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(i, G) for (i, G) in enumerate(samples))
-    counts = reorder(counts)
+    counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 
 

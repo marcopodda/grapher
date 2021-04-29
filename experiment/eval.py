@@ -57,7 +57,7 @@ def orbit_worker(G):
                 line = [int(x) for x in line.split(" ")]
                 counts.append(sum(line))
         num_nodes = G.number_of_nodes()
-        return [c / num_nodes for c in counts]
+        return [c / 15 for c in counts]
     except:
         return [0]
 

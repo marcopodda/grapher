@@ -54,15 +54,8 @@ def clustering_dist(samples, n_jobs=40):
 
 def orbit_worker(i, G):
     try:
-        counts = []
-        graph_to_file(G, "./utils/orca/graph.in")
-        sp.check_output(['./utils/orca/orca.exe', 'node', '4', './utils/orca/graph.in', './utils/orca/graph.out'])
-
-        with open("./utils/orca/graph.out", "r") as f:
-            for line in f.readlines():
-                line = line.rstrip("\n")
-                line = [int(x) for x in line.split(" ")]
-                counts.append(sum(line))
+        counts = orca(G)
+        counts = counts.sum(axis=1)
         return i, counts
     except Exception as e:
         print(e)

@@ -83,9 +83,19 @@ def collate_model_result(model):
             rows.append(row)
     return pd.DataFrame(rows)
 
+def collate_dataset_result(dataset):
+    rows = []
+    for model in MODELS:
+        result = torch.load(f"RUNS/{model}/{dataset}/results/results.pt")
+        for metric in QUAL_METRICS:
+            mean, std = compute_mean(result, metric)
+            value = f"{mean:.3f}" + "{\scriptsize " + f"({std:.3f})" + "}"
+            rows.append(dict(dataset=dataset, metric=metric, value=value))
+    return pd.DataFrame(rows)
 
-def collate_row(model, metric):
-    df = collate_model_result(model)
+
+def collate_row(dataset, metric):
+    df = collate_dataset_result(dataset)
     df = df[df.metric==metric].T
     row = df.loc["value",:]
     score = row.values.tolist()

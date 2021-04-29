@@ -55,6 +55,7 @@ def orbit_worker(G):
             for line in f.readlines():
                 line = line.rstrip("\n")
                 line = [int(x) for x in line.split(" ")]
+                print("line", len(line))
                 counts.append(sum(line))
         return counts
     except:

@@ -112,11 +112,9 @@ def plot_samples(graphs_per_dataset=5, save_path="../phd-thesis/Figures/Chapter6
         indices = np.random.choice(len(graphs), num_samples, replace=False)
         return [graphs[i] for i in indices]
 
-
     def load_generated_samples(dataset, num_samples):
         samples = torch.load(f"RUNS/GRAPHER/{dataset}/samples/samples.pt")
         return random_sample(samples, num_samples)
-
 
     def load_real_samples(dataset, num_samples):
         samples = torch.load(f"RUNS/GRAPHER/{dataset}/data/{dataset}.pt").graphlist

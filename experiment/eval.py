@@ -26,8 +26,14 @@ def patch(samples):
     return [nx.convert_node_labels_to_integers(G) for G in samples]
 
 
+def pad(v, maxlen=100):
+    w = torch.zeros(maxlen)
+    w[:len(v)] = v
+    return w.tolist()
+
+
 def degree_worker(G):
-    return nx.degree_histogram(G)
+    return pad(nx.degree_histogram(G))
 
 
 def degree_dist(samples, n_jobs=40):

@@ -82,7 +82,7 @@ def betweenness_worker(G):
 
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
-    counts = P(delayed(betweenness_worker)(i, G) for (i, G) in enumerate(samples))
+    counts = P(delayed(betweenness_worker)(G) for (i, G) in enumerate(samples))
     counts = list(itertools.chain.from_iterable(counts))
     return np.array(counts)
 

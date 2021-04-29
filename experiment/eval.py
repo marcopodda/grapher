@@ -53,8 +53,8 @@ def clustering_worker(G):
 def clustering_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(clustering_worker)(G) for (i, G) in enumerate(samples))
-    counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    # counts = list(itertools.chain.from_iterable(counts))
+    return np.sum(counts, axis=0)
 
 
 def orbit_worker(i, G):
@@ -69,8 +69,8 @@ def orbit_worker(i, G):
 def orbit_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(orbit_worker)(i, G) for (i, G) in enumerate(samples))
-    counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    # counts = list(itertools.chain.from_iterable(counts))
+    return np.sum(counts, axis=0)
 
 
 def betweenness_worker(G):
@@ -83,8 +83,8 @@ def betweenness_worker(G):
 def betweenness_dist(samples, n_jobs=40):
     P = Parallel(n_jobs=n_jobs, verbose=0)
     counts = P(delayed(betweenness_worker)(G) for (i, G) in enumerate(samples))
-    counts = list(itertools.chain.from_iterable(counts))
-    return np.array(counts)
+    # counts = list(itertools.chain.from_iterable(counts))
+    return np.sum(counts, axis=0)
 
 
 def random_sample(graphs, n=100):

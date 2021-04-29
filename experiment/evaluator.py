@@ -47,8 +47,8 @@ class EvaluatorBase:
     def __init__(self, model_name):
         self.model_name = model_name
         self.num_samples = 600
-        self.num_samples_small = 600
-        self.num_trials = 1
+        self.num_samples_small = 100
+        self.num_trials = 3
         self.fast = model_name == "GRAPHER" or model_name in ORDER_NAMES
 
     def novelty_not_calculated(self, result):
@@ -107,20 +107,19 @@ class EvaluatorBase:
         time_elapsed = None
         filename = f"samples.pt"
 
-        # if not (exp.root / "samples" / filename).exists():
-        print("\tGetting samples...", end=" ")
-        start = time.time()
-        P = Parallel(n_jobs=48, verbose=0)
-        samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
-        # samples = exp.sample(num_samples=self.num_samples)
-        time_elapsed = time.time() - start
-        with open(exp.root / "samples" / "elapsed.txt", "w") as f:
-            print(time_elapsed, file=f)
-        samples = list(itertools.chain.from_iterable(samples))
-        torch.save(samples, exp.root / "samples" / filename)
-        print("Done.")
-        # else:
-        #     print("\tSamples ready.")
+        if not (exp.root / "samples" / filename).exists():
+            print("\tGetting samples...", end=" ")
+            start = time.time()
+            P = Parallel(n_jobs=48, verbose=0)
+            samples = P(delayed(exp.sample)(1) for _ in range(self.num_samples))
+            time_elapsed = time.time() - start
+            with open(exp.root / "samples" / "elapsed.txt", "w") as f:
+                print(time_elapsed, file=f)
+            samples = list(itertools.chain.from_iterable(samples))
+            torch.save(samples, exp.root / "samples" / filename)
+            print("Done.")
+        else:
+            print("\tSamples ready.")
 
         samples = torch.load(exp.root / "samples" / filename)
         return [G for G in samples if G.number_of_nodes() > 1 and G.number_of_edges() > 0]

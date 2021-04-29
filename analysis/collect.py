@@ -10,9 +10,9 @@ from utils.constants import DATASET_NAMES, ORDER_DIR, RUNS_DIR, ROOT, HUMANIZE
 from utils.evaluation import nspdk
 from utils.serializer import load_yaml, save_yaml
 
-ORDERS = ["bfs-fixed", "dfs-fixed", "bfs-random", "dfs-random", "random", "smiles"]
+ORDERS = ["bfs-fixed", "random", "dfs-random", "bfs-random", "dfs-fixed", "smiles"]
 MODELS = ["BA", "ER", "GRU", "GRAPHRNN", "GRAPHER"]
-DATASETS = ["ladders", "community", "ego", "ENZYMES", "PROTEINS_full", "trees"]
+DATASETS = ["ladders", "community", "ego", "trees", "ENZYMES", "PROTEINS_full"]
 QUAL_METRICS = ["degree", "clustering", "orbit", "betweenness", "nspdk"]
 QUANT_METRICS = ["novelty1000", "novelty5000", "uniqueness1000", "uniqueness5000"]
 ALL_METRICS = QUAL_METRICS + QUANT_METRICS
@@ -83,6 +83,7 @@ def collate_model_result(model):
             rows.append(row)
     return pd.DataFrame(rows)
 
+
 def collate_dataset_result(dataset):
     rows = []
     for model in MODELS:
@@ -94,8 +95,29 @@ def collate_dataset_result(dataset):
     return pd.DataFrame(rows)
 
 
+def collate_order_dataset_result(dataset):
+    rows = []
+    for order in ORDERS[1:]:
+        if order == "smiles" and dataset not in ["PROTEINS_full", "ENZYMES"]:
+            continue
+        result = torch.load(f"RUNS/ORDER/{order}/{dataset}/results/results.pt")
+        for metric in QUAL_METRICS:
+            mean, std = compute_mean(result, metric)
+            value = f"{mean:.3f} ({std:.3f})"
+            rows.append(dict(dataset=dataset, metric=metric, value=value))
+    return pd.DataFrame(rows)
+
+
 def collate_row(dataset, metric):
     df = collate_dataset_result(dataset)
+    df = df[df.metric==metric].T
+    row = df.loc["value",:]
+    score = row.values.tolist()
+    print(" & ".join(score) + "\\\\")
+
+
+def collate_order_row(dataset, metric):
+    df = collate_order_dataset_result(dataset)
     df = df[df.metric==metric].T
     row = df.loc["value",:]
     score = row.values.tolist()

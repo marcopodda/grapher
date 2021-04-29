@@ -5,6 +5,7 @@ from utils.constants import HUMANIZE
 from analysis.collect import parse_log, collate_results, QUAL_METRICS, DATASETS
 
 plt.rcParams.update({
+    # 'font.size': 20,
     "pgf.texsystem": "pdflatex",
     'font.family': 'serif',
     'text.usetex': True,
@@ -19,7 +20,7 @@ def plot_kde():
 
     data = collate_results()
     data = data[data.Model.isin(models)]
-    data = data[data.Value>0]
+    # data = data[data.Value>0]
 
     g = sns.displot(
         x="Value", hue="Model", row="Dataset", col="Metric", kind="kde",
@@ -38,8 +39,11 @@ def plot_kde():
         g.axes[i,0].set_ylabel(dataset)
 
     g.set_titles(template="", col_template="", row_template="")
-    plt.savefig("displot.eps")
-    plt.clf()
+    g.set_xticklabels(labels=[])
+    g.set_yticklabels(labels=[])
+
+    plt.tight_layout()
+    plt.savefig("../phd-thesis/Figures/Chapter6/displot.eps", dpi=300)
 
 
 def plot_loss(log_path):
@@ -49,4 +53,6 @@ def plot_loss(log_path):
     g.map(sns.lineplot, "Epoch", "Loss")
     g.add_legend()
     g.set_titles(col_template="{col_name}", row_template="{row_name}")
-    plt.savefig("loss.eps")
+
+    plt.tight_layout()
+    plt.savefig("../phd-thesis/Figures/Chapter6/loss.eps", dpi=300)

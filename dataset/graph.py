@@ -117,9 +117,6 @@ def bfs_order(G, start_id):
 
 def encode_graph(G, order):
     G = max_connected_comp(G)
-    mapping = {n: i for (i, n) in enumerate(G.nodes(), 3)}
-    G = nx.relabel_nodes(G, mapping)
-
     nodes_list = list(G.nodes())
 
     if order == "bfs-fixed":
@@ -144,7 +141,9 @@ def encode_graph(G, order):
     else:
         raise ValueError
        
-    mapping = {n: i for (i, n) in enumerate(seq)}
+    # start from 3 because we are also counting pad, sos and eos tokens
+    mapping = {n: i for (i, n) in enumerate(seq, 3)}
+
     G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()

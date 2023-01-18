@@ -143,6 +143,9 @@ def encode_graph(G, order):
         seq = nodes_list
     else:
         raise ValueError
+       
+    mapping = {n: i for (i, n) in enumerate(seq)}
+    G = nx.relabel_nodes(G, mapping)
 
     edges = G.edges()
     if order != "smiles":
